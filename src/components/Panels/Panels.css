@@ -1,0 +1,90 @@
+.config-panel, .info-panel {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(10px);
+
+    width: 350px;
+    padding: 10px;
+    border: 2px solid #BB487C;
+    border-radius: 20px;
+    margin-bottom: 20px;
+
+    color: #BB487C;
+}
+
+h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-style: normal;
+    font-size: 30px;
+    line-height: 1;
+    letter-spacing: 0.3px;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.item {
+    margin-left: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.left-part-item {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.subtitle {
+    margin: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.subtitle .left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+h2 {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+    font-style: normal;
+    font-size: 24.15px;
+    line-height: 1;
+    margin: 0;
+}
+
+h3 {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+    font-style: normal;
+    font-size: 14.59px;
+    line-height: 1;
+    letter-spacing: 0;
+    margin: 0;
+}
+
+.icon {
+    height: 30px;
+    width: auto;
+}
+
+.reorder-icon {
+    height: 20px;
+    width: 20px;
+}
+
+.hour {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
+    font-style: normal;
+    font-size: 15px;
+    line-height: 1;
+    text-align: right;
+    margin-left: auto;
+}
