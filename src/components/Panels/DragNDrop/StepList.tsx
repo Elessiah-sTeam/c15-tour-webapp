@@ -27,7 +27,7 @@ type Props = {
     setCategories: CategorySetter;
 }
 
-export default function DndList({categories, setCategories}: Props) {
+export default function StepList({categories, setCategories}: Props) {
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
     );

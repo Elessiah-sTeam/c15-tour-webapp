@@ -1,7 +1,7 @@
 import SubTitleWHour from "./SubTitleWHour.tsx";
 import "./Panels.css";
 import type {DndCat} from "../../dndTypes.ts";
-import DndList from "./DragNDrop/DndList.tsx";
+import StepList from "./DragNDrop/StepList.tsx";
 import {useState} from "react";
 
 
@@ -50,7 +50,7 @@ export default function Route() {
     return (
         <div>
             <SubTitleWHour tag={"h2"} imgPath={"/icons/depart-icon.png"} txt={"Départ"} hour={now}/>
-            <DndList categories={categories} setCategories={setCategories} />
+            <StepList categories={categories} setCategories={setCategories} />
             <SubTitleWHour tag={"h2"} imgPath={"/icons/depart-icon.png"} txt={"Arrivée"} hour={now}/>
         </div>
     );
