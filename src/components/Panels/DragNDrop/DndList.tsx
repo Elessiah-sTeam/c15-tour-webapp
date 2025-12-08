@@ -4,7 +4,7 @@ import {
     closestCenter,
     PointerSensor,
     useSensor,
-    useSensors
+    useSensors, type DragStartEvent
 } from "@dnd-kit/core";
 
 import type { DragEndEvent } from "@dnd-kit/core";
@@ -15,9 +15,10 @@ import {
     arrayMove
 } from "@dnd-kit/sortable";
 
-import {type Dispatch, type SetStateAction} from "react";
+import {type Dispatch, type SetStateAction, useState} from "react";
 import type { DndCat, DndItem } from "../../../dndTypes";
 import SortableCategory from "./SortableCategory";
+import SortablePDP from "./SortablePDP.tsx";
 
 type CategorySetter = Dispatch<SetStateAction<DndCat[]>>;
 
@@ -31,8 +32,27 @@ export default function DndList({categories, setCategories}: Props) {
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
     );
 
+
+    const [activeItem, setActiveItem] = useState<DndItem | null>(null);
+
+    function handleDragStart(event: DragStartEvent) {
+        const {active} = event;
+        const type = active.data.current?.type;
+
+        if (type === "item") {
+            const catId: string = active.data.current?.categoryId;
+            const item: DndItem | undefined = categories.find(c => c.id === catId)?.items.find(i => i.id === active.id);
+            if (item) {
+                setActiveItem(item);
+            }
+        }
+    }
+
     function handleDragEnd(event: DragEndEvent) {
         const { active, over } = event;
+
+        setActiveItem(activeItem);
+
         if (!over)
             return;
 
@@ -55,8 +75,6 @@ export default function DndList({categories, setCategories}: Props) {
                 console.error("Missing source or destination category id");
                 return null;
             }
-
-            console.log("srcCategory: ", srcCategory, "destCategory: ", destCategory);
 
             setCategories((prev: DndCat[]): DndCat[] => {
                 const newCats: DndCat[] = structuredClone(prev);
@@ -97,6 +115,7 @@ export default function DndList({categories, setCategories}: Props) {
         <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
         >
             <SortableContext
@@ -107,6 +126,12 @@ export default function DndList({categories, setCategories}: Props) {
                     <SortableCategory key={cat.id} category={cat}/>
                 ))}
             </SortableContext>
+
+            <DragOverlay>
+                {activeItem ? (
+                    <SortablePDP item={activeItem} categoryId={"overlay"} />
+                ) : null}
+            </DragOverlay>
         </DndContext>
     );
 }
