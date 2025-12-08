@@ -5,11 +5,12 @@ import Item from "../Item.tsx";
 import SubTitleWHour from "../SubTitleWHour.tsx";
 
 type Props = {
+    visible: boolean,
     item: DndItem;
     categoryId: string;
 };
 
-export default function SortablePDP({item, categoryId}: Props) {
+export default function SortablePDP({visible, item, categoryId}: Props) {
     const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
         id: item.id,
         data: { type: "item", categoryId}
@@ -19,7 +20,7 @@ export default function SortablePDP({item, categoryId}: Props) {
       <div
           ref={setNodeRef}
           className={"item-row"}
-          style={{ transform: CSS.Translate.toString(transform), transition }}
+          style={{ transform: CSS.Translate.toString(transform), transition, opacity: visible ? 1 : 0 }}
           {...attributes}
           {...listeners}
       >

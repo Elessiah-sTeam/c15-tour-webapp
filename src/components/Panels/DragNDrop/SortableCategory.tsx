@@ -1,10 +1,10 @@
 import { SortableContext, verticalListSortingStrategy} from "@dnd-kit/sortable";
 import SortableStepHeader from "./SortableStepHeader.tsx";
 import SortablePDP from "./SortablePDP.tsx";
-import type { DndCat } from "../../../dndTypes.ts";
+import type {DndCat} from "../../../dndTypes.ts";
 import {EmptyDropZone} from "./EmptyDropZone.tsx";
 
-export default function SortableCategory({ category }: { category: DndCat }) {
+export default function SortableCategory({ category, idActiveItem }: { category: DndCat, idActiveItem: string  | null }) {
     return (
         <div className={"category-box"}>
             <SortableStepHeader category={category} />
@@ -14,7 +14,7 @@ export default function SortableCategory({ category }: { category: DndCat }) {
                 strategy={verticalListSortingStrategy}
             >
                 {category.items.length > 0 ? category.items.map((item) => (
-                    <SortablePDP key={item.id} item={item} categoryId={category.id} />
+                    <SortablePDP key={item.id} visible={!(item.id === idActiveItem)} item={item} categoryId={category.id} />
                 )) :
                 <EmptyDropZone categoryId={category.id}/>}
             </SortableContext>

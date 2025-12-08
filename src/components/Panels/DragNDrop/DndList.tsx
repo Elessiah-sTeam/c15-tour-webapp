@@ -48,10 +48,8 @@ export default function DndList({categories, setCategories}: Props) {
         }
     }
 
-    function handleDragEnd(event: DragEndEvent) {
+    function handleDragMove(event: DragEndEvent) {
         const { active, over } = event;
-
-        setActiveItem(activeItem);
 
         if (!over)
             return;
@@ -61,11 +59,11 @@ export default function DndList({categories, setCategories}: Props) {
 
         if (activeType === "category" && overType === "category") {
             setCategories((prev) => {
-               const oldIndex: number = prev.findIndex((c) => c.id === active.id);
-               const newIndex: number = prev.findIndex((c) => c.id === over.id);
-               if (oldIndex === -1 || newIndex === -1)
-                   return prev;
-               return arrayMove(prev, oldIndex, newIndex);
+                const oldIndex: number = prev.findIndex((c) => c.id === active.id);
+                const newIndex: number = prev.findIndex((c) => c.id === over.id);
+                if (oldIndex === -1 || newIndex === -1)
+                    return prev;
+                return arrayMove(prev, oldIndex, newIndex);
             });
         } else if (activeType === "item") {
             const srcCategory: string | undefined = active.data.current?.categoryId;
@@ -73,7 +71,7 @@ export default function DndList({categories, setCategories}: Props) {
 
             if (!srcCategory || !destCategory) {
                 console.error("Missing source or destination category id");
-                return null;
+                return;
             }
 
             setCategories((prev: DndCat[]): DndCat[] => {
@@ -93,8 +91,7 @@ export default function DndList({categories, setCategories}: Props) {
                 if (oldIndex == -1 || (newIndex == -1 && to == from)) {
                     console.error("Failed to find the index item of origin");
                     return newCats;
-                } else if (newIndex == -1)
-                {
+                } else if (newIndex == -1) {
                     newIndex = 0;
                 }
 
@@ -111,11 +108,17 @@ export default function DndList({categories, setCategories}: Props) {
         }
     }
 
+    function handleDragEnd(event: DragEndEvent) {
+        setActiveItem(null);
+        handleDragMove(event);
+    }
+
     return (
         <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
             onDragStart={handleDragStart}
+            onDragMove={handleDragMove}
             onDragEnd={handleDragEnd}
         >
             <SortableContext
@@ -123,13 +126,13 @@ export default function DndList({categories, setCategories}: Props) {
                 strategy={verticalListSortingStrategy}
             >
                 {categories.map((cat) => (
-                    <SortableCategory key={cat.id} category={cat}/>
+                    <SortableCategory key={cat.id} category={cat} idActiveItem={activeItem?.id ? activeItem.id : null}/>
                 ))}
             </SortableContext>
 
             <DragOverlay>
                 {activeItem ? (
-                    <SortablePDP item={activeItem} categoryId={"overlay"} />
+                    <SortablePDP visible={true} item={activeItem} categoryId={"overlay"} />
                 ) : null}
             </DragOverlay>
         </DndContext>
