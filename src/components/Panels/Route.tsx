@@ -36,7 +36,13 @@ export default function Route() {
             title: "Etape2",
             duration: duration,
             hour: now},
-        items: []
+        items: [{
+            id: "pdp-3",
+            content: {
+                title: "Point de passage 3",
+                duration: duration
+            }
+        }]
     }]
 
     const [categories, setCategories] = useState<DndCat[]>(exampleSteps);

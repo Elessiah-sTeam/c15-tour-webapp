@@ -56,6 +56,8 @@ export default function DndList({categories, setCategories}: Props) {
                 return null;
             }
 
+            console.log("srcCategory: ", srcCategory, "destCategory: ", destCategory);
+
             setCategories((prev: DndCat[]): DndCat[] => {
                 const newCats: DndCat[] = structuredClone(prev);
 
@@ -70,21 +72,18 @@ export default function DndList({categories, setCategories}: Props) {
                 const oldIndex: number = from.items.findIndex((i: DndItem): boolean => i.id === active.id);
                 let newIndex: number = to.items.findIndex((i: DndItem): boolean => i.id === over.id);
 
-                if (oldIndex === -1 || newIndex === -1) {
-                    console.error("Failed to find the index item of origin or destination");
+                if (oldIndex == -1 || (newIndex == -1 && to == from)) {
+                    console.error("Failed to find the index item of origin");
                     return newCats;
+                } else if (newIndex == -1)
+                {
+                    newIndex = 0;
                 }
 
-                console.log(`Before category (${from.items.length}):`, from.items);
                 const [moved] = from.items.splice(oldIndex, 1);
 
-                console.log(`updated category (${from.items.length}):`, from.items);
                 if (from === to) {
-                    const idsAfterRemove: string[] = from.items.map(i => i.id);
-                    newIndex = idsAfterRemove.findIndex((i: string): boolean => i == over.id);
-                    const insertIndex: number = newIndex > oldIndex ? newIndex - 1 : newIndex;
-                    console.log("oldIndex:", oldIndex, "newIndex:", newIndex, "insertIndex:", insertIndex);
-                    from.items.splice(insertIndex, 0, moved);
+                    from.items.splice(newIndex, 0, moved);
                 } else {
                     to.items.splice(newIndex, 0, moved);
                 }
