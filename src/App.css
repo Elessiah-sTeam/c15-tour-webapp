@@ -1,6 +1,7 @@
 .window {
     width: 100%;
     height: 100vh;
+    position: relative;
 }
 
 .panel {
@@ -8,4 +9,50 @@
     top: 20px;
     left: 20px;
     z-index: 9999;
+}
+
+.ping-control {
+    position: absolute;
+    top: 78px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid #bb487c;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
+    z-index: 20000;
+}
+
+.ping-button {
+    border: none;
+    background: #bb487c;
+    color: #ffffff;
+    font-family: "Montserrat", sans-serif;
+    font-weight: 800;
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: transform 120ms ease, box-shadow 120ms ease, opacity 120ms ease;
+}
+
+.ping-button:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(187, 72, 124, 0.35);
+}
+
+.ping-button:disabled {
+    opacity: 0.75;
+    cursor: wait;
+}
+
+.ping-status {
+    color: #bb487c;
+    font-family: "Montserrat", sans-serif;
+    font-weight: 700;
+    font-size: 12px;
 }
