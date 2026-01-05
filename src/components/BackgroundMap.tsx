@@ -2,6 +2,9 @@ import type { ReactNode } from "react";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import type { LatLngExpression } from "leaflet";
 import { c15Marker } from "../icons";
+import roadTour from "../assets/road_tour.svg";
+import byC15Tour from "../assets/by_c15_tour.svg";
+import logo from "../assets/logo.svg";
 import "./BackgroundMap.css";
 import "leaflet/dist/leaflet.css";
 
@@ -18,8 +21,18 @@ export default function BackgroundMap({
   searchLabel = "",
   children,
 }: BackgroundMapProps) {
+
   return (
     <div className="map-wrapper">
+      <div className="map-branding">
+        <img src={roadTour} alt="Roads Tour" className="brand-road" />
+        <img src={byC15Tour} alt="By C15 Tour" className="brand-by" />
+      </div>
+
+      <div className="map-logo">
+        <img src={logo} alt="C15 Tour" />
+      </div>
+
       <MapContainer
         center={initialPosition}
         zoom={13}
