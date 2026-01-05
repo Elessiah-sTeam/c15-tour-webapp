@@ -1,9 +1,8 @@
-import {useState} from "react";
 import './Panels.css';
 import Route from "./Route.tsx";
 
 export default function ConfigPanel() {
-    const [convoyName, setConvoyName] = useState('C15 Fiesta TOUR #1');
+    const convoyName = 'C15 Fiesta TOUR #1';
 
     return (
     <div className={"config-panel"}>
