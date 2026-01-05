@@ -93,12 +93,21 @@ export default function SearchBar({ onLocationSelected }: Props) {
         return;
       }
 
+<<<<<<< HEAD
       // Deduplicate by the human-readable name to avoid repeated lines
       const seenNames = new Set<string>();
       const unique = parsed.filter((item) => {
         const key = item.display_name.trim().toLowerCase();
         if (seenNames.has(key)) return false;
         seenNames.add(key);
+=======
+      // Deduplicate by display_name then coordinates to avoid duplicates between FR + world
+      const seen = new Set<string>();
+      const unique = parsed.filter((item) => {
+        const key = `${item.display_name}-${item.lat}-${item.lon}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+>>>>>>> 7d40df3 (Feat #18 : Ajout des recerches en dessous de la barre de recherche)
         return true;
       });
 
