@@ -102,3 +102,10 @@ h3 {
     text-align: right;
     margin-left: auto;
 }
+
+.total-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}

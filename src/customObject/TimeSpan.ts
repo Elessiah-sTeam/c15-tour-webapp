@@ -14,6 +14,17 @@ export type unitTimeSpan = {
     milliseconds: string;
 }
 
+export const TimespanOffset = {
+    DAYS: 0,
+    HOURS: 1,
+    MINUTES: 2,
+    SECONDS: 3,
+    MS: 4
+} as const;
+
+export type TimespanOffset =
+    typeof TimespanOffset[keyof typeof TimespanOffset];
+
 export class TimeSpan {
     private duration: number;
     private timespan: TimeSpanComposed;
@@ -43,31 +54,33 @@ export class TimeSpan {
         return this.timespan;
     }
 
-    toString(precision: number, units?: unitTimeSpan): string {
+    toString(precision: TimespanOffset = TimespanOffset.MINUTES, units?: unitTimeSpan): string {
         let result: string = '';
         if (!units)
             units = {days: ":", hours: ":", minutes: ":", seconds: ":", milliseconds: " "};
 
-        switch (true) {
-            // @ts-expect-error FallThrough attendu pour dérouler le résultat à partir de la précision
-            case this.timespan.days != 0:
-                result += this.timespan.days + units.days;
-            // @ts-expect-error FallThrough attendu pour dérouler le résultat à partir de la précision
-            case this.timespan.hours != 0 && precision > 0:
-                result += this.timespan.hours + units.hours;
-            // @ts-expect-error FallThrough attendu pour dérouler le résultat à partir de la précision
-            case this.timespan.minutes != 0 && precision > 1:
-                result += this.timespan.minutes + units.minutes;
-            // @ts-expect-error FallThrough attendu pour dérouler le résultat à partir de la précision
-            case this.timespan.seconds != 0 && precision > 2:
-                result += this.timespan.seconds + units.seconds;
-            // @ts-expect-error FallThrough attendu pour dérouler le résultat à partir de la précision
-            case this.timespan.milliseconds != 0 && precision > 3:
-                result += this.timespan.milliseconds + units.milliseconds;
-                break;
-            default:
-                break;
-        }
+        let start: TimespanOffset;
+        if (this.timespan.days != 0)
+            start = TimespanOffset.DAYS;
+        else if (this.timespan.hours != 0)
+            start = TimespanOffset.HOURS;
+        else if (this.timespan.minutes != 0)
+            start = TimespanOffset.HOURS;
+        else if (this.timespan.seconds != 0)
+            start = TimespanOffset.SECONDS;
+        else
+            start = TimespanOffset.MS;
+
+        if (start == TimespanOffset.DAYS)
+            result += this.timespan.days + units.days;
+        if ((start >= TimespanOffset.HOURS && precision > TimespanOffset.HOURS) || precision == TimespanOffset.HOURS)
+            result += this.timespan.hours + units.hours;
+        if ((start >= TimespanOffset.MINUTES && precision > TimespanOffset.MINUTES) || precision == TimespanOffset.MINUTES)
+            result += this.timespan.minutes + units.minutes;
+        if ((start >= TimespanOffset.SECONDS && precision > TimespanOffset.SECONDS) || precision == TimespanOffset.SECONDS)
+            result += this.timespan.seconds + units.seconds;
+        if ((start >= TimespanOffset.MS && precision > TimespanOffset.MS) || precision == TimespanOffset.MS)
+            result += this.timespan.milliseconds + units.milliseconds;
         return result;
     }
 
