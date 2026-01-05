@@ -79,3 +79,51 @@
   font-size: 12px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
 }
+
+.search-results {
+  list-style: none;
+  margin: 8px auto 0;
+  padding: 0;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid #bb487c;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  max-height: 260px;
+  overflow-y: auto;
+  width: min(600px, 92vw);
+  padding: 6px 0;
+}
+
+.search-result {
+  width: 100%;
+  text-align: left;
+  padding: 10px 14px;
+  background: #ffffff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: background 120ms ease;
+  color: #bb487c;
+}
+
+.search-result:hover {
+  background: rgba(187, 72, 124, 0.08);
+}
+
+.result-title {
+  font-family: "Montserrat", sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  color: #bb487c;
+}
+.search-results li {
+  margin: 0;
+}
+
+.search-results .search-result {
+  background: #ffffff;
+  color: #bb487c;
+}
