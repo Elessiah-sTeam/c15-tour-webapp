@@ -24,6 +24,15 @@ export default function BackgroundMap({
 
   return (
     <div className="map-wrapper">
+      <div className="map-branding">
+        <img src={roadTour} alt="Roads Tour" className="brand-road" />
+        <img src={byC15Tour} alt="By C15 Tour" className="brand-by" />
+      </div>
+
+      <div className="map-logo">
+        <img src={logo} alt="C15 Tour" />
+      </div>
+
       <MapContainer
         center={initialPosition}
         zoom={13}
