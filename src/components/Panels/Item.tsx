@@ -1,18 +1,25 @@
 import './Panels.css';
 import * as React from "react";
+import {type unitTimeSpan, TimeSpan, TimespanOffset} from "../../customObject/TimeSpan.ts";
 
 type Props = {
-    duration: Date;
+    duration?: TimeSpan;
+    hour?: Date;
+    isStartEnd: boolean;
     children: React.ReactNode;
 }
 
-export default function Item({duration, children}: Props) {
+const units: unitTimeSpan = {days: ":", hours: ":", minutes: "", seconds: "", milliseconds: ""};
+
+export default function Item({duration, hour, isStartEnd, children}: Props) {
+    duration = Object.assign(new TimeSpan(), duration);
+    console.log(duration.toFStr(TimespanOffset.MINUTES, units));
     return (
         <div className={"item"}>
             <div className={"left-part-item"}>
                 {children}
             </div>
-            <b className={"hour"}>{duration.getHours()}:{duration.getMinutes().toString().padStart(2, "0")}</b>
+            {isStartEnd ? <b className={"hour"}>{hour?.getHours()}:{hour?.getMinutes().toString().padStart(2, "0")}</b> : <b className={"hour"}>{duration?.toFStr(TimespanOffset.MINUTES, units)}</b>}
             <img className={"reorder-icon"} src="/icons/dragdrop-icon.png" alt={""}/>
         </div>
     )

@@ -1,6 +1,8 @@
+import type {TimeSpan} from "./customObject/TimeSpan.ts";
+
 export type pdpInfo = {
     title: string;
-    duration: Date;
+    duration: TimeSpan;
 }
 
 export type DndItem = {
@@ -11,11 +13,12 @@ export type DndItem = {
 export type stepInfo = {
     title: string;
     hour: Date;
-    duration: Date;
+    duration: TimeSpan;
 }
 
 export type DndCat = {
     id: string;
     content: stepInfo;
+    isStartEnd: boolean;
     items: DndItem[];
 }

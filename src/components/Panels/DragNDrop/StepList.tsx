@@ -32,8 +32,8 @@ export default function StepList({categories, setCategories}: Props) {
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
     );
 
-
     const [activeItem, setActiveItem] = useState<DndItem | null>(null);
+    const [activeCat, setActiveCat] = useState<DndCat | null>(null);
 
     function handleDragStart(event: DragStartEvent) {
         const {active} = event;
@@ -45,6 +45,15 @@ export default function StepList({categories, setCategories}: Props) {
             if (item) {
                 setActiveItem(item);
             }
+        } else if (type === "category") {
+            const catId: string = active.id as string;
+            const category: DndCat | undefined = categories.find(c => c.id === catId);
+            if (category) {
+                setActiveCat(category);
+            }
+            console.log("Category : ", category);
+            console.log("Cat Id : ", catId);
+            console.log("Active category : ", activeCat);
         }
     }
 
@@ -89,7 +98,7 @@ export default function StepList({categories, setCategories}: Props) {
                 let newIndex: number = to.items.findIndex((i: DndItem): boolean => i.id === over.id);
 
                 if (oldIndex == -1 || (newIndex == -1 && to == from)) {
-                    console.error("Failed to find the index item of origin");
+                    // console.error("Failed to find the index item of origin");
                     return newCats;
                 } else if (newIndex == -1) {
                     newIndex = 0;
@@ -110,6 +119,7 @@ export default function StepList({categories, setCategories}: Props) {
 
     function handleDragEnd(event: DragEndEvent) {
         setActiveItem(null);
+        setActiveCat(null);
         handleDragMove(event);
     }
 
@@ -126,13 +136,21 @@ export default function StepList({categories, setCategories}: Props) {
                 strategy={verticalListSortingStrategy}
             >
                 {categories.map((cat) => (
-                    <SortableCategory key={cat.id} category={cat} idActiveItem={activeItem?.id ? activeItem.id : null}/>
+                    <SortableCategory
+                        key={cat.id}
+                        visible={!(cat.id == activeCat?.id)}
+                        category={cat}
+                        idActiveItem={activeItem?.id ? activeItem.id : null}
+                    />
                 ))}
             </SortableContext>
 
             <DragOverlay>
                 {activeItem ? (
-                    <SortablePDP visible={true} item={activeItem} categoryId={"overlay"} />
+                    <SortablePDP visible={true} item={activeItem} categoryId={"overlay"} isStartEnd={false} />
+                ) : null}
+                {activeCat ? (
+                    <SortableCategory visible={true} category={activeCat} idActiveItem={null}/>
                 ) : null}
             </DragOverlay>
         </DndContext>

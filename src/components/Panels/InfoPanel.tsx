@@ -17,7 +17,7 @@ export default function InfoPanel({ totalDistance, totalTime }: Props) {
             <h1>Total</h1>
             <div className={"total-info"}>
                 <h2>{totalDistance + " KM"}</h2>
-                <h2>{totalTime.toString(TimespanOffset.MINUTES, units)}</h2>
+                <h2>{totalTime.toFStr(TimespanOffset.MINUTES, units)}</h2>
             </div>
         </div>
     )

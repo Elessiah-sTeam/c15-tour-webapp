@@ -19,7 +19,7 @@ export default function SortableStepHeader({category} : {category: DndCat}) {
             {...attributes}
             {...listeners}
         >
-            <Item duration={category.content.duration}>
+            <Item duration={category.content.duration} isStartEnd={false}>
                 <SubTitleWHour
                     tag={"h2"}
                     imgPath={"/icons/etape-icon.png"}

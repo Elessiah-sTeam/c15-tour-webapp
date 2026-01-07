@@ -8,9 +8,11 @@ type Props = {
     visible: boolean,
     item: DndItem;
     categoryId: string;
+    isStartEnd: boolean;
+    hour?: Date;
 };
 
-export default function SortablePDP({visible, item, categoryId}: Props) {
+export default function SortablePDP({visible, item, categoryId, isStartEnd, hour}: Props) {
     const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
         id: item.id,
         data: { type: "item", categoryId}
@@ -24,8 +26,8 @@ export default function SortablePDP({visible, item, categoryId}: Props) {
           {...attributes}
           {...listeners}
       >
-          <Item duration={item.content.duration}>
-              <SubTitleWHour tag={"h3"} imgPath={'/icons/pdp-icon.png'} txt={item.content.title} hour={null}/>
+          <Item isStartEnd={isStartEnd} duration={item.content.duration} hour={hour}>
+              <SubTitleWHour tag={isStartEnd ? "h2" : "h3"} imgPath={isStartEnd ? '/icons/depart-icon.png' : '/icons/pdp-icon.png'} txt={item.content.title} hour={null}/>
           </Item>
       </div>
     );

@@ -54,7 +54,7 @@ export class TimeSpan {
         return this.timespan;
     }
 
-    toString(precision: TimespanOffset = TimespanOffset.MINUTES, units?: unitTimeSpan): string {
+    toFStr(precision: TimespanOffset = TimespanOffset.MINUTES, units?: unitTimeSpan): string {
         let result: string = '';
         if (!units)
             units = {days: ":", hours: ":", minutes: ":", seconds: ":", milliseconds: " "};
@@ -65,7 +65,7 @@ export class TimeSpan {
         else if (this.timespan.hours != 0)
             start = TimespanOffset.HOURS;
         else if (this.timespan.minutes != 0)
-            start = TimespanOffset.HOURS;
+            start = TimespanOffset.MINUTES;
         else if (this.timespan.seconds != 0)
             start = TimespanOffset.SECONDS;
         else
@@ -81,6 +81,9 @@ export class TimeSpan {
             result += this.timespan.seconds + units.seconds;
         if ((start >= TimespanOffset.MS && precision > TimespanOffset.MS) || precision == TimespanOffset.MS)
             result += this.timespan.milliseconds + units.milliseconds;
+        console.log("Hours : ", this.timespan.hours);
+        console.log("Minutes : ", this.timespan.minutes);
+        console.log("result : ", result);
         return result;
     }
 
