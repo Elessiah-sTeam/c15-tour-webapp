@@ -81,9 +81,6 @@ export class TimeSpan {
             result += this.timespan.seconds + units.seconds;
         if ((start >= TimespanOffset.MS && precision > TimespanOffset.MS) || precision == TimespanOffset.MS)
             result += this.timespan.milliseconds + units.milliseconds;
-        console.log("Hours : ", this.timespan.hours);
-        console.log("Minutes : ", this.timespan.minutes);
-        console.log("result : ", result);
         return result;
     }
 

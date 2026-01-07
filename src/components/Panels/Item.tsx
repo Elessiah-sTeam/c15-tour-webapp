@@ -13,7 +13,6 @@ const units: unitTimeSpan = {days: ":", hours: ":", minutes: "", seconds: "", mi
 
 export default function Item({duration, hour, isStartEnd, children}: Props) {
     duration = Object.assign(new TimeSpan(), duration);
-    console.log(duration.toFStr(TimespanOffset.MINUTES, units));
     return (
         <div className={"item"}>
             <div className={"left-part-item"}>
