@@ -14,7 +14,8 @@
 
 .config-panel {
     height: 70vh;
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
     scrollbar-width: none;
 }
 
