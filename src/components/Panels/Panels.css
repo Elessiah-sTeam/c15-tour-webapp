@@ -14,6 +14,8 @@
 
 .config-panel {
     height: 70vh;
+    overflow: auto;
+    scrollbar-width: none;
 }
 
 h1 {
@@ -108,4 +110,23 @@ h3 {
     align-items: center;
     justify-content: space-between;
     width: 100%;
+}
+
+.add-step-btn, .add-seg-btn {
+    text-decoration: underline;
+    font-size: small;
+    padding: 0 0 0 0;
+    cursor: pointer;
+}
+
+.add-step-btn {
+    margin: 0 0 0 20px;
+}
+
+.add-seg-btn {
+    margin: 0 0 0 0;
+}
+
+.add-step-btn:hover, .add-seg-btn:hover {
+    font-weight: bold;
 }

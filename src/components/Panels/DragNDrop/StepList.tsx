@@ -43,22 +43,22 @@ export default function StepList({itineraryModel}: Props) {
                 items={itinerary.segments.map((c: Segment) => c.id)}
                 strategy={verticalListSortingStrategy}
             >
-                {itinerary.segments.map((cat: Segment) => (
+                {itinerary.segments.map((cat: Segment) =>
                     <SortableCategory
                         key={cat.id}
                         visible={!(cat.id == dnd.activeCat?.id)}
                         category={cat}
                         idActiveItem={dnd.activeItem?.id ? dnd.activeItem.id : null}
+                        itineraryModel={itineraryModel}
                     />
-                ))}
+            )}
             </SortableContext>
-
             <DragOverlay>
                 {dnd.activeItem ? (
                     <SortablePDP visible={true} item={dnd.activeItem} categoryId={"overlay"} isStartEnd={false} />
                 ) : null}
                 {dnd.activeCat ? (
-                    <SortableCategory visible={true} category={dnd.activeCat} idActiveItem={null}/>
+                    <SortableCategory visible={true} category={dnd.activeCat} idActiveItem={null} itineraryModel={itineraryModel} />
                 ) : null}
             </DragOverlay>
         </DndContext>

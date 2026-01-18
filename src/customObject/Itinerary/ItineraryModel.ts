@@ -1,14 +1,70 @@
 import {createItineraryStore} from "./ItineraryStore.ts";
 import type {Step, Segment, segmentInfo, Itinerary, ItineraryStore, ItineraryArgs} from "./types.ts";
+import {TimeSpan} from "../TimeSpan.ts";
 
 export class ItineraryModel {
     public readonly store: ItineraryStore;
+
+    formatStart(itinerary: Itinerary): Itinerary {
+        const index: number = itinerary.segments.findIndex((seg: Segment) => seg.id == "start");
+        const segments: Segment[] = itinerary.segments;
+        if (index > 0) {
+            const [start] = segments.splice(index, 1);
+            if (!start.isStartEnd)
+                start.isStartEnd = true;
+            segments.splice(0, 0, start);
+        } else if (index == -1) {
+            segments.splice(0, 0, {
+                id: "start",
+                content: {
+                    title: " ",
+                    hour: new Date(),
+                    duration: new TimeSpan()
+                },
+                isStartEnd: true,
+                steps: new Array<Step>()
+            });
+        } else if (!itinerary.segments[index].isStartEnd) {
+            itinerary.segments[index].isStartEnd = true;
+        }
+        return itinerary;
+    }
+
+    formatEnd(itinerary: Itinerary): Itinerary {
+        const index: number = itinerary.segments.findIndex((seg: Segment) => seg.id == "end");
+        const segments: Segment[] = itinerary.segments;
+        if (index != segments.length - 1) {
+            const [end] = segments.splice(index, 1);
+            if (!end.isStartEnd)
+                end.isStartEnd = true;
+            segments.push(end);
+        } else if (index == -1) {
+            segments.push({
+                id: "end",
+                content: {
+                    title: " ",
+                    hour: new Date(),
+                    duration: new TimeSpan()
+                },
+                isStartEnd: true,
+                steps: new Array<Step>()
+            });
+        } else if (!itinerary.segments[index].isStartEnd) {
+            itinerary.segments[index].isStartEnd = true;
+        }
+        return itinerary;
+    }
+
+    formatItinerary(itinerary: Itinerary): Itinerary {
+        const result: Itinerary = this.formatStart(itinerary);
+        return this.formatEnd(result);
+    }
 
     constructor({_store, initial}: ItineraryArgs) {
         if (_store) {
             this.store = _store;
         } else if (initial) {
-            this.store = createItineraryStore(initial);
+            this.store = createItineraryStore(this.formatItinerary(initial));
         } else {
             this.store = createItineraryStore();
         }
@@ -32,7 +88,7 @@ export class ItineraryModel {
     addSegment(segment: Segment): void {
         this.store.set((route: Itinerary) => {
             const segments: Segment[] = [...route.segments];
-            segments.push(segment);
+            segments.splice(segments.length - 1, 0, segment);
             return {...route, segments: segments};
         });
     }
