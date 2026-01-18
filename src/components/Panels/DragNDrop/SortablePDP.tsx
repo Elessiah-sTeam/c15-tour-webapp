@@ -1,12 +1,12 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { DndItem } from "../../../dndTypes.ts";
+import type { Step } from "../../../customObject/Itinerary/types.ts";
 import Item from "../Item.tsx";
 import SubTitleWHour from "../SubTitleWHour.tsx";
 
 type Props = {
     visible: boolean,
-    item: DndItem;
+    item: Step;
     categoryId: string;
     isStartEnd: boolean;
     hour?: Date;

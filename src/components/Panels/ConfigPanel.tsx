@@ -1,14 +1,13 @@
-import {useState} from "react";
 import './Panels.css';
 import Route from "./Route.tsx";
+import type {ItineraryModel} from "../../customObject/Itinerary/ItineraryModel.ts";
+import ItineraryTitle from "./ItineraryTitle.tsx";
 
-export default function ConfigPanel() {
-    const [convoyName, setConvoyName] = useState('C15 Fiesta TOUR #1');
-
+export default function ConfigPanel({itineraryModel} : {itineraryModel: ItineraryModel}) {
     return (
     <div className={"config-panel"}>
-        <h1>{convoyName}</h1>
-        <Route/>
+        <ItineraryTitle store={itineraryModel.store} />
+        <Route itineraryModel={itineraryModel} />
     </div>
-    )
+    );
 }

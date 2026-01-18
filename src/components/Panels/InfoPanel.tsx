@@ -1,23 +1,22 @@
 import './Panels.css';
-import {type TimeSpan, TimespanOffset, type unitTimeSpan} from "../../customObject/TimeSpan.ts";
-import {useEffect} from "react";
+import {TimespanOffset, type unitTimeSpan} from "../../customObject/TimeSpan.ts";
+import type {ItineraryStore} from "../../customObject/Itinerary/types.ts";
+import {useItinerary} from "../../customObject/Itinerary/UseItinerary.ts";
 
 type Props = {
-    totalDistance: number,
-    totalTime: TimeSpan,
+    store: ItineraryStore
 }
 
-export default function InfoPanel({ totalDistance, totalTime }: Props) {
+export default function InfoPanel({ store }: Props) {
     const units: unitTimeSpan = {days: "J ", hours: "H ", minutes: "MIN ", seconds: "S ", milliseconds: "MS "}
-
-    useEffect(() => {}, [totalDistance, totalTime]);
+    const itinerary = useItinerary(store);
 
     return (
         <div className={"info-panel"}>
             <h1>Total</h1>
             <div className={"total-info"}>
-                <h2>{totalDistance + " KM"}</h2>
-                <h2>{totalTime.toFStr(TimespanOffset.MINUTES, units)}</h2>
+                <h2>{itinerary.totalDistance + " KM"}</h2>
+                <h2>{itinerary.totalDuration.toFStr(TimespanOffset.MINUTES, units)}</h2>
             </div>
         </div>
     )

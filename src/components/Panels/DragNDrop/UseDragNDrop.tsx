@@ -1,38 +1,38 @@
-import type {DndCat, DndItem} from "../../../dndTypes.ts";
-import {type Dispatch, type SetStateAction, useState} from "react";
+import type {Itinerary, Segment, Step} from "../../../customObject/Itinerary/types.ts";
+import {useState} from "react";
 import {type DragEndEvent, type DragMoveEvent, type DragStartEvent} from "@dnd-kit/core";
-import {getActiveCat, getActiveItem, reorderCategories, reorderItems} from "./DragNDropUtils.tsx";
-
-type CategorySetter = Dispatch<SetStateAction<DndCat[]>>;
+import {getActiveCat, getActiveItem, reorderSegment, reorderItems} from "./DragNDropUtils.tsx";
+import type {ItineraryModel} from "../../../customObject/Itinerary/ItineraryModel.ts";
+import {useItinerary} from "../../../customObject/Itinerary/UseItinerary.ts";
 
 type Props = {
-    categories: DndCat[];
-    setCategories: CategorySetter;
+    itineraryModel: ItineraryModel;
 }
 
 export type DndProps = {
-    activeItem: DndItem | null;
-    activeCat: DndCat | null;
+    activeItem: Step | null;
+    activeCat: Segment | null;
     handleDragStart: (event: DragStartEvent) => void;
     handleDragMove: (event: DragEndEvent) => void;
     handleDragEnd: (event: DragEndEvent) => void;
 }
 
-export function useDragNDrop({ categories, setCategories } : Props): DndProps {
-    const [activeItem, setActiveItem] = useState<DndItem | null>(null);
-    const [activeCat, setActiveCat] = useState<DndCat | null>(null);
+export function useDragNDrop({ itineraryModel } : Props): DndProps {
+    const [activeItem, setActiveItem] = useState<Step | null>(null);
+    const [activeCat, setActiveCat] = useState<Segment | null>(null);
+    const itinerary: Itinerary = useItinerary(itineraryModel.store);
 
     function handleDragStart(event: DragStartEvent) {
         const {active} = event;
         const type = active.data.current?.type;
 
         if (type === "item") {
-            const item: DndItem | undefined = getActiveItem(active, categories);
+            const item: Step | undefined = getActiveItem(active, itinerary.segments);
             if (item) {
                 setActiveItem(item);
             }
         } else if (type === "category") {
-            const category: DndCat | undefined = getActiveCat(active, categories);
+            const category: Segment | undefined = getActiveCat(active, itinerary.segments);
             if (category) {
                 setActiveCat(category);
             }
@@ -49,9 +49,9 @@ export function useDragNDrop({ categories, setCategories } : Props): DndProps {
         const overType: string | null = over.data.current?.type;
 
         if (activeType === "category" && overType === "category") {
-            reorderCategories(active, over, setCategories);
+            reorderSegment(itinerary, itineraryModel, active, over);
         } else if (activeType === "item") {
-            reorderItems(active, over, setCategories);
+            reorderItems(itinerary, itineraryModel, active, over);
         }
     }
 

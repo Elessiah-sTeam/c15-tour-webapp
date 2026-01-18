@@ -12,24 +12,24 @@ import {
     verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 
-import {type Dispatch, type SetStateAction} from "react";
-import type { DndCat } from "../../../dndTypes";
+import type {Itinerary, Segment} from "../../../customObject/Itinerary/types.ts";
 import SortableCategory from "./SortableCategory";
 import SortablePDP from "./SortablePDP.tsx";
 import {type DndProps, useDragNDrop} from "./UseDragNDrop.tsx";
-
-type CategorySetter = Dispatch<SetStateAction<DndCat[]>>;
+import type {ItineraryModel} from "../../../customObject/Itinerary/ItineraryModel.ts";
+import {useItinerary} from "../../../customObject/Itinerary/UseItinerary.ts";
 
 type Props = {
-    categories: DndCat[];
-    setCategories: CategorySetter;
+    itineraryModel: ItineraryModel;
 }
 
-export default function StepList({categories, setCategories}: Props) {
+export default function StepList({itineraryModel}: Props) {
+    const itinerary: Itinerary = useItinerary(itineraryModel.store);
+
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
     );
-    const dnd: DndProps = useDragNDrop({ categories, setCategories });
+    const dnd: DndProps = useDragNDrop({ itineraryModel });
 
     return (
         <DndContext
@@ -40,10 +40,10 @@ export default function StepList({categories, setCategories}: Props) {
             onDragEnd={dnd.handleDragEnd}
         >
             <SortableContext
-                items={categories.map((c) => c.id)}
+                items={itinerary.segments.map((c: Segment) => c.id)}
                 strategy={verticalListSortingStrategy}
             >
-                {categories.map((cat) => (
+                {itinerary.segments.map((cat: Segment) => (
                     <SortableCategory
                         key={cat.id}
                         visible={!(cat.id == dnd.activeCat?.id)}

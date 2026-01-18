@@ -1,10 +1,10 @@
 import {useSortable} from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { DndCat } from "../../../dndTypes.ts";
+import type { Segment } from "../../../customObject/Itinerary/types.ts";
 import SubTitleWHour from "../SubTitleWHour.tsx";
 import Item from "../Item.tsx";
 
-export default function SortableStepHeader({category} : {category: DndCat}) {
+export default function SortableStepHeader({category} : {category: Segment}) {
     const { attributes, listeners, setNodeRef, transform, transition } =
         useSortable({
             id: category.id,

@@ -1,49 +1,42 @@
 import type {Active, Over} from "@dnd-kit/core";
-import type {DndCat, DndItem} from "../../../dndTypes.ts";
-import type {Dispatch, SetStateAction} from "react";
-import {arrayMove} from "@dnd-kit/sortable";
+import type {Itinerary, Segment, Step} from "../../../customObject/Itinerary/types.ts";
+import type {ItineraryModel} from "../../../customObject/Itinerary/ItineraryModel.ts";
 
-export function getActiveItem(active: Active, categories: DndCat[]): DndItem | undefined {
+export function getActiveItem(active: Active, categories: Segment[]): Step | undefined {
     const catId: string = active.data.current?.categoryId;
     if (!catId)
         return;
-    return (categories.find(c => c.id === catId)?.items.find(i => i.id === active.id));
+    return (categories.find(c => c.id === catId)?.steps.find(i => i.id === active.id));
 }
 
-export function getActiveCat(active: Active, categories: DndCat[]): DndCat | undefined {
+export function getActiveCat(active: Active, categories: Segment[]): Segment | undefined {
     const catId: string = active.id as string;
     if (!catId)
         return;
     return (categories.find(c => c.id === catId));
 }
 
-type CategorySetter = Dispatch<SetStateAction<DndCat[]>>;
-
-export function reorderCategories(active: Active,
-                                  over: Over,
-                                  setCategories: CategorySetter): void
+export function reorderSegment(itinerary: Itinerary,
+                               itineraryModel: ItineraryModel,
+                               active: Active,
+                               over: Over): void
 {
-    setCategories((prev) => {
-        const oldIndex: number = prev.findIndex((c) => c.id === active.id);
-        const newIndex: number = prev.findIndex((c) => c.id === over.id);
-        if (oldIndex === -1 || newIndex === -1)
-            return prev;
-        return arrayMove(prev, oldIndex, newIndex);
-    });
+    const newIndex: number = itinerary.segments.findIndex((seg: Segment) => seg.id == over.id);
+    itineraryModel.reorderSegment(active.id as string, newIndex);
 }
 
 type OriginsNTarget = {
-    category: {from: DndCat, to: DndCat},
+    category: {from: Segment, to: Segment},
     itemIndex: {old: number, new: number}
 };
 
-function getOriginsNTargets(categories: DndCat[],
+function getOriginsNTargets(categories: Segment[],
                             srcCategory: string,
                             destCategory: string,
                             active: Active,
                             over: Over): OriginsNTarget | null {
-    const from: DndCat | undefined = categories.find((c: DndCat): boolean => c.id === srcCategory);
-    const to: DndCat | undefined = categories.find((c: DndCat): boolean => c.id === destCategory);
+    const from: Segment | undefined = categories.find((c: Segment): boolean => c.id === srcCategory);
+    const to: Segment | undefined = categories.find((c: Segment): boolean => c.id === destCategory);
 
     if (!from || !to) {
         console.error("Failed to find the source or destination category !");
@@ -52,8 +45,8 @@ function getOriginsNTargets(categories: DndCat[],
 
     const result: OriginsNTarget = {category: {from: from, to: to}, itemIndex: {old: -1, new: -1}};
 
-    result.itemIndex.old = from.items.findIndex((i: DndItem): boolean => i.id === active.id);
-    result.itemIndex.new = to.items.findIndex((i: DndItem): boolean => i.id === over.id);
+    result.itemIndex.old = from.steps.findIndex((i: Step): boolean => i.id === active.id);
+    result.itemIndex.new = to.steps.findIndex((i: Step): boolean => i.id === over.id);
 
     if (result.itemIndex.old == -1 || (result.itemIndex.new == -1 && to == from)) {
         // console.error("Failed to find the index item of origin");
@@ -65,28 +58,10 @@ function getOriginsNTargets(categories: DndCat[],
     return result;
 }
 
-// Si on est l'arrivée ou le départ on échange pour n'avoir qu'un élément
-function switchStartEndItem(OGnT: OriginsNTarget): void {
-    if (OGnT.category.to.isStartEnd && OGnT.category.to.items.length > 0) {
-        const [item] = OGnT.category.to.items.splice(0, 1);
-        OGnT.category.from.items.splice(OGnT.itemIndex.old, 0, item);
-    } else if (OGnT.category.from.isStartEnd && OGnT.category.to.items.length > 0) {
-        const [item] = OGnT.category.to.items.splice(OGnT.itemIndex.new, 1);
-        OGnT.category.from.items.splice(0, 0, item);
-    }
-}
-
-function moveItems(OGnT: OriginsNTarget): void {
-    const [moved] = OGnT.category.from.items.splice(OGnT.itemIndex.old, 1);
-
-    switchStartEndItem(OGnT);
-
-    OGnT.category.to.items.splice(OGnT.itemIndex.new, 0, moved);
-}
-
-export function reorderItems(active: Active,
-                             over: Over,
-                             setCategories: CategorySetter): void
+export function reorderItems(itinerary: Itinerary,
+                             itineraryModel: ItineraryModel,
+                             active: Active,
+                             over: Over): void
 {
     const srcCategory: string | undefined = active.data.current?.categoryId;
     const destCategory: string | undefined = over.data.current?.categoryId ?? srcCategory;
@@ -96,15 +71,10 @@ export function reorderItems(active: Active,
         return;
     }
 
-    setCategories((prev: DndCat[]): DndCat[] => {
-        const newCats: DndCat[] = structuredClone(prev);
-
-        let OGnT: OriginsNTarget | null;
-        // Pour avoir une ligne plus courte
-        // eslint-disable-next-line prefer-const
-        OGnT = getOriginsNTargets(newCats, srcCategory, destCategory, active, over);
-        if (OGnT)
-            moveItems(OGnT);
-        return newCats;
-    });
+    let OGnT: OriginsNTarget | null;
+    // eslint-disable-next-line prefer-const
+    OGnT = getOriginsNTargets(itinerary.segments, srcCategory, destCategory, active, over);
+    if (!OGnT)
+        return;
+    itineraryModel.reorderStep(OGnT.category.from.id, OGnT.itemIndex.old, OGnT.category.to.id, OGnT.itemIndex.new);
 }

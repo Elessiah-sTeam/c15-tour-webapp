@@ -109,4 +109,16 @@ export class TimeSpan {
 
         return timespan;
     }
+
+    public add(other: TimeSpan): TimeSpan {
+        this.duration += other.duration;
+        this.timespan = this.getTimeSpanComposed();
+        return this;
+    }
+
+    public sub(other: TimeSpan): TimeSpan {
+        this.duration -= other.duration;
+        this.timespan = this.getTimeSpanComposed();
+        return this;
+    }
 }

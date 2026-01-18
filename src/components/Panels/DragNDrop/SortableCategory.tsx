@@ -1,10 +1,10 @@
 import { SortableContext, verticalListSortingStrategy} from "@dnd-kit/sortable";
 import SortableStepHeader from "./SortableStepHeader.tsx";
 import SortablePDP from "./SortablePDP.tsx";
-import type {DndCat} from "../../../dndTypes.ts";
+import type {Segment} from "../../../customObject/Itinerary/types.ts";
 import {EmptyDropZone} from "./EmptyDropZone.tsx";
 
-export default function SortableCategory({ category, visible, idActiveItem}: { category: DndCat, visible: boolean, idActiveItem: string  | null }) {
+export default function SortableCategory({ category, visible, idActiveItem}: { category: Segment, visible: boolean, idActiveItem: string  | null }) {
     return (
         <div
             className={"category-box"}
@@ -13,10 +13,10 @@ export default function SortableCategory({ category, visible, idActiveItem}: { c
             { !category.isStartEnd ? <SortableStepHeader category={category} /> : <></> }
 
             <SortableContext
-                items={category.items.map((item) => item.id)}
+                items={category.steps.map((item) => item.id)}
                 strategy={verticalListSortingStrategy}
             >
-                {category.items.length > 0 ? category.items.map((item) => (
+                {category.steps.length > 0 ? category.steps.map((item) => (
                     <SortablePDP
                         key={item.id}
                         visible={!(item.id === idActiveItem)}
