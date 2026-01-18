@@ -86,6 +86,7 @@ export class ItineraryModel {
     }
 
     addSegment(segment: Segment): void {
+        console.log("Adding segment...");
         this.store.set((route: Itinerary) => {
             const segments: Segment[] = [...route.segments];
             segments.splice(segments.length - 1, 0, segment);
@@ -116,7 +117,8 @@ export class ItineraryModel {
             const index = segments.findIndex((seg: Segment) => seg.id == segmentId);
             if (index == -1)
                 return route;
-            segments.splice(targetIndex, 0, route.segments.splice(index, 1)[0]);
+            const [moved] = segments.splice(index, 1);
+            segments.splice(targetIndex, 0, moved);
             return {...route, segments};
             }
         );
@@ -171,24 +173,6 @@ export class ItineraryModel {
         if (n > max)
             return max;
         return n;
-    }
-
-    private moveInArray<T>(array: T[], from: number, to: number): T[] {
-        if (from === to) return array;
-        const copy = [...array];
-        const [item] = copy.splice(from, 1);
-        copy.splice(to, 0, item);
-        return copy;
-    }
-
-    moveSegment(segmentId: string, toIndex: number): void {
-        this.store.set((route: Itinerary) => {
-            const fromIndex = route.segments.findIndex((s: Segment) => s.id === segmentId);
-            if (fromIndex === -1) return route;
-
-            const clamped = this.clamp(toIndex, 0, route.segments.length - 1);
-            return {...route, segments: this.moveInArray(route.segments, fromIndex, clamped)};
-        });
     }
 
     reorderStep(fromSegmentId: string, fromStepIndex: number, toSegmentId: string, toStepIndex: number): void {
