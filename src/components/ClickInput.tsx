@@ -14,13 +14,11 @@ export default function ClickInput({currentStr, setter, Tag, className}: Props) 
     const [text, setText] = useState<string>(currentStr);
 
     function stopInput() {
-        console.log("Stopping input");
         setIsInput(false);
         setter(text);
     }
 
     const ref = useOutsideClick<HTMLDivElement>(() => {
-        console.log("Click outside");
         stopInput();
     });
 

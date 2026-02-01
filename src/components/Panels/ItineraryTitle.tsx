@@ -7,8 +7,6 @@ import type {ItineraryModel} from "../../customObject/Itinerary/ItineraryModel.t
 export default function ItineraryTitle({store, model}: {store: ItineraryStore, model: ItineraryModel}) {
     const itinerary = useItinerary(store);
 
-    console.log("model store : ", model.store);
-
     return (
             <ClickInput
                 currentStr={itinerary.name}
