@@ -20,7 +20,7 @@ export default function SortableCategory({ category, visible, idActiveItem, itin
         itineraryModel.addStep(
             category.id,
             {
-                id: "prout" + new Date().toISOString(), content: {
+                id: "newstep" + new Date().toISOString(), content: {
                     title: "Nouvelle étape",
                     duration: new TimeSpan()
                 }
@@ -45,7 +45,7 @@ export default function SortableCategory({ category, visible, idActiveItem, itin
             className={"category-box"}
             style={{opacity: visible ? 1 : 0}}
         >
-            { !category.isStartEnd ? <SortableStepHeader category={category} /> : <></> }
+            { !category.isStartEnd ? <SortableStepHeader category={category} model={itineraryModel} /> : <></> }
             { category.id == "end" ?
                 <p
                     className={"add-seg-btn"}
@@ -65,6 +65,7 @@ export default function SortableCategory({ category, visible, idActiveItem, itin
                     <SortablePDP
                         key={item.id}
                         visible={!(item.id === idActiveItem)}
+                        model={itineraryModel}
                         item={item}
                         categoryId={category.id}
                         isStartEnd={category.isStartEnd}

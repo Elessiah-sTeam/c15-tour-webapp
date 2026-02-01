@@ -2,9 +2,10 @@ import {useSortable} from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { Segment } from "../../../customObject/Itinerary/types.ts";
 import SubTitleWHour from "../SubTitleWHour.tsx";
+import type {ItineraryModel} from "../../../customObject/Itinerary/ItineraryModel.ts";
 import Item from "../Item.tsx";
 
-export default function SortableStepHeader({category} : {category: Segment}) {
+export default function SortableStepHeader({category, model} : {category: Segment, model: ItineraryModel}) {
     const { attributes, listeners, setNodeRef, transform, transition } =
         useSortable({
             id: category.id,
@@ -22,8 +23,10 @@ export default function SortableStepHeader({category} : {category: Segment}) {
             <Item duration={category.content.duration} isStartEnd={false}>
                 <SubTitleWHour
                     tag={"h2"}
+                    model={model}
                     imgPath={"/icons/etape-icon.png"}
-                    txt={category.content.title}
+                    segmentId={category.id}
+                    subtitle={category.content.title}
                     hour={category.content.hour}
                 />
             </Item>

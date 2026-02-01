@@ -6,7 +6,7 @@ import ItineraryTitle from "./ItineraryTitle.tsx";
 export default function ConfigPanel({itineraryModel} : {itineraryModel: ItineraryModel}) {
     return (
     <div className={"config-panel"}>
-        <ItineraryTitle store={itineraryModel.store} />
+        <ItineraryTitle store={itineraryModel.store} model={itineraryModel} />
         <Route itineraryModel={itineraryModel} />
     </div>
     );

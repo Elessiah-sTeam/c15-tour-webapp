@@ -19,7 +19,7 @@
     scrollbar-width: none;
 }
 
-h1 {
+h1, .title {
     font-family: 'Montserrat', sans-serif;
     font-weight: 700;
     font-style: normal;
@@ -61,7 +61,7 @@ h1 {
     gap: 8px; /* espace entre l'icône et le titre */
 }
 
-h2 {
+h2, .segmentTitle {
     font-family: 'Montserrat', sans-serif;
     font-weight: 500;
     font-style: normal;
@@ -70,7 +70,7 @@ h2 {
     margin: 0;
 }
 
-h3 {
+h3, .stepTitle {
     font-family: 'Montserrat', sans-serif;
     font-weight: 500;
     font-style: normal;

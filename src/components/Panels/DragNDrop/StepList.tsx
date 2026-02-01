@@ -55,10 +55,19 @@ export default function StepList({itineraryModel}: Props) {
             </SortableContext>
             <DragOverlay>
                 {dnd.activeItem ? (
-                    <SortablePDP visible={true} item={dnd.activeItem} categoryId={"overlay"} isStartEnd={false} />
+                    <SortablePDP
+                        visible={true}
+                        model={itineraryModel}
+                        item={dnd.activeItem}
+                        categoryId={"overlay"}
+                        isStartEnd={false} />
                 ) : null}
                 {dnd.activeCat ? (
-                    <SortableCategory visible={true} category={dnd.activeCat} idActiveItem={null} itineraryModel={itineraryModel} />
+                    <SortableCategory
+                        visible={true}
+                        category={dnd.activeCat}
+                        idActiveItem={null}
+                        itineraryModel={itineraryModel} />
                 ) : null}
             </DragOverlay>
         </DndContext>
