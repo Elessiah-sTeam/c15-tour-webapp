@@ -86,7 +86,6 @@ export class ItineraryModel {
     }
 
     addSegment(segment: Segment): void {
-        console.log("Adding segment...");
         this.store.set((route: Itinerary) => {
             const segments: Segment[] = [...route.segments];
             segments.splice(segments.length - 1, 0, segment);
