@@ -17,6 +17,14 @@ export type segmentInfo = {
     duration: TimeSpan;
 }
 
+export type reorderStepInfo = {
+    toSeg : Segment,
+    sameSeg: boolean
+    newFromSteps: Step[],
+    newToSteps: Step[],
+    insertIndex : number,
+}
+
 export type Segment = {
     id: string;
     content: segmentInfo;

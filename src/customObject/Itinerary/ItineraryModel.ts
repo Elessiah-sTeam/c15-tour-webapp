@@ -1,5 +1,5 @@
 import {createItineraryStore} from "./ItineraryStore.ts";
-import type {Step, Segment, segmentInfo, Itinerary, ItineraryStore, ItineraryArgs} from "./types.ts";
+import type {Step, Segment, segmentInfo, Itinerary, ItineraryStore, ItineraryArgs, reorderStepInfo} from "./types.ts";
 import {TimeSpan} from "../TimeSpan.ts";
 
 export class ItineraryModel {
@@ -175,49 +175,90 @@ export class ItineraryModel {
         return n;
     }
 
+    private getReorderStepInfo(route: Itinerary,
+                               fromSegmentId: string,
+                               fromStepIndex: number,
+                               toSegmentId: string,
+                               toStepIndex: number): reorderStepInfo | null {
+        const fromSeg: Segment | undefined = route.segments.find((s: Segment) => s.id === fromSegmentId);
+        const toSeg: Segment | undefined = route.segments.find((s: Segment) => s.id === toSegmentId);
+
+        if (!fromSeg || !toSeg) return null;
+
+        // Vérifie l'index d'origine
+        if (fromStepIndex < 0 || fromStepIndex >= fromSeg.steps.length) return null;
+
+        const sameSeg = fromSegmentId == toSegmentId;
+
+        // Préparer nouveaux tableaux de steps (immutables)
+        const newFromSteps: Step[] = [...fromSeg.steps];
+        const newToSteps = sameSeg ? newFromSteps : [...toSeg.steps];
+
+        // Si on déplace dans le même segment, attention à l'index après suppression
+        let insertIndex = toStepIndex;
+        if (sameSeg) {
+            insertIndex = toStepIndex > fromStepIndex ? toStepIndex - 1 : toStepIndex;
+        }
+
+        return {toSeg, sameSeg, newFromSteps, newToSteps, insertIndex};
+    }
+
+    private retrieveTargets(env: reorderStepInfo, fromStepIndex: number): {movedStep: Step, swapStep: Step | undefined} {
+        // On récupère les items pour les replacer
+        const [movedStep] = env.newFromSteps.splice(fromStepIndex, 1);
+        let swapStep: Step | undefined = undefined;
+
+        // Si la destination est l'arrivée ou le départ on échange, donc on récupère l'item à l'arrivée
+        if (env.toSeg.isStartEnd && env.newToSteps.length > 0) {
+            [swapStep] = env.newToSteps.splice(0, 1);
+        }
+        return {movedStep, swapStep};
+    }
+
+    private replaceSteps(env: reorderStepInfo,
+                         fromStepIndex: number,
+                         movedStep: Step,
+                         swapStep: Step | undefined): void {
+        // On clamp après les suppressions pour avoir la dernière taille et éviter les problèmes
+        const clamped = this.clamp(env.insertIndex, 0, env.newToSteps.length);
+
+        env.newToSteps.splice(clamped, 0, movedStep);
+        if (swapStep) {
+            env.newFromSteps.splice(fromStepIndex, 0, swapStep);
+        }
+    }
+
+    private moveSteps(env: reorderStepInfo, fromStepIndex: number): boolean {
+
+        const {movedStep, swapStep} = this.retrieveTargets(env, fromStepIndex);
+        if(!movedStep) return false;
+        this.replaceSteps(env, fromStepIndex, movedStep, swapStep)
+        return true;
+    }
+
     reorderStep(fromSegmentId: string, fromStepIndex: number, toSegmentId: string, toStepIndex: number): void {
         this.store.set((route: Itinerary) => {
-            const fromSeg: Segment | undefined = route.segments.find((s: Segment) => s.id === fromSegmentId);
-            const toSeg: Segment | undefined = route.segments.find((s: Segment) => s.id === toSegmentId);
+            const env = this.getReorderStepInfo(route, fromSegmentId, fromStepIndex, toSegmentId, toStepIndex)
 
-            if (!fromSeg || !toSeg) return route;
-
-            // Vérifie l'index d'origine
-            if (fromStepIndex < 0 || fromStepIndex >= fromSeg.steps.length) return route;
-
-            const sameSeg = fromSegmentId == toSegmentId;
-
-            // Préparer nouveaux tableaux de steps (immutables)
-            const newFromSteps: Step[] = [...fromSeg.steps];
-            const [movedStep] = newFromSteps.splice(fromStepIndex, 1);
-            if(!movedStep) return route;
-
-            // Si on déplace dans le même segment, attention à l'index après suppression
-            let insertIndex = toStepIndex;
-            if (fromSegmentId == toSegmentId) {
-                insertIndex = toStepIndex > fromStepIndex ? toStepIndex - 1 : toStepIndex;
-            }
-
-            const newToStepsBase = sameSeg ? newFromSteps : [...toSeg.steps];
-            const clamped = this.clamp(insertIndex, 0, newToStepsBase.length);
-
-            const newToSteps = [...newToStepsBase];
-            newToSteps.splice(clamped, 0, movedStep);
-
-            // Rebuild route en ne recréant que les segments touchés
-            return {...route,
-                segments: route.segments.map((seg: Segment) => {
-                        if (seg.id == fromSegmentId && sameSeg) {
-                            return {...seg, steps: newToSteps};
+            if (env != null && this.moveSteps(env, fromStepIndex)) {
+                // Rebuild route en ne recréant que les segments touchés
+                return {
+                    ...route,
+                    segments: route.segments.map((seg: Segment) => {
+                        if (seg.id == fromSegmentId && env.sameSeg) {
+                            return {...seg, steps: env.newToSteps};
                         }
                         if (seg.id == fromSegmentId) {
-                            return {...seg, steps: newFromSteps};
+                            return {...seg, steps: env.newFromSteps};
                         }
                         if (seg.id == toSegmentId) {
-                            return {...seg, steps: newToSteps};
+                            return {...seg, steps: env.newToSteps};
                         }
                         return seg;
-                }),
+                    }),
+                }
+            } else {
+                return route;
             }
         });
     }

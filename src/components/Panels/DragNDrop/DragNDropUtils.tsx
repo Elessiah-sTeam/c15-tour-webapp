@@ -78,3 +78,18 @@ export function reorderItems(itinerary: Itinerary,
         return;
     itineraryModel.reorderStep(OGnT.category.from.id, OGnT.itemIndex.old, OGnT.category.to.id, OGnT.itemIndex.new);
 }
+
+export function removeActive(active: Active,
+                             itinerary: ItineraryModel): void
+{
+    const activeType: string | null = active.data.current?.type;
+
+    if (activeType === "category")
+        itinerary.removeSegment(active.id as string);
+    else if (activeType === "item") {
+        const srcCategory: string | undefined = active.data.current?.categoryId;
+        if (!srcCategory)
+            return;
+        itinerary.removeStep(srcCategory, active.id as string);
+    }
+}

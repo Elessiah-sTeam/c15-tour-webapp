@@ -42,8 +42,11 @@ export function useDragNDrop({ itineraryModel } : Props): DndProps {
     function handleDragMove(event: DragMoveEvent) {
         const { active, over } = event;
 
-        if (!over)
+        if (!over) {
+            // Fonctionne pas, over toujours actif
+            // removeActive(active, itineraryModel);
             return;
+        }
 
         const activeType: string | null = active.data.current?.type;
         const overType: string | null = over.data.current?.type;
