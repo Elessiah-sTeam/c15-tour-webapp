@@ -1,15 +1,11 @@
 import './Panels.css';
 import {TimespanOffset, type unitTimeSpan} from "../../customObject/TimeSpan.ts";
-import type {ItineraryStore} from "../../customObject/Itinerary/types.ts";
 import {useItinerary} from "../../customObject/Itinerary/UseItinerary.ts";
+import {itineraryModel} from "../../customObject/Itinerary/ItineraryStore.ts";
 
-type Props = {
-    store: ItineraryStore
-}
-
-export default function InfoPanel({ store }: Props) {
+export default function InfoPanel() {
     const units: unitTimeSpan = {days: "J ", hours: "H ", minutes: "MIN ", seconds: "S ", milliseconds: "MS "}
-    const itinerary = useItinerary(store);
+    const itinerary = useItinerary(itineraryModel.store);
 
     return (
         <div className={"info-panel"}>

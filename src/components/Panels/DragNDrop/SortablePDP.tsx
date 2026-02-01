@@ -3,18 +3,17 @@ import { CSS } from "@dnd-kit/utilities";
 import type { Step } from "../../../customObject/Itinerary/types.ts";
 import Item from "../Item.tsx";
 import SubTitleWHour from "../SubTitleWHour.tsx";
-import type {ItineraryModel} from "../../../customObject/Itinerary/ItineraryModel.ts";
+import {itineraryModel} from "../../../customObject/Itinerary/ItineraryStore.ts";
 
 type Props = {
     visible: boolean,
-    model: ItineraryModel,
     item: Step;
     categoryId: string;
     isStartEnd: boolean;
     hour?: Date;
 };
 
-export default function SortablePDP({visible, model, item, categoryId, isStartEnd, hour}: Props) {
+export default function SortablePDP({visible, item, categoryId, isStartEnd, hour}: Props) {
     const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
         id: item.id,
         data: { type: "item", categoryId}
@@ -28,10 +27,16 @@ export default function SortablePDP({visible, model, item, categoryId, isStartEn
           {...attributes}
           {...listeners}
       >
-          <Item isStartEnd={isStartEnd} duration={item.content.duration} hour={hour}>
+          <Item
+              isStartEnd={isStartEnd}
+              duration={item.content.duration}
+              hour={hour}
+              itemId={item.id}
+              categoryId={categoryId}
+          >
               <SubTitleWHour
                   tag={isStartEnd ? "h2" : "h3"}
-                  model={model}
+                  model={itineraryModel}
                   imgPath={isStartEnd ? '/icons/depart-icon.png' : '/icons/pdp-icon.png'}
                   segmentId={categoryId}
                   stepId={item.id}

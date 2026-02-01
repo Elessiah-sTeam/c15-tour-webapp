@@ -14,9 +14,14 @@
 
 .config-panel {
     height: 70vh;
+}
+
+.route {
+    height: 55vh;
     overflow-y: auto;
     overflow-x: hidden;
     scrollbar-width: none;
+    border: #BB487C solid 1px;
 }
 
 h1, .title {
@@ -130,4 +135,18 @@ h3, .stepTitle {
 
 .add-step-btn:hover, .add-seg-btn:hover {
     font-weight: bold;
+}
+
+.action-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.action-buttons button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
 }

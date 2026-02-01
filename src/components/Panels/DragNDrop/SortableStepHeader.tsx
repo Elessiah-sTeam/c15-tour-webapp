@@ -20,7 +20,11 @@ export default function SortableStepHeader({category, model} : {category: Segmen
             {...attributes}
             {...listeners}
         >
-            <Item duration={category.content.duration} isStartEnd={false}>
+            <Item
+                duration={category.content.duration}
+                isStartEnd={false}
+                categoryId={category.id}
+            >
                 <SubTitleWHour
                     tag={"h2"}
                     model={model}

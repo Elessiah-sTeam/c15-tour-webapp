@@ -3,17 +3,16 @@ import SortableStepHeader from "./SortableStepHeader.tsx";
 import SortablePDP from "./SortablePDP.tsx";
 import type {Segment, Step} from "../../../customObject/Itinerary/types.ts";
 import {EmptyDropZone} from "./EmptyDropZone.tsx";
-import type {ItineraryModel} from "../../../customObject/Itinerary/ItineraryModel.ts";
+import {itineraryModel} from "../../../customObject/Itinerary/ItineraryStore.ts";
 import {TimeSpan} from "../../../customObject/TimeSpan.ts";
 
 type Props = {
     category: Segment,
     visible: boolean,
     idActiveItem: string  | null,
-    itineraryModel: ItineraryModel,
 }
 
-export default function SortableCategory({ category, visible, idActiveItem, itineraryModel}: Props) {
+export default function SortableCategory({ category, visible, idActiveItem}: Props) {
 
     function handleNewStep()
     {
@@ -65,7 +64,6 @@ export default function SortableCategory({ category, visible, idActiveItem, itin
                     <SortablePDP
                         key={item.id}
                         visible={!(item.id === idActiveItem)}
-                        model={itineraryModel}
                         item={item}
                         categoryId={category.id}
                         isStartEnd={category.isStartEnd}

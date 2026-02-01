@@ -1,4 +1,4 @@
-import {type JSX,type MouseEvent, useState} from "react";
+import {type JSX,type MouseEvent, type KeyboardEvent, useState} from "react";
 import useOutsideClick from "./useOutsideClick.ts";
 import './Panels/Panels.css';
 
@@ -22,7 +22,7 @@ export default function ClickInput({currentStr, setter, Tag, className}: Props) 
         stopInput();
     });
 
-    function handleKeyDown(event: KeyboardEvent) {
+    function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
         if (event.key === "Enter") {
             stopInput();
         }

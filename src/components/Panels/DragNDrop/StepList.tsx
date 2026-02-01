@@ -16,20 +16,16 @@ import type {Itinerary, Segment} from "../../../customObject/Itinerary/types.ts"
 import SortableCategory from "./SortableCategory";
 import SortablePDP from "./SortablePDP.tsx";
 import {type DndProps, useDragNDrop} from "./UseDragNDrop.tsx";
-import type {ItineraryModel} from "../../../customObject/Itinerary/ItineraryModel.ts";
 import {useItinerary} from "../../../customObject/Itinerary/UseItinerary.ts";
+import {itineraryModel} from "../../../customObject/Itinerary/ItineraryStore.ts";
 
-type Props = {
-    itineraryModel: ItineraryModel;
-}
-
-export default function StepList({itineraryModel}: Props) {
+export default function StepList() {
     const itinerary: Itinerary = useItinerary(itineraryModel.store);
 
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
     );
-    const dnd: DndProps = useDragNDrop({ itineraryModel });
+    const dnd: DndProps = useDragNDrop();
 
     return (
         <DndContext
@@ -49,7 +45,6 @@ export default function StepList({itineraryModel}: Props) {
                         visible={!(cat.id == dnd.activeCat?.id)}
                         category={cat}
                         idActiveItem={dnd.activeItem?.id ? dnd.activeItem.id : null}
-                        itineraryModel={itineraryModel}
                     />
             )}
             </SortableContext>
@@ -57,7 +52,6 @@ export default function StepList({itineraryModel}: Props) {
                 {dnd.activeItem ? (
                     <SortablePDP
                         visible={true}
-                        model={itineraryModel}
                         item={dnd.activeItem}
                         categoryId={"overlay"}
                         isStartEnd={false} />
@@ -66,8 +60,7 @@ export default function StepList({itineraryModel}: Props) {
                     <SortableCategory
                         visible={true}
                         category={dnd.activeCat}
-                        idActiveItem={null}
-                        itineraryModel={itineraryModel} />
+                        idActiveItem={null} />
                 ) : null}
             </DragOverlay>
         </DndContext>
