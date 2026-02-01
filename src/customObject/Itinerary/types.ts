@@ -18,6 +18,7 @@ export type segmentInfo = {
 }
 
 export type reorderStepInfo = {
+    fromSeg: Segment,
     toSeg : Segment,
     sameSeg: boolean
     newFromSteps: Step[],

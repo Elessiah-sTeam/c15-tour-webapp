@@ -199,7 +199,7 @@ export class ItineraryModel {
             insertIndex = toStepIndex > fromStepIndex ? toStepIndex - 1 : toStepIndex;
         }
 
-        return {toSeg, sameSeg, newFromSteps, newToSteps, insertIndex};
+        return {fromSeg, toSeg, sameSeg, newFromSteps, newToSteps, insertIndex};
     }
 
     private retrieveTargets(env: reorderStepInfo, fromStepIndex: number): {movedStep: Step, swapStep: Step | undefined} {
@@ -210,6 +210,10 @@ export class ItineraryModel {
         // Si la destination est l'arrivée ou le départ on échange, donc on récupère l'item à l'arrivée
         if (env.toSeg.isStartEnd && env.newToSteps.length > 0) {
             [swapStep] = env.newToSteps.splice(0, 1);
+        }
+        if (env.fromSeg.isStartEnd && env.newToSteps.length > 0)
+        {
+            [swapStep] = env.newToSteps.splice(env.insertIndex, 1);
         }
         return {movedStep, swapStep};
     }
