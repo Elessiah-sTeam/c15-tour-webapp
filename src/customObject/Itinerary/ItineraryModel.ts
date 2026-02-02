@@ -2,9 +2,17 @@ import {createItineraryStore} from "./ItineraryStore.ts";
 import type {Step, Segment, segmentInfo, Itinerary, ItineraryStore, ItineraryArgs, reorderStepInfo} from "./types.ts";
 import {TimeSpan} from "../TimeSpan.ts";
 
+/**
+ * Modèle de l'itinéraire, regroupant toutes les fonctions métiers pour le manipuler
+ */
 export class ItineraryModel {
     public readonly store: ItineraryStore;
 
+    /**
+     * Vérifie que le départ existe et qu'il est à la bonne place
+     * Si besoin le créé et/ou le déplace
+     * @param itinerary itinéraire concerné
+     */
     formatStart(itinerary: Itinerary): Itinerary {
         const index: number = itinerary.segments.findIndex((seg: Segment) => seg.id == "start");
         const segments: Segment[] = itinerary.segments;
@@ -30,6 +38,12 @@ export class ItineraryModel {
         return itinerary;
     }
 
+    /**
+     * Vérifie que l'arrivée existe et qu'il est au bon endroit
+     *
+     * Si besoin le créé et/ou le déplace
+     * @param itinerary Itinéraire concerné
+     */
     formatEnd(itinerary: Itinerary): Itinerary {
         const index: number = itinerary.segments.findIndex((seg: Segment) => seg.id == "end");
         const segments: Segment[] = itinerary.segments;
@@ -55,11 +69,23 @@ export class ItineraryModel {
         return itinerary;
     }
 
+    /**
+     * Vérifie que l'arrivée et le départ existe et sont bien placés
+     *
+     * Si besoin les créés et les déplace
+     * @param itinerary itinéraire concerné
+     */
     formatItinerary(itinerary: Itinerary): Itinerary {
         const result: Itinerary = this.formatStart(itinerary);
         return this.formatEnd(result);
     }
 
+    /**
+     * Constructeur du modèle, peut se construire à partir d'un store ou d'un état initial ou de rien
+     * @param _store store sur lequel se basé
+     * @param initial valeur initial de l'itinéraire
+     * @constructor
+     */
     constructor({_store, initial}: ItineraryArgs) {
         if (_store) {
             this.store = _store;
@@ -70,10 +96,17 @@ export class ItineraryModel {
         }
     }
 
+    /**
+     * Fonction pour récupérer le snapshot de l'itinéraire
+     */
     get route() {
         return this.store.getSnapshot();
     }
 
+    /**
+     * Fonction pour renommer l'itinéraire
+     * @param newName nouveau nom à appliquer
+     */
     renameItinerary(newName: string): void {
         this.store.set((route: Itinerary) => ({
            ...route,
@@ -81,10 +114,20 @@ export class ItineraryModel {
         }));
     }
 
+    /**
+     * Permet de récuperer un segment à partir d'un id.
+     *
+     * Renvoi undefined si ne trouve pas sinon un Segment
+     * @param segmentId ID du segment à récupérer
+     */
     getSegment(segmentId: string): Segment | undefined {
         return this.route.segments.find((s: Segment) => s.id === segmentId);
     }
 
+    /**
+     * Permet d'ajouter un segment à l'itinéraire
+     * @param segment Segment à ajouter
+     */
     addSegment(segment: Segment): void {
         this.store.set((route: Itinerary) => {
             const segments: Segment[] = [...route.segments];
@@ -93,11 +136,20 @@ export class ItineraryModel {
         });
     }
 
+    /**
+     * Permet de retirer un segment à partir de son id
+     * @param segmentId ID du segment à retirer
+     */
     removeSegment(segmentId: string): void {
         this.store.set((route: Itinerary) => {
             return {...route, segments: route.segments.filter(s => s.id != segmentId)}});
     }
 
+    /**
+     * Permet de mettre à jour les informations d'un Segment à partir de son ID
+     * @param segmentId ID du segment à modifier
+     * @param info nouvelles infos du segment
+     */
     updateSegmentInfo(segmentId: string,
                       info: segmentInfo): void {
         this.store.set((route: Itinerary) => {
@@ -110,6 +162,11 @@ export class ItineraryModel {
             });
     }
 
+    /**
+     * Permet de déplacer un segment dans l'itinéraire
+     * @param segmentId ID du segment à déplacer
+     * @param targetIndex index cible
+     */
     reorderSegment(segmentId: string, targetIndex: number): void {
         this.store.set((route: Itinerary) => {
             const segments: Segment[] = [...route.segments];
@@ -123,6 +180,11 @@ export class ItineraryModel {
         );
     }
 
+    /**
+     * Permet de renommer un segment à partir de son ID
+     * @param segmentId ID du segment à renommer
+     * @param newName nouveau nom à appliquer
+     */
     renameSegment(segmentId: string, newName: string): void {
         this.store.set((route: Itinerary) => {
             return {
@@ -136,10 +198,21 @@ export class ItineraryModel {
         });
     }
 
+    /**
+     * Permet de récupérer une étape
+     * @param segmentId Id du segment parent
+     * @param stepId Id de l'étape
+     */
     getStep(segmentId: string, stepId: string): Step | undefined {
         return this.route.segments.find((s: Segment) => s.id === segmentId)?.steps.find((s: Step) => s.id === stepId);
     }
 
+    /**
+     * Permet d'ajouter une étape
+     * @param segmentId ID du parent où on veut l'insérer
+     * @param step Etape à ajouter
+     * @param index Optionnel Index si on veut pas forcément l'ajouter à la fin
+     */
     addStep(segmentId: string, step: Step, index?: number): void {
         this.store.set((route: Itinerary) => {
             return {
@@ -154,6 +227,11 @@ export class ItineraryModel {
         });
     }
 
+    /**
+     * Permet de supprimer une étape
+     * @param segmentId ID du segment parent
+     * @param stepId ID de l'étape à supprimer
+     */
     removeStep(segmentId: string, stepId: string): void {
         this.store.set((route: Itinerary) => {
             return {
@@ -166,6 +244,13 @@ export class ItineraryModel {
         });
     }
 
+    /**
+     * Renvoi n si compris entre min et max sinon renvoi la limite que dépasse n
+     * @param n nombre à tester
+     * @param min limite basse
+     * @param max limite haute
+     * @private
+     */
     private clamp(n: number, min: number, max: number): number {
         if (n < min)
             return min;
@@ -174,6 +259,17 @@ export class ItineraryModel {
         return n;
     }
 
+    /**
+     * Récupère toutes les informations nécessaire au déplacement de l'étape
+     *
+     * Renvoi reorderStepInfo si tout est conforme sinon null
+     * @param route itinéraire à modifier
+     * @param fromSegmentId ID du segment de départ
+     * @param fromStepIndex Index de l'étape au départ
+     * @param toSegmentId ID du segment de fin
+     * @param toStepIndex Index de l'étape à la fin
+     * @private
+     */
     private getReorderStepInfo(route: Itinerary,
                                fromSegmentId: string,
                                fromStepIndex: number,
@@ -202,6 +298,13 @@ export class ItineraryModel {
         return {fromSeg, toSeg, sameSeg, newFromSteps, newToSteps, insertIndex};
     }
 
+    /**
+     * Retire l'étape déplacé de l'itinéraire
+     * Retire l'étape d'arrivée si on déplace dans une catégorie arrivée ou départ
+     * @param env Toutes les informations liés au déplacement
+     * @param fromStepIndex Index de l'étape au départ
+     * @private
+     */
     private retrieveTargets(env: reorderStepInfo, fromStepIndex: number): {movedStep: Step, swapStep: Step | undefined} {
         // On récupère les items pour les replacer
         const [movedStep] = env.newFromSteps.splice(fromStepIndex, 1);
@@ -218,6 +321,14 @@ export class ItineraryModel {
         return {movedStep, swapStep};
     }
 
+    /**
+     * Permet de replacer les étapes récupérées dans retrieveTargets
+     * @param env Toutes les informations liés au déplacement
+     * @param fromStepIndex Index de l'étape au départ
+     * @param movedStep Etape cible du déplacement
+     * @param swapStep Etape déplacé suite à une inversion pour l'arrivée et départ
+     * @private
+     */
     private replaceSteps(env: reorderStepInfo,
                          fromStepIndex: number,
                          movedStep: Step,
@@ -231,6 +342,12 @@ export class ItineraryModel {
         }
     }
 
+    /**
+     * Déplace l'étape et gère les inversions d'étape en cas d'arrivée ou de départ
+     * @param env Toutes les informations liés au déplacement
+     * @param fromStepIndex Index de l'étape au départ
+     * @private
+     */
     private moveSteps(env: reorderStepInfo, fromStepIndex: number): boolean {
 
         const {movedStep, swapStep} = this.retrieveTargets(env, fromStepIndex);
@@ -239,6 +356,13 @@ export class ItineraryModel {
         return true;
     }
 
+    /**
+     * Permet de déplacer une étape dans l'itinéraire
+     * @param fromSegmentId ID du segment parent de départ
+     * @param fromStepIndex Index de l'étape au départ
+     * @param toSegmentId ID du segment parent d'arrivée
+     * @param toStepIndex Index de l'étape d'arrivée
+     */
     reorderStep(fromSegmentId: string, fromStepIndex: number, toSegmentId: string, toStepIndex: number): void {
         this.store.set((route: Itinerary) => {
             const env = this.getReorderStepInfo(route, fromSegmentId, fromStepIndex, toSegmentId, toStepIndex)
@@ -266,6 +390,12 @@ export class ItineraryModel {
         });
     }
 
+    /**
+     * Permet de renommer une étape
+     * @param segmentId ID du segment parent
+     * @param stepId Id de l'étape
+     * @param newName Nouveau nom à appliquer
+     */
     renameStep(segmentId: string, stepId: string, newName: string): void {
         this.store.set((route: Itinerary) => ({
             ...route,

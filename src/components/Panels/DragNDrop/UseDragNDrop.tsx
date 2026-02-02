@@ -13,11 +13,20 @@ export type DndProps = {
     handleDragEnd: (event: DragEndEvent) => void;
 }
 
+/**
+ * Fonction renvoyant les outils pour faire fonctionner le dragNDrop
+ * Contient les fonctions métier du DragNDrop
+ */
 export function useDragNDrop(): DndProps {
     const [activeItem, setActiveItem] = useState<Step | null>(null);
     const [activeCat, setActiveCat] = useState<Segment | null>(null);
     const itinerary: Itinerary = useItinerary(itineraryModel.store);
 
+    /**
+     * Gère le début du dragNDrop quand l'élément est agripé,
+     * Mets à jour les variables activeItem, et activeCat qui représente les éléments saisis
+     * @param event informations sur le début du Drag
+     */
     function handleDragStart(event: DragStartEvent) {
         const {active} = event;
         const type = active.data.current?.type;
@@ -35,12 +44,15 @@ export function useDragNDrop(): DndProps {
         }
     }
 
+    /**
+     * Gère le mouvement de dragNDrop
+     * Reordonne l'itinéraire fonction du survol
+     * @param event
+     */
     function handleDragMove(event: DragMoveEvent) {
         const { active, over } = event;
 
         if (!over) {
-            // Fonctionne pas, over toujours actif
-            // removeActive(active, itineraryModel);
             return;
         }
 
@@ -54,6 +66,11 @@ export function useDragNDrop(): DndProps {
         }
     }
 
+    /**
+     * Gère la fin du dragNDrop
+     * Désactive les actifs, et reordonne une dernière fois
+     * @param event
+     */
     function handleDragEnd(event: DragEndEvent) {
         setActiveItem(null);
         setActiveCat(null);

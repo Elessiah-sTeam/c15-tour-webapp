@@ -19,6 +19,9 @@ import {type DndProps, useDragNDrop} from "./UseDragNDrop.tsx";
 import {useItinerary} from "../../../customObject/Itinerary/UseItinerary.ts";
 import {itineraryModel} from "../../../customObject/Itinerary/ItineraryStore.ts";
 
+/**
+ * Contient toute la partie DragNDrop sur les segments, et les étapes
+ */
 export default function StepList() {
     const itinerary: Itinerary = useItinerary(itineraryModel.store);
 

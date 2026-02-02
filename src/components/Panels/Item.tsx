@@ -17,10 +17,22 @@ type Props = {
 
 const units: unitTimeSpan = {days: ":", hours: ":", minutes: "", seconds: "", milliseconds: ""};
 
+/**
+ * Composant qui englobe le titre et contient l'heure et la durée
+ * @param duration durée à afficher
+ * @param hour heure à afficher
+ * @param isStartEnd indique si c'est un départ ou une arrivée
+ * @param children Composant englobé
+ * @param categoryId ID de la catégorie concerné
+ * @param itemId ID de l'item concerné
+ */
 export default function Item({duration, hour, isStartEnd, children, categoryId, itemId}: Props) {
     const delMod = useDeleteMod(deleteModStore)
     duration = Object.assign(new TimeSpan(), duration);
 
+    /**
+     * Gère la suppression de l'étape ou du segment
+     */
     function handleDelete() {
         if (itemId != null)
             itineraryModel.removeStep(categoryId, itemId);

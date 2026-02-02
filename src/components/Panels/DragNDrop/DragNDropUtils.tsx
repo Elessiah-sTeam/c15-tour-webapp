@@ -2,6 +2,11 @@ import type {Active, Over} from "@dnd-kit/core";
 import type {Itinerary, Segment, Step} from "../../../customObject/Itinerary/types.ts";
 import type {ItineraryModel} from "../../../customObject/Itinerary/ItineraryModel.ts";
 
+/**
+ * Permet de récupérer l'étape qui est saisi
+ * @param active information information DragNDrop
+ * @param categories tableaux des segments de l'itinéraire
+ */
 export function getActiveItem(active: Active, categories: Segment[]): Step | undefined {
     const catId: string = active.data.current?.categoryId;
     if (!catId)
@@ -9,6 +14,11 @@ export function getActiveItem(active: Active, categories: Segment[]): Step | und
     return (categories.find(c => c.id === catId)?.steps.find(i => i.id === active.id));
 }
 
+/**
+ * Permet de récupérer le segment qui est saisi
+ * @param active information DragNDrop
+ * @param categories tableaux des segments de l'itinéraire
+ */
 export function getActiveCat(active: Active, categories: Segment[]): Segment | undefined {
     const catId: string = active.id as string;
     if (!catId)
@@ -16,6 +26,13 @@ export function getActiveCat(active: Active, categories: Segment[]): Segment | u
     return (categories.find(c => c.id === catId));
 }
 
+/**
+ * Permet de replacer le segment dans l'itinéraire
+ * @param itinerary snapshot de l'itinéraire
+ * @param itineraryModel model du store de l'itinéraire
+ * @param active information DragNDrop
+ * @param over information DragNDrop
+ */
 export function reorderSegment(itinerary: Itinerary,
                                itineraryModel: ItineraryModel,
                                active: Active,
@@ -30,6 +47,14 @@ type OriginsNTarget = {
     itemIndex: {old: number, new: number}
 };
 
+/**
+ * Récupère les segments d'origines et de destinations, ainsi que les index origine et destination des étapes
+ * @param categories snapshot des categories de l'itinéraire
+ * @param srcCategory ID de la catégorie source
+ * @param destCategory ID de la catégorie de destination
+ * @param active information DragNDrop
+ * @param over information DragNDrop
+ */
 function getOriginsNTargets(categories: Segment[],
                             srcCategory: string,
                             destCategory: string,
@@ -58,6 +83,13 @@ function getOriginsNTargets(categories: Segment[],
     return result;
 }
 
+/**
+ * Permet de replacer l'étape dans l'itinéraire
+ * @param itinerary snapshot de l'itinéraire
+ * @param itineraryModel model du store de l'itinéraire
+ * @param active information DragNDrop
+ * @param over information DragNDrop
+ */
 export function reorderItems(itinerary: Itinerary,
                              itineraryModel: ItineraryModel,
                              active: Active,
@@ -77,19 +109,4 @@ export function reorderItems(itinerary: Itinerary,
     if (!OGnT)
         return;
     itineraryModel.reorderStep(OGnT.category.from.id, OGnT.itemIndex.old, OGnT.category.to.id, OGnT.itemIndex.new);
-}
-
-export function removeActive(active: Active,
-                             itinerary: ItineraryModel): void
-{
-    const activeType: string | null = active.data.current?.type;
-
-    if (activeType === "category")
-        itinerary.removeSegment(active.id as string);
-    else if (activeType === "item") {
-        const srcCategory: string | undefined = active.data.current?.categoryId;
-        if (!srcCategory)
-            return;
-        itinerary.removeStep(srcCategory, active.id as string);
-    }
 }

@@ -12,6 +12,12 @@ type Props = {
     idActiveItem: string  | null,
 }
 
+/**
+ * Composant DragNDrop pour les segments, étant des catégories
+ * @param category objet snapshot du segment
+ * @param visible visibilité du segment
+ * @param idActiveItem ID de la potentielle étape active
+ */
 export default function SortableCategory({ category, visible, idActiveItem}: Props) {
 
     function handleNewStep()
@@ -26,6 +32,11 @@ export default function SortableCategory({ category, visible, idActiveItem}: Pro
             });
     }
 
+    /**
+     * Permet de créer un nouveau segment
+     *
+     * Génère un ID unique avec la date, il serait un intéressant de le passer en paramètre
+     */
     function handleNewSegment(): void {
         itineraryModel.addSegment({
             id: "newseg" + new Date().toISOString(),

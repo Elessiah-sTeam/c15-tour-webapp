@@ -1,10 +1,9 @@
 import type {JSX} from "react";
 import './Panels.css';
-import type {ItineraryModel} from "../../customObject/Itinerary/ItineraryModel.ts";
 import ClickInput from "../ClickInput.tsx";
+import {itineraryModel} from "../../customObject/Itinerary/ItineraryStore.ts";
 type Props = {
     tag: keyof JSX.IntrinsicElements,
-    model: ItineraryModel,
     imgPath: string,
     segmentId: string,
     stepId?: string,
@@ -12,13 +11,28 @@ type Props = {
     hour: Date | null
 }
 
-export default function SubTitleWHour({tag: Tag, model, imgPath, segmentId, stepId, subtitle, hour}: Props) {
+/**
+ * Affiche le sous-titre avec l'heure
+ * @param Tag Nom de la balise HTML pour le sous-titre
+ * @param imgPath Chemin de l'icone à afficher à gauche
+ * @param segmentId ID du segment/segment parent
+ * @param stepId Optionnel Id de l'étape
+ * @param subtitle valeur initial du sous-titre
+ * @param hour heure à afficher
+ * @constructor
+ */
+export default function SubTitleWHour({tag: Tag, imgPath, segmentId, stepId, subtitle, hour}: Props) {
+
+    /**
+     * Fonction appelé par le composant ClickInput pour mettre à jour la valeur du sous-titre
+     * @param newString Nouveau sous-titre à appliquer
+     */
     function manageSetter(newString: string)
     {
         if (stepId != undefined) {
-            model.renameStep(segmentId, stepId, newString);
+            itineraryModel.renameStep(segmentId, stepId, newString);
         } else {
-            model.renameSegment(segmentId, newString);
+            itineraryModel.renameSegment(segmentId, newString);
         }
     }
 
