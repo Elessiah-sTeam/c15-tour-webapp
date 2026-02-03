@@ -1,14 +1,17 @@
-import {useState} from "react";
 import './Panels.css';
 import Route from "./Route.tsx";
+import ItineraryTitle from "./ItineraryTitle.tsx";
+import ActionButtons from "./ActionButtons.tsx";
 
+/**
+ * Composant contenant le panneau de configuration
+ */
 export default function ConfigPanel() {
-    const [convoyName, setConvoyName] = useState('C15 Fiesta TOUR #1');
-
     return (
     <div className={"config-panel"}>
-        <h1>{convoyName}</h1>
+        <ItineraryTitle/>
         <Route/>
+        <ActionButtons/>
     </div>
-    )
+    );
 }
