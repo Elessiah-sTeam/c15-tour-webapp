@@ -4,6 +4,10 @@ import type {Dispatch, SetStateAction} from "react";
 export type stepInfo = {
     title: string;
     duration: TimeSpan;
+    location?: {
+        lat: number;
+        lon: number;
+    }
 }
 
 export type Step = {

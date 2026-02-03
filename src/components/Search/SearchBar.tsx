@@ -3,6 +3,14 @@ import type { FormEvent } from "react";
 import { useMap } from "react-leaflet";
 import type { LatLngExpression } from "leaflet";
 import { DomEvent } from "leaflet";
+import { useItinerary } from "../../customObject/Itinerary/UseItinerary.ts";
+import { itineraryModel } from "../../customObject/Itinerary/ItineraryStore.ts";
+import type { Segment } from "../../customObject/Itinerary/types.ts";
+import { TimeSpan } from "../../customObject/TimeSpan.ts";
+import {
+  clearSearchIntent,
+  useSearchIntent,
+} from "../../customObject/Search/SearchIntentStore.ts";
 
 import "./SearchBar.css";
 
@@ -19,15 +27,37 @@ type NominatimResult = {
   display_name: string;
 };
 
+const shortenDisplayName = (value: string): string => {
+  const parts = value
+    .split(",")
+    .map((p) => p.trim())
+    .filter((p) => p.length > 0);
+
+  // Cas où Nominatim renvoie "12, Rue ..., Ville, ..."
+  if (parts.length >= 3 && /^\d+[A-Za-z]?$/.test(parts[0])) {
+    const street = `${parts[0]} ${parts[1]}`; // pas de virgule entre numéro et rue
+    return `${street}, ${parts[2]}`; // conserve la ville
+  }
+
+  if (parts.length >= 2) return `${parts[0]}, ${parts[1]}`;
+  if (parts.length === 1) return parts[0];
+  return value;
+};
+
 export default function SearchBar({ onLocationSelected }: Props) {
   const map = useMap();
   const [query, setQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<NominatimResult[]>([]);
+  const itinerary = useItinerary(itineraryModel.store);
+  const searchIntent = useSearchIntent();
+  const mustFillAddress = Boolean(searchIntent.target);
+  const showWarning = mustFillAddress && query.trim().length === 0;
 
   const formRef = useRef<HTMLFormElement | null>(null);
   const listRef = useRef<HTMLUListElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -44,11 +74,87 @@ export default function SearchBar({ onLocationSelected }: Props) {
   }, [results]);
 
   useEffect(() => {
+    if (!searchIntent.target) return;
+
+    setQuery("");
+    setResults([]);
+    setError(null);
+
+    if (inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [searchIntent.focusRequestId]);
+
+  useEffect(() => {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
       if (abortRef.current) abortRef.current.abort();
     };
   }, []);
+
+  const ensureDestinationSegment = (): Segment | null => {
+    const regularSegments = itinerary.segments.filter(
+      (seg) => !seg.isStartEnd
+    );
+    if (regularSegments.length > 0) {
+      return regularSegments[regularSegments.length - 1];
+    }
+
+    const newSegment: Segment = {
+      id: "auto-seg-" + new Date().toISOString(),
+      content: {
+        title: "Nouveau segment",
+        hour: new Date(),
+        duration: new TimeSpan(),
+      },
+      isStartEnd: false,
+      steps: [],
+    };
+
+    itineraryModel.addSegment(newSegment);
+    return newSegment;
+  };
+
+  const applySelectionToItinerary = (
+    label: string,
+    coords: LatLngExpression
+  ) => {
+    const trimmed = label.trim();
+    if (!trimmed) return;
+
+    if (searchIntent.target) {
+      itineraryModel.renameStep(
+        searchIntent.target.segmentId,
+        searchIntent.target.stepId,
+        trimmed
+      );
+      if (Array.isArray(coords)) {
+        const [lat, lon] = coords as [number, number];
+        itineraryModel.setStepLocation(searchIntent.target.segmentId, searchIntent.target.stepId, {
+          lat,
+          lon,
+        });
+      }
+      clearSearchIntent();
+      return;
+    }
+
+    const targetSegment = ensureDestinationSegment();
+    if (!targetSegment) return;
+
+    const stepId = "search" + new Date().toISOString();
+    itineraryModel.addStep(targetSegment.id, {
+      id: stepId,
+      content: {
+        title: trimmed,
+        duration: new TimeSpan(),
+        ...(Array.isArray(coords)
+          ? { location: { lat: coords[0] as number, lon: coords[1] as number } }
+          : {}),
+      },
+    });
+  };
 
   const selectResult = (item: NominatimResult) => {
     const coords: LatLngExpression = [
@@ -56,7 +162,11 @@ export default function SearchBar({ onLocationSelected }: Props) {
       parseFloat(item.lon),
     ];
     map.flyTo(coords, 15, { duration: 1.25 });
-    onLocationSelected(coords, item.display_name || query);
+    const fullLabel = (item.display_name || query).trim();
+    const label = shortenDisplayName(fullLabel);
+    onLocationSelected(coords, label);
+    applySelectionToItinerary(label, coords);
+    setQuery(label);
     setResults([]);
     setError(null);
   };
@@ -143,40 +253,50 @@ export default function SearchBar({ onLocationSelected }: Props) {
   };
 
   return (
-    <form ref={formRef} className="search-bar" onSubmit={handleSearch}>
-      <div className="search-bar-inner">
-        <span className="search-icon" aria-hidden>
-          {"\uD83D\uDD0D"}
-        </span>
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => handleChange(e.target.value)}
-          placeholder="Rechercher un point d'interet"
-          aria-label="Rechercher un point d'interet"
-        />
-        <button type="submit" disabled={isLoading}>
-          {isLoading ? "..." : "OK"}
-        </button>
-      </div>
+    <>
+      {mustFillAddress && <div className="search-guard" aria-hidden />}
+      <form ref={formRef} className="search-bar" onSubmit={handleSearch}>
+        <div className="search-bar-inner">
+          <span className="search-icon" aria-hidden>
+            {"\uD83D\uDD0D"}
+          </span>
+          <input
+            type="text"
+            value={query}
+            ref={inputRef}
+            onChange={(e) => handleChange(e.target.value)}
+            placeholder="Rechercher un point d'interet"
+            aria-label="Rechercher un point d'interet"
+          />
+          <button type="submit" disabled={isLoading}>
+            {isLoading ? "..." : "OK"}
+          </button>
+        </div>
 
-      {results.length > 0 && (
-        <ul className="search-results" ref={listRef}>
-          {results.map((item, idx) => (
-            <li key={`${item.display_name}-${idx}`}>
-              <button
-                type="button"
-                onClick={() => selectResult(item)}
-                className="search-result"
-              >
-                <span className="result-title">{item.display_name}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+        {showWarning && (
+          <span className="search-warning">
+            Ajoutez une adresse pour valider l'étape
+          </span>
+        )}
 
-      {error && <span className="search-error">{error}</span>}
-    </form>
+        {results.length > 0 && (
+          <ul className="search-results" ref={listRef}>
+            {results.map((item, idx) => (
+              <li key={`${item.display_name}-${idx}`}>
+                <button
+                  type="button"
+                  onClick={() => selectResult(item)}
+                  className="search-result"
+                >
+                  <span className="result-title">{item.display_name}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {error && <span className="search-error">{error}</span>}
+      </form>
+    </>
   );
 }

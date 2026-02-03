@@ -3,14 +3,23 @@
   top: 24px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 20000;
+  z-index: 12000;
+}
+
+.search-guard {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+              rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(2px);
+  z-index: 11000;
 }
 
 .search-bar-inner {
   display: flex;
   align-items: center;
   gap: 10px;
-  width: min(600px, 92vw);
+  width: clamp(200px, 48vw, 400px);
   padding: 8px 20px;
   border-radius: 40px;
   border: 2px solid #bb487c;
@@ -91,7 +100,7 @@
   overflow: hidden;
   max-height: 260px;
   overflow-y: auto;
-  width: min(600px, 92vw);
+  width: clamp(200px, 48vw, 400px);
   padding: 6px 0;
 }
 
@@ -126,4 +135,78 @@
 .search-results .search-result {
   background: #ffffff;
   color: #bb487c;
+}
+
+.search-warning {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #c0364d;
+  color: #c0364d;
+  font-family: "Montserrat", sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+@media (max-width: 900px) {
+  .search-bar {
+    top: 12px;
+  }
+  .search-bar-inner {
+    gap: 8px;
+    padding: 8px 14px;
+    width: clamp(200px, 55vw, 340px);
+  }
+  .search-bar button {
+    padding: 6px 14px;
+  }
+  .search-results {
+    width: clamp(200px, 55vw, 340px);
+  }
+}
+
+@media (max-width: 640px) {
+  .search-bar {
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .search-bar-inner {
+    width: 86vw;
+    padding: 10px 14px;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18);
+  }
+  .search-bar input {
+    font-size: 13px;
+  }
+  .search-bar button {
+    font-size: 12px;
+    padding: 7px 14px;
+  }
+  .search-results {
+    width: 86vw;
+    max-height: 50vh;
+  }
+}
+
+@media (max-height: 780px) {
+  .search-bar {
+    top: 8px;
+  }
+  .search-bar-inner {
+    gap: 8px;
+    padding: 6px 14px;
+    width: clamp(200px, 46vw, 360px);
+  }
+  .search-bar button {
+    padding: 6px 12px;
+  }
+  .search-results {
+    width: clamp(200px, 46vw, 360px);
+  }
 }

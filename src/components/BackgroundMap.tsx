@@ -5,6 +5,8 @@ import { c15Marker } from "../icons";
 import roadTour from "../assets/road_tour.svg";
 import byC15Tour from "../assets/by_c15_tour.svg";
 import logo from "../assets/logo.svg";
+import { useItinerary } from "../customObject/Itinerary/UseItinerary.ts";
+import { itineraryModel } from "../customObject/Itinerary/ItineraryStore.ts";
 import "./BackgroundMap.css";
 import "leaflet/dist/leaflet.css";
 
@@ -17,10 +19,9 @@ type BackgroundMapProps = {
 };
 
 export default function BackgroundMap({
-  searchPosition = null,
-  searchLabel = "",
   children,
 }: BackgroundMapProps) {
+  const itinerary = useItinerary(itineraryModel.store);
 
   return (
     <div className="map-wrapper">
@@ -48,10 +49,18 @@ export default function BackgroundMap({
           <Popup>Hi Hajar !</Popup>
         </Marker>
 
-        {searchPosition && (
-          <Marker position={searchPosition} icon={c15Marker}>
-            <Popup>{searchLabel}</Popup>
-          </Marker>
+        {itinerary.segments.flatMap((segment) =>
+          segment.steps
+            .filter((step) => step.content.location)
+            .map((step) => {
+              const loc = step.content.location!;
+              const pos: LatLngExpression = [loc.lat, loc.lon];
+              return (
+                <Marker key={`${segment.id}-${step.id}`} position={pos} icon={c15Marker}>
+                  <Popup>{step.content.title}</Popup>
+                </Marker>
+              );
+            })
         )}
         {children}
       </MapContainer>
