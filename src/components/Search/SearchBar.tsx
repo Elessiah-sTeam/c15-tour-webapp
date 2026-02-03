@@ -93,12 +93,12 @@ export default function SearchBar({ onLocationSelected }: Props) {
         return;
       }
 
-      // Deduplicate by display_name then coordinates to avoid duplicates between FR + world
-      const seen = new Set<string>();
+      // Deduplicate by the human-readable name to avoid repeated lines
+      const seenNames = new Set<string>();
       const unique = parsed.filter((item) => {
-        const key = `${item.display_name}-${item.lat}-${item.lon}`;
-        if (seen.has(key)) return false;
-        seen.add(key);
+        const key = item.display_name.trim().toLowerCase();
+        if (seenNames.has(key)) return false;
+        seenNames.add(key);
         return true;
       });
 
