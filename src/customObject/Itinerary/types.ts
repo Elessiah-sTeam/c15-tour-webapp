@@ -1,9 +1,11 @@
 import type {TimeSpan} from "../TimeSpan.ts";
 import type {Dispatch, SetStateAction} from "react";
+import type {LatLngExpression} from "leaflet";
 
 export type stepInfo = {
     title: string;
     duration: TimeSpan;
+    position: LatLngExpression;
 }
 
 export type Step = {

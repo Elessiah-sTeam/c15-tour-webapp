@@ -418,4 +418,16 @@ export class ItineraryModel {
                 }),
         }));
     }
+
+    get steps(): Step[] {
+        const result: Step[] = [];
+        const itinerary: Itinerary = this.store.getSnapshot();
+
+        for (const seg of itinerary.segments) {
+            for (const step of seg.steps) {
+                result.push(step);
+            }
+        }
+        return result;
+    }
 }
