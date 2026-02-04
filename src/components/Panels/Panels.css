@@ -3,43 +3,103 @@
     backdrop-filter: blur(5px);
     -webkit-backdrop-filter: blur(10px);
 
-    width: clamp(300px, 28vw, 420px);
+    width: 100%;
     padding: 12px 14px 14px 14px;
     border: 2px solid #BB487C;
     border-radius: 20px;
-    margin-bottom: 20px;
+    margin-bottom: 0; /* l'espacement est géré par gap sur le conteneur */
 
     color: #BB487C;
     display: flex;
     flex-direction: column;
     gap: 8px;
-    max-height: min(78vh, calc(100vh - 170px));
+    /* la hauteur est gérée par le conteneur parent (.panel) */
     overflow: hidden;
+    font-size: clamp(9px, 1.9vw, 14px);
 }
 
 .config-panel {
-    min-height: 420px;
+    flex: 1 1 auto; /* occupe l'espace restant dans la colonne */
+    min-height: 240px;  /* garde une base mais laisse le flex grandir */
+}
+
+.info-panel {
+    flex: 0 0 auto;
+    margin-top: 0; /* l'espacement vient du gap du conteneur */
+    height: clamp(64px, 8vh, 96px); /* dimension plus proche de la maquette */
+    padding: clamp(10px, 1.6vh, 12px) 14px clamp(10px, 1.6vh, 12px) 14px;
+    justify-content: center; /* remonte et centre le contenu */
+    align-items: center;
+    gap: 6px;
 }
 
 .route {
     flex: 1 1 auto;
-    min-height: 260px;
-    max-height: calc(100vh - 260px);
+    min-height: 240px;
     overflow-y: auto;
-    overflow-x: hidden;
-    scrollbar-width: none;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #BB487C #FBEAF3;
     border: #BB487C solid 1px;
+}
+
+.route-inner {
+    width: max-content;
+    min-width: 100%;
+}
+
+.route::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+}
+
+.route::-webkit-scrollbar-thumb {
+    background: #BB487C;
+    border-radius: 999px;
+}
+
+.route::-webkit-scrollbar-track {
+    background: #FBEAF3;
 }
 
 h1, .title {
     font-family: 'Montserrat', sans-serif;
     font-weight: 700;
     font-style: normal;
-    font-size: 30px;
+    font-size: clamp(12px, 3vw, 26px);
     line-height: 1;
     letter-spacing: 0.3px;
     text-align: center;
     text-transform: uppercase;
+}
+
+.title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.panel-close-btn {
+    border: 2px solid #BB487C;
+    background: rgba(255, 255, 255, 0.2);
+    color: #BB487C;
+    border-radius: 10px;
+    width: clamp(24px, 3vw, 32px);
+    height: clamp(24px, 3vw, 32px);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: clamp(12px, 2.2vw, 16px);
+    transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+}
+
+.panel-close-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(187, 72, 124, 0.35);
+    background: rgba(255, 255, 255, 0.35);
 }
 
 .item {
@@ -77,7 +137,7 @@ h2, .segmentTitle {
     font-family: 'Montserrat', sans-serif;
     font-weight: 500;
     font-style: normal;
-    font-size: 24.15px;
+    font-size: clamp(12px, 2.8vw, 20px);
     line-height: 1;
     margin: 0;
 }
@@ -86,33 +146,33 @@ h3, .stepTitle {
     font-family: 'Montserrat', sans-serif;
     font-weight: 500;
     font-style: normal;
-    font-size: 14.59px;
+    font-size: clamp(10px, 2vw, 13px);
     line-height: 1;
     letter-spacing: 0;
     margin: 0;
 }
 
 .icon-h2 {
-    height: 30px;
+    height: clamp(18px, 2.6vw, 26px);
     width: auto;
 }
 
 .icon-h3 {
-    height: 20px;
+    height: clamp(12px, 2.2vw, 18px);
     width: auto;
-    margin-left: 20px;
+    margin-left: clamp(12px, 2vw, 20px);
 }
 
 .reorder-icon {
-    height: 20px;
-    width: 20px;
+    height: clamp(12px, 2vw, 18px);
+    width: clamp(12px, 2vw, 18px);
 }
 
 .hour {
     font-family: 'Montserrat', sans-serif;
     font-weight: 800;
     font-style: normal;
-    font-size: 15px;
+    font-size: clamp(10px, 2vw, 13px);
     line-height: 1;
     text-align: right;
     margin-left: auto;
@@ -167,23 +227,12 @@ h3, .stepTitle {
         max-width: none;
         margin: 0 0 12px 0;
     }
-    .config-panel {
-        height: 52vh;
-    }
-    .route {
-        height: 38vh;
-        min-height: 200px;
-    }
 }
 
 @media (max-width: 640px) {
     .config-panel {
-        height: 48vh;
         padding: 12px;
         border-radius: 16px;
-    }
-    .route {
-        height: 34vh;
     }
     .item {
         gap: 6px;

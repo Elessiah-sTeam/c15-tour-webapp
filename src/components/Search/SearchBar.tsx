@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import type { FormEvent } from "react";
 import { useMap } from "react-leaflet";
 import type { LatLngExpression } from "leaflet";
@@ -252,9 +252,48 @@ export default function SearchBar({ onLocationSelected }: Props) {
     }, 250);
   };
 
+  const cancelSearch = useCallback(() => {
+    // stop pending fetches/debounces
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (abortRef.current) abortRef.current.abort();
+
+    // clear UI state
+    setResults([]);
+    setError(null);
+    setQuery("");
+
+    // delete the placeholder step if we were in an enforced search flow
+    if (searchIntent.target) {
+      itineraryModel.removeStep(
+        searchIntent.target.segmentId,
+        searchIntent.target.stepId
+      );
+    }
+    clearSearchIntent();
+  }, [searchIntent.target]);
+
+  // ESC to cancel
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && mustFillAddress) {
+        e.preventDefault();
+        cancelSearch();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [mustFillAddress, cancelSearch]);
+
   return (
     <>
-      {mustFillAddress && <div className="search-guard" aria-hidden />}
+      {mustFillAddress && (
+        <button
+          type="button"
+          className="search-guard"
+          aria-label="Annuler la recherche"
+          onClick={cancelSearch}
+        />
+      )}
       <form ref={formRef} className="search-bar" onSubmit={handleSearch}>
         <div className="search-bar-inner">
           <span className="search-icon" aria-hidden>

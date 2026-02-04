@@ -6,11 +6,15 @@ import ActionButtons from "./ActionButtons.tsx";
 /**
  * Composant contenant le panneau de configuration
  */
-export default function ConfigPanel() {
+type ConfigPanelProps = {
+    onClose?: () => void;
+}
+
+export default function ConfigPanel({onClose}: ConfigPanelProps) {
 
     return (
     <div className={"config-panel"}>
-        <ItineraryTitle/>
+        <ItineraryTitle onClose={onClose}/>
         <Route/>
         <ActionButtons/>
     </div>

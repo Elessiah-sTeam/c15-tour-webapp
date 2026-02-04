@@ -12,6 +12,7 @@ export default function App() {
   const [searchPosition, setSearchPosition] =
     useState<LatLngExpression | null>(null);
   const [searchLabel, setSearchLabel] = useState("");
+  const [panelOpen, setPanelOpen] = useState(true);
 
   return (
     <div className="window">
@@ -29,9 +30,19 @@ export default function App() {
         </div>
       </BackgroundMap>
 
-      <div className="panel">
-        <Panels />
-      </div>
+      {panelOpen ? (
+        <div className="panel">
+          <Panels onClose={() => setPanelOpen(false)} />
+        </div>
+      ) : (
+        <button
+          className="panel-toggle"
+          aria-label="Ouvrir le panneau"
+          onClick={() => setPanelOpen(true)}
+        >
+          &#9776;
+        </button>
+      )}
     </div>
   );
 }
