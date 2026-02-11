@@ -25,65 +25,97 @@ export const TimespanOffset = {
 export type TimespanOffset =
     typeof TimespanOffset[keyof typeof TimespanOffset];
 
+/**
+ * Objet pour contenir facilement une durée
+ */
 export class TimeSpan {
-    private duration: number;
-    private timespan: TimeSpanComposed;
+    private _duration: number;
+    private _timespan: TimeSpanComposed;
 
+    /**
+     * Construit un objet TimeSpan
+     * @param duration en ms
+     */
     constructor(duration?: number) {
         if (duration)
-            this.duration = duration;
+            this._duration = duration;
         else
-            this.duration = 0;
-        this.timespan = TimeSpan.msToComposed(this.duration);
+            this._duration = 0;
+        this._timespan = TimeSpan.msToComposed(this._duration);
     }
 
+    /**
+     * Redéfinie la durée
+     * @param duration en ms
+     */
     set(duration: number): void {
-        this.duration = duration;
-        this.timespan = TimeSpan.msToComposed(duration);
+        this._duration = duration;
+        this._timespan = TimeSpan.msToComposed(duration);
     }
 
+    /**
+     * Calcul la durée entre deux dates
+     * @param dateA
+     * @param dataB
+     */
     calculTimespan(dateA: Date, dataB: Date): void {
-        this.duration = dateA.getTime() - dataB.getTime();
+        this._duration = dateA.getTime() - dataB.getTime();
     }
 
-    get(): number {
-        return this.duration;
+
+    /**
+     * Récupère la durée en ms
+     */
+    get duration(): number {
+        return this._duration;
     }
 
+    /**
+     * Récupère une version décomposé de la durée
+     */
     getTimeSpanComposed(): TimeSpanComposed {
-        return this.timespan;
+        return this._timespan;
     }
 
+    /**
+     * Renvoi une version formaté de la durée
+     * @param precision Défini quoi afficher
+     * @param units Défini les unités à afficher
+     */
     toFStr(precision: TimespanOffset = TimespanOffset.MINUTES, units?: unitTimeSpan): string {
         let result: string = '';
         if (!units)
             units = {days: ":", hours: ":", minutes: ":", seconds: ":", milliseconds: " "};
 
         let start: TimespanOffset;
-        if (this.timespan.days != 0)
+        if (this._timespan.days != 0)
             start = TimespanOffset.DAYS;
-        else if (this.timespan.hours != 0)
+        else if (this._timespan.hours != 0)
             start = TimespanOffset.HOURS;
-        else if (this.timespan.minutes != 0)
+        else if (this._timespan.minutes != 0)
             start = TimespanOffset.MINUTES;
-        else if (this.timespan.seconds != 0)
+        else if (this._timespan.seconds != 0)
             start = TimespanOffset.SECONDS;
         else
             start = TimespanOffset.MS;
 
         if (start == TimespanOffset.DAYS)
-            result += this.timespan.days + units.days;
+            result += this._timespan.days + units.days;
         if ((start >= TimespanOffset.HOURS && precision > TimespanOffset.HOURS) || precision == TimespanOffset.HOURS)
-            result += this.timespan.hours + units.hours;
+            result += this._timespan.hours + units.hours;
         if ((start >= TimespanOffset.MINUTES && precision > TimespanOffset.MINUTES) || precision == TimespanOffset.MINUTES)
-            result += this.timespan.minutes + units.minutes;
+            result += this._timespan.minutes + units.minutes;
         if ((start >= TimespanOffset.SECONDS && precision > TimespanOffset.SECONDS) || precision == TimespanOffset.SECONDS)
-            result += this.timespan.seconds + units.seconds;
+            result += this._timespan.seconds + units.seconds;
         if ((start >= TimespanOffset.MS && precision > TimespanOffset.MS) || precision == TimespanOffset.MS)
-            result += this.timespan.milliseconds + units.milliseconds;
+            result += this._timespan.milliseconds + units.milliseconds;
         return result;
     }
 
+    /**
+     * Décompose les ms, pour récupérer simplement les heures par exemples
+     * @param duration ms
+     */
     public static msToComposed(duration: number): TimeSpanComposed {
         const timespan: TimeSpanComposed = {
             days: 0,
@@ -110,15 +142,23 @@ export class TimeSpan {
         return timespan;
     }
 
+    /**
+     * Ajoute une durée à la durée actuelle
+     * @param other Durée à ajouter
+     */
     public add(other: TimeSpan): TimeSpan {
-        this.duration += other.duration;
-        this.timespan = this.getTimeSpanComposed();
+        this._duration += other._duration;
+        this._timespan = this.getTimeSpanComposed();
         return this;
     }
 
+    /**
+     * Retire une durée à la durée actuelle
+     * @param other Durée à retirer
+     */
     public sub(other: TimeSpan): TimeSpan {
-        this.duration -= other.duration;
-        this.timespan = this.getTimeSpanComposed();
+        this._duration -= other._duration;
+        this._timespan = this.getTimeSpanComposed();
         return this;
     }
 }

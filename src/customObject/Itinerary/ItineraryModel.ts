@@ -1,87 +1,28 @@
 import {createItineraryStore} from "./ItineraryStore.ts";
-import type {Step, Segment, segmentInfo, Itinerary, ItineraryStore, ItineraryArgs, reorderStepInfo} from "./types.ts";
+import type {
+    Step,
+    Segment,
+    segmentInfo,
+    Itinerary,
+    ItineraryStore,
+    ItineraryArgs,
+    reorderStepInfo,
+} from "./types.ts";
 import {TimeSpan} from "../TimeSpan.ts";
+import {ItineraryNetModel} from "./ItineraryNetModel.ts";
 
 /**
  * Modèle de l'itinéraire, regroupant toutes les fonctions métiers pour le manipuler
  */
-export class ItineraryModel {
+class ItineraryModel {
+    // Attributs
     public readonly store: ItineraryStore;
+    public readonly netModel: ItineraryNetModel;
 
-    /**
-     * Vérifie que le départ existe et qu'il est à la bonne place
-     * Si besoin le créé et/ou le déplace
-     * @param itinerary itinéraire concerné
-     */
-    formatStart(itinerary: Itinerary): Itinerary {
-        const index: number = itinerary.segments.findIndex((seg: Segment) => seg.id == "start");
-        const segments: Segment[] = itinerary.segments;
-        if (index > 0) {
-            const [start] = segments.splice(index, 1);
-            if (!start.isStartEnd)
-                start.isStartEnd = true;
-            segments.splice(0, 0, start);
-        } else if (index == -1) {
-            segments.splice(0, 0, {
-                id: "start",
-                content: {
-                    title: " ",
-                    hour: new Date(),
-                    duration: new TimeSpan()
-                },
-                isStartEnd: true,
-                steps: new Array<Step>()
-            });
-        } else if (!itinerary.segments[index].isStartEnd) {
-            itinerary.segments[index].isStartEnd = true;
-        }
-        return itinerary;
-    }
-
-    /**
-     * Vérifie que l'arrivée existe et qu'il est au bon endroit
-     *
-     * Si besoin le créé et/ou le déplace
-     * @param itinerary Itinéraire concerné
-     */
-    formatEnd(itinerary: Itinerary): Itinerary {
-        const index: number = itinerary.segments.findIndex((seg: Segment) => seg.id == "end");
-        const segments: Segment[] = itinerary.segments;
-        if (index != segments.length - 1) {
-            const [end] = segments.splice(index, 1);
-            if (!end.isStartEnd)
-                end.isStartEnd = true;
-            segments.push(end);
-        } else if (index == -1) {
-            segments.push({
-                id: "end",
-                content: {
-                    title: " ",
-                    hour: new Date(),
-                    duration: new TimeSpan()
-                },
-                isStartEnd: true,
-                steps: new Array<Step>()
-            });
-        } else if (!itinerary.segments[index].isStartEnd) {
-            itinerary.segments[index].isStartEnd = true;
-        }
-        return itinerary;
-    }
-
-    /**
-     * Vérifie que l'arrivée et le départ existe et sont bien placés
-     *
-     * Si besoin les créés et les déplace
-     * @param itinerary itinéraire concerné
-     */
-    formatItinerary(itinerary: Itinerary): Itinerary {
-        const result: Itinerary = this.formatStart(itinerary);
-        return this.formatEnd(result);
-    }
-
+    // Constructeurs
     /**
      * Constructeur du modèle, peut se construire à partir d'un store ou d'un état initial ou de rien
+     * POST l'itinéraire au backend
      * @param _store store sur lequel se basé
      * @param initial valeur initial de l'itinéraire
      * @constructor
@@ -94,10 +35,12 @@ export class ItineraryModel {
         } else {
             this.store = createItineraryStore();
         }
+        this.netModel = new ItineraryNetModel(this.store);
     }
 
+    // Méthodes publiques
     /**
-     * Fonction pour récupérer le snapshot de l'itinéraire
+     * Récupèrer le snapshot de l'itinéraire
      */
     get route() {
         return this.store.getSnapshot();
@@ -245,6 +188,175 @@ export class ItineraryModel {
     }
 
     /**
+     * Permet de déplacer une étape dans l'itinéraire
+     * @param fromSegmentId ID du segment parent de départ
+     * @param fromStepIndex Index de l'étape au départ
+     * @param toSegmentId ID du segment parent d'arrivée
+     * @param toStepIndex Index de l'étape d'arrivée
+     */
+    reorderStep(fromSegmentId: string, fromStepIndex: number, toSegmentId: string, toStepIndex: number): void {
+        this.store.set((route: Itinerary) => {
+            const env = this.getReorderStepInfo(route, fromSegmentId, fromStepIndex, toSegmentId, toStepIndex)
+
+            if (env != null && this.moveSteps(env, fromStepIndex)) {
+                // Rebuild route en ne recréant que les segments touchés
+                return {
+                    ...route,
+                    segments: route.segments.map((seg: Segment) => {
+                        if (seg.id == fromSegmentId && env.sameSeg) {
+                            return {...seg, steps: env.newToSteps};
+                        }
+                        if (seg.id == fromSegmentId) {
+                            return {...seg, steps: env.newFromSteps};
+                        }
+                        if (seg.id == toSegmentId) {
+                            return {...seg, steps: env.newToSteps};
+                        }
+                        return seg;
+                    }),
+                }
+            } else {
+                return route;
+            }
+        });
+    }
+
+    /**
+     * Permet de renommer une étape
+     * @param segmentId ID du segment parent
+     * @param stepId Id de l'étape
+     * @param newName Nouveau nom à appliquer
+     */
+    renameStep(segmentId: string, stepId: string, newName: string): void {
+        this.store.set((route: Itinerary) => ({
+            ...route,
+            segments: route.segments.map((seg: Segment) => {
+                    if (seg.id != segmentId) return seg;
+
+                    return {
+                        ...seg,
+                        steps: seg.steps.map((step: Step) => {
+                            if (step.id != stepId) return step;
+                            return {
+                                ...step,
+                                content: {
+                                    ...step.content,
+                                    title: newName
+                                },
+                            };
+                        })
+                    }
+                }),
+        }));
+    }
+
+    /**
+     * Met à jour les coordonnées d'une étape
+     * @param segmentId ID du segment parent
+     * @param stepId Id de l'étape
+     * @param location nouvelle position {lat, lon}
+     */
+    setStepLocation(segmentId: string, stepId: string, location: {lat: number, lon: number}): void {
+        this.store.set((route: Itinerary) => ({
+            ...route,
+            segments: route.segments.map((seg: Segment) => {
+                if (seg.id !== segmentId) return seg;
+
+                return {
+                    ...seg,
+                    steps: seg.steps.map((step: Step) => {
+                        if (step.id !== stepId) return step;
+                        return {
+                            ...step,
+                            content: {
+                                ...step.content,
+                                location,
+                            },
+                        };
+                    })
+                }
+            }),
+        }));
+    }
+
+    // Méthodes privés
+    /**
+     * Vérifie que le départ existe et qu'il est à la bonne place
+     * Si besoin le créé et/ou le déplace
+     * @param itinerary itinéraire concerné
+     */
+    private formatStart(itinerary: Itinerary): Itinerary {
+        const index: number = itinerary.segments.findIndex((seg: Segment) => seg.id == "start");
+        const segments: Segment[] = itinerary.segments;
+        if (index > 0) {
+            const [start] = segments.splice(index, 1);
+            if (!start.isStartEnd)
+                start.isStartEnd = true;
+            segments.splice(0, 0, start);
+        } else if (index == -1) {
+            segments.splice(0, 0, {
+                id: "start",
+                content: {
+                    title: " ",
+                    hour: new Date(),
+                    duration: new TimeSpan(),
+                    distance: 0
+                },
+                isStartEnd: true,
+                steps: new Array<Step>()
+            });
+        } else if (!itinerary.segments[index].isStartEnd) {
+            itinerary.segments[index].isStartEnd = true;
+        }
+        return itinerary;
+    }
+
+    /**
+     * Vérifie que l'arrivée existe et qu'il est au bon endroit
+     *
+     * Si besoin le créé et/ou le déplace
+     * @param itinerary Itinéraire concerné
+     */
+    private formatEnd(itinerary: Itinerary): Itinerary {
+        const index: number = itinerary.segments.findIndex((seg: Segment) => seg.id == "end");
+        const segments: Segment[] = itinerary.segments;
+        if (index != segments.length - 1) {
+            const [end] = segments.splice(index, 1);
+            if (!end.isStartEnd)
+                end.isStartEnd = true;
+            segments.push(end);
+        } else if (index == -1) {
+            segments.push({
+                id: "end",
+                content: {
+                    title: " ",
+                    hour: new Date(),
+                    duration: new TimeSpan(),
+                    distance: 0,
+                },
+                isStartEnd: true,
+                steps: new Array<Step>()
+            });
+        } else if (!itinerary.segments[index].isStartEnd) {
+            itinerary.segments[index].isStartEnd = true;
+        }
+        return itinerary;
+    }
+
+    /**
+     * Vérifie que l'arrivée et le départ existe et sont bien placés
+     *
+     * Si besoin les créés et les déplace
+     * @param itinerary itinéraire concerné
+     */
+    private formatItinerary(itinerary: Itinerary): Itinerary {
+        const result: Itinerary = this.formatStart(itinerary);
+        return this.formatEnd(result);
+    }
+
+
+
+    /**
      * Renvoi n si compris entre min et max sinon renvoi la limite que dépasse n
      * @param n nombre à tester
      * @param min limite basse
@@ -355,96 +467,6 @@ export class ItineraryModel {
         this.replaceSteps(env, fromStepIndex, movedStep, swapStep)
         return true;
     }
-
-    /**
-     * Permet de déplacer une étape dans l'itinéraire
-     * @param fromSegmentId ID du segment parent de départ
-     * @param fromStepIndex Index de l'étape au départ
-     * @param toSegmentId ID du segment parent d'arrivée
-     * @param toStepIndex Index de l'étape d'arrivée
-     */
-    reorderStep(fromSegmentId: string, fromStepIndex: number, toSegmentId: string, toStepIndex: number): void {
-        this.store.set((route: Itinerary) => {
-            const env = this.getReorderStepInfo(route, fromSegmentId, fromStepIndex, toSegmentId, toStepIndex)
-
-            if (env != null && this.moveSteps(env, fromStepIndex)) {
-                // Rebuild route en ne recréant que les segments touchés
-                return {
-                    ...route,
-                    segments: route.segments.map((seg: Segment) => {
-                        if (seg.id == fromSegmentId && env.sameSeg) {
-                            return {...seg, steps: env.newToSteps};
-                        }
-                        if (seg.id == fromSegmentId) {
-                            return {...seg, steps: env.newFromSteps};
-                        }
-                        if (seg.id == toSegmentId) {
-                            return {...seg, steps: env.newToSteps};
-                        }
-                        return seg;
-                    }),
-                }
-            } else {
-                return route;
-            }
-        });
-    }
-
-    /**
-     * Permet de renommer une étape
-     * @param segmentId ID du segment parent
-     * @param stepId Id de l'étape
-     * @param newName Nouveau nom à appliquer
-     */
-    renameStep(segmentId: string, stepId: string, newName: string): void {
-        this.store.set((route: Itinerary) => ({
-            ...route,
-            segments: route.segments.map((seg: Segment) => {
-                    if (seg.id != segmentId) return seg;
-
-                    return {
-                        ...seg,
-                        steps: seg.steps.map((step: Step) => {
-                            if (step.id != stepId) return step;
-                            return {
-                                ...step,
-                                content: {
-                                    ...step.content,
-                                    title: newName
-                                },
-                            };
-                        })
-                    }
-                }),
-        }));
-    }
-
-    /**
-     * Met à jour les coordonnées d'une étape
-     * @param segmentId ID du segment parent
-     * @param stepId Id de l'étape
-     * @param location nouvelle position {lat, lon}
-     */
-    setStepLocation(segmentId: string, stepId: string, location: {lat: number, lon: number}): void {
-        this.store.set((route: Itinerary) => ({
-            ...route,
-            segments: route.segments.map((seg: Segment) => {
-                if (seg.id !== segmentId) return seg;
-
-                return {
-                    ...seg,
-                    steps: seg.steps.map((step: Step) => {
-                        if (step.id !== stepId) return step;
-                        return {
-                            ...step,
-                            content: {
-                                ...step.content,
-                                location,
-                            },
-                        };
-                    })
-                }
-            }),
-        }));
-    }
 }
+
+export default ItineraryModel

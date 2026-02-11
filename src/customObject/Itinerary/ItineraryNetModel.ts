@@ -1,0 +1,230 @@
+import type {
+    Itinerary,
+    ItineraryStore,
+    Segment,
+    Step,
+    Coordinates
+} from "./types.ts";
+
+import type {
+    ItineraryRequest,
+    ItineraryResponse,
+    NetGeometry,
+    SegmentRequest,
+    SegmentResponse,
+    Waypoint
+} from "./netTypes.ts";
+import {TimeSpan} from "../TimeSpan.ts";
+
+
+const BACKEND_URL: string = "http://localhost:8080"
+
+export class ItineraryNetModel {
+    // Attributs
+    public readonly store: ItineraryStore;
+
+    // Constructeur
+    constructor(store: ItineraryStore, post: boolean = true) {
+        this.store = store;
+
+        if (post)
+            this.post().then();
+    }
+
+    // Méthodes publics
+
+    /**
+     * Charge un itinéraire depuis le backend
+     * @param id ID de l'itinéraire à charger
+     */
+    public async get(id: number): Promise<void> {
+        const response: ItineraryResponse = await this.retrieveItinerary(id);
+        await this.applyItinerary(response);
+    }
+
+    /**
+     * Mets à jour dans le backend la version locale
+     */
+    public async put(): Promise<boolean>
+    {
+        const itinerary: Itinerary = this.store.getSnapshot();
+        const request: ItineraryRequest = this.buildNetObject();
+        const response: Response = await fetch(BACKEND_URL + `/tours/${itinerary.id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(request),
+        });
+
+        if (!response.ok) {
+            console.error(`Erreur API: ${response.status} ${response.statusText}`);
+            return false;
+        }
+        return true
+    }
+
+    /**
+     * Créer un nouveau itinéraire dans le backend
+     */
+    public async post() : Promise<boolean>
+    {
+        const request: ItineraryRequest = this.buildNetObject();
+        const response: Response = await fetch(BACKEND_URL + `/tours`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(request),
+        })
+
+        if (!response.ok) {
+            console.error(`Erreur API: ${response.status} ${response.statusText}`);
+            return false;
+        }
+        return true;
+    }
+
+    // Méthodes Privées
+    /**
+     * Récupère un itinéraire depuis le backend
+     * @param id ID de l'itinéraire à charger
+     */
+    private async retrieveItinerary(id: number): Promise<ItineraryResponse> {
+        const response: Response = await fetch(BACKEND_URL + `/tours/${id}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+
+        if (!response.ok) {
+            console.error(`Erreur API: ${response.status} ${response.statusText}`);
+        }
+
+        return (await response.json()) as ItineraryResponse;
+    }
+
+    /**
+     * Transforme l'objet geometry brut en un objet utilisable pour le dessin.
+     * @param geometry
+     * @private
+     */
+    private normalizeNetGeometry(geometry: string): Coordinates[] {
+        const netResponse: NetGeometry = JSON.parse(geometry) as NetGeometry;
+        if (!netResponse.coordinates)
+            return [];
+        const result: Coordinates[] = [];
+        for (let i: number = 0; i < netResponse.coordinates.length; ++i)
+        {
+            result.push({lat: netResponse.coordinates[i][0], lon: netResponse.coordinates[i][1]});
+        }
+        return result;
+    }
+
+    /**
+     * Transforme des steps Net en steps utilisable pour le front
+     * @param waypoints steps Net à normaliser
+     * @param refId Compteur d'ID pour définir les id des nouvelles étapes
+     * @private
+     */
+    private normalizeWaypoints(waypoints: Waypoint[],
+                               refId: {id: number} = {id: 0}): Step[] {
+        return waypoints.map((waypoint: Waypoint) => {
+            return {
+                id: `${refId.id++}`,
+                content: {
+                    title: waypoint.name,
+                    duration: new TimeSpan(),
+                    location: {lat: waypoint.coordinates.latitude, lon: waypoint.coordinates.longitude},
+                },
+            }
+        });
+    }
+
+    /**
+     * Transforme des segments Net en segments utilisable pour le front
+     * @param segments segments Net à normaliser
+     * @param refId Compteur d'ID pour définir les ids des nouveaux segments
+     * @private
+     */
+    private normalizeSegments(segments: SegmentResponse[],
+                              refId: {id: number} = {id: 0}): Segment[] {
+        return segments.map((seg: SegmentResponse) => {
+            return {
+                id: seg.name == " " && refId.id == 0 ? "start" : seg.name == " " ? "end" : `${refId.id++}`,
+                isStartEnd: seg.name == " ",
+                content: {
+                    title: seg.name,
+                    duration: new TimeSpan(seg.duration),
+                    distance: seg.distance,
+                    geometry: this.normalizeNetGeometry(seg.geometry),
+                    hour: new Date()
+                },
+                steps: this.normalizeWaypoints(seg.waypoints, refId),
+            }
+        });
+    }
+
+    /**
+     * Applique l'itinéraire reçu au store
+     * @param response Itinéraire reçu à appliquer
+     * @private
+     */
+    private async applyItinerary(response: ItineraryResponse): Promise<void> {
+        this.store.set(() => {
+            // Une ref pour incrémenter au sein des fonctions et pas perdre le fil
+            const refId: {id: number} = {id: 0};
+            return {
+                id: response.id,
+                name: response.name,
+                totalDuration: new TimeSpan(response.totalDuration),
+                totalDistance: response.totalDistance,
+                segments: this.normalizeSegments(response.segments, refId),
+            };
+        });
+    }
+
+    /**
+     * Transforme le tableau de steps en waypoints expédiable au backend
+     * @param steps Steps à transformer
+     * @private
+     */
+    private buildNetWaypoints(steps: Step[]): Waypoint[] {
+        return steps.map((step: Step) => {
+            return {
+                name: step.content.title,
+                coordinates: {
+                    latitude: step.content.location?.lat ?? 0,
+                    longitude: step.content.location?.lon ?? 0,
+                }
+            }
+        })
+    }
+
+    /**
+     * Transforme le tableau de segments en segments expédiable au backend
+     * @param segments Segments à transformer
+     * @private
+     */
+    private buildNetSegments(segments: Segment[]): SegmentRequest[] {
+        return segments.map((seg: Segment) => {
+            return {
+                name: seg.content.title,
+                waypoints: this.buildNetWaypoints(seg.steps)
+            }
+        })
+    }
+
+    /**
+     * Construit l'objet net à envoyer
+     * @private
+     */
+    private buildNetObject(): ItineraryRequest {
+        const itinerary: Itinerary = this.store.getSnapshot();
+        return {
+            name: itinerary.name,
+            segments: this.buildNetSegments(itinerary.segments),
+        }
+    }
+}
