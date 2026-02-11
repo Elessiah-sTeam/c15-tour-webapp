@@ -66,6 +66,7 @@ export class ItineraryNetModel {
 
     /**
      * Créer un nouveau itinéraire dans le backend
+     * Assigne l'ID fournit par le backend à l'itinéraire locale
      */
     public async post() : Promise<boolean>
     {
@@ -82,6 +83,18 @@ export class ItineraryNetModel {
             console.error(`Erreur API: ${response.status} ${response.statusText}`);
             return false;
         }
+
+        const itinerary: ItineraryResponse = await response.json();
+
+        if (!itinerary.id && itinerary.id !== 0) {
+            console.error(`Erreur API: Impossible de récupérer l'ID de l'itinéraire dans la réponse du backend`);
+            return false;
+        }
+
+        this.store.set((prev: Itinerary) => {
+            return {...prev, id: itinerary.id};
+        });
+
         return true;
     }
 
