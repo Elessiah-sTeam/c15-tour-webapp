@@ -1,89 +1,74 @@
-import { useEffect, useRef, useState } from "react";
-import type { FormEvent } from "react";
-import { useMap } from "react-leaflet";
+import { useRef } from "react";
+import type { ChangeEvent } from "react";
 import type { LatLngExpression } from "leaflet";
-import { DomEvent } from "leaflet";
-
 import "./SearchBar.css";
+import SearchResults from "./SearchResults";
+import { useSearchBarLogic } from "./useSearchBarLogic";
 
 type Props = {
   onLocationSelected: (coords: LatLngExpression, label: string) => void;
 };
 
-const NOMINATIM_URL =
-  "https://nominatim.openstreetmap.org/search?format=json&limit=1&q=";
-
-type NominatimResult = {
-  lat: string;
-  lon: string;
-  display_name: string;
-};
-
 export default function SearchBar({ onLocationSelected }: Props) {
-  const map = useMap();
-  const [query, setQuery] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
   const formRef = useRef<HTMLFormElement | null>(null);
+  const listRef = useRef<HTMLUListElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
-  useEffect(() => {
-    if (!formRef.current) return;
-    DomEvent.disableClickPropagation(formRef.current);
-    DomEvent.disableScrollPropagation(formRef.current);
-  }, []);
+  const { state, handlers } = useSearchBarLogic({
+    onLocationSelected,
+    refs: { formRef, listRef, inputRef },
+  });
 
-  const handleSearch = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const value = query.trim();
-    if (!value) return;
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch(
-        `${NOMINATIM_URL}${encodeURIComponent(value)}`
-      );
-      if (!response.ok) throw new Error("Request failed");
-
-      const results = (await response.json()) as NominatimResult[];
-      if (!Array.isArray(results) || results.length === 0) {
-        setError("Lieu introuvable");
-        return;
-      }
-
-      const { lat, lon, display_name } = results[0];
-      const coords: LatLngExpression = [parseFloat(lat), parseFloat(lon)];
-
-      map.flyTo(coords, 15, { duration: 1.25 });
-      onLocationSelected(coords, display_name || value);
-    } catch (e) {
-      console.error(e);
-      setError("Impossible de rechercher pour l'instant");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const onInputChange = (event: ChangeEvent<HTMLInputElement>) =>
+    handlers.handleChange(event.target.value);
 
   return (
-    <form ref={formRef} className="search-bar" onSubmit={handleSearch}>
-      <div className="search-bar-inner">
-        <span className="search-icon" aria-hidden>
-          {"\uD83D\uDD0D"}
-        </span>
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Rechercher un point d'intérêt"
-          aria-label="Rechercher un point d'intérêt"
+    <>
+      {state.mustFillAddress && (
+        <button
+          type="button"
+          className="search-guard"
+          aria-label="Annuler la recherche"
+          onClick={handlers.cancelSearch}
         />
-        <button type="submit" disabled={isLoading}>
-          {isLoading ? "..." : "OK"}
-        </button>
-      </div>
-      {error && <span className="search-error">{error}</span>}
-    </form>
+      )}
+
+      <form
+        ref={formRef}
+        className="search-bar"
+        onSubmit={handlers.handleSearch}
+      >
+        <div className="search-bar-inner">
+          <span className="search-icon" aria-hidden>
+            {"\uD83D\uDD0D"}
+          </span>
+          <input
+            type="text"
+            value={state.query}
+            ref={inputRef}
+            onChange={onInputChange}
+            placeholder="Rechercher un point d'interet"
+            aria-label="Rechercher un point d'interet"
+          />
+          <button type="submit" disabled={state.isLoading}>
+            {state.isLoading ? "..." : "OK"}
+          </button>
+        </div>
+
+        {state.showWarning && (
+          <span className="search-warning">
+            Ajoutez une adresse pour valider l'étape
+          </span>
+        )}
+
+        <SearchResults
+          results={state.results}
+          onSelect={handlers.selectResult}
+          listRef={listRef}
+        />
+
+        {state.error && <span className="search-error">{state.error}</span>}
+      </form>
+    </>
   );
 }

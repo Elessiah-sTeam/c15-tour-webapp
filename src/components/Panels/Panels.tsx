@@ -5,11 +5,15 @@ import InfoPanel from "./InfoPanel.tsx";
 /**
  * Composant contenant tous les panneaux
  */
-export default function Panels() {
+type PanelsProps = {
+    onClose?: () => void;
+}
+
+export default function Panels({onClose}: PanelsProps) {
     return (
-      <div>
-          <ConfigPanel/>
+      <>
+          <ConfigPanel onClose={onClose}/>
           <InfoPanel/>
-      </div>
+      </>
     );
 }

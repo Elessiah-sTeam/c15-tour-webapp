@@ -2,13 +2,15 @@ import type {JSX} from "react";
 import './Panels.css';
 import ClickInput from "../ClickInput.tsx";
 import {itineraryModel} from "../../customObject/Itinerary/ItineraryStore.ts";
+import type {ItineraryModel} from "../../customObject/Itinerary/ItineraryModel.ts";
 type Props = {
     tag: keyof JSX.IntrinsicElements,
     imgPath: string,
     segmentId: string,
     stepId?: string,
     subtitle: string,
-    hour: Date | null
+    hour: Date | null,
+    model?: ItineraryModel
 }
 
 /**

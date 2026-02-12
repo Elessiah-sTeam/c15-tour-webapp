@@ -5,6 +5,7 @@ import type {Segment, Step} from "../../../customObject/Itinerary/types.ts";
 import {EmptyDropZone} from "./EmptyDropZone.tsx";
 import {itineraryModel} from "../../../customObject/Itinerary/ItineraryStore.ts";
 import {TimeSpan} from "../../../customObject/TimeSpan.ts";
+import {requestSearchForStep} from "../../../customObject/Search/SearchIntentStore.ts";
 
 type Props = {
     category: Segment,
@@ -22,14 +23,16 @@ export default function SortableCategory({ category, visible, idActiveItem}: Pro
 
     function handleNewStep()
     {
+        const newStepId = "newstep" + new Date().toISOString();
         itineraryModel.addStep(
             category.id,
             {
-                id: "newstep" + new Date().toISOString(), content: {
+                id: newStepId, content: {
                     title: "Nouvelle étape",
                     duration: new TimeSpan()
                 }
             });
+        requestSearchForStep({segmentId: category.id, stepId: newStepId});
     }
 
     /**

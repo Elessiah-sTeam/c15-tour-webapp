@@ -418,4 +418,33 @@ export class ItineraryModel {
                 }),
         }));
     }
+
+    /**
+     * Met à jour les coordonnées d'une étape
+     * @param segmentId ID du segment parent
+     * @param stepId Id de l'étape
+     * @param location nouvelle position {lat, lon}
+     */
+    setStepLocation(segmentId: string, stepId: string, location: {lat: number, lon: number}): void {
+        this.store.set((route: Itinerary) => ({
+            ...route,
+            segments: route.segments.map((seg: Segment) => {
+                if (seg.id !== segmentId) return seg;
+
+                return {
+                    ...seg,
+                    steps: seg.steps.map((step: Step) => {
+                        if (step.id !== stepId) return step;
+                        return {
+                            ...step,
+                            content: {
+                                ...step.content,
+                                location,
+                            },
+                        };
+                    })
+                }
+            }),
+        }));
+    }
 }
