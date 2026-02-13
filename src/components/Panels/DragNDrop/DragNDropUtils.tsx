@@ -1,6 +1,6 @@
 import type {Active, Over} from "@dnd-kit/core";
 import type {Itinerary, Segment, Step} from "../../../customObject/Itinerary/types.ts";
-import type {ItineraryModel} from "../../../customObject/Itinerary/ItineraryModel.ts";
+import ItineraryModel from "../../../customObject/Itinerary/ItineraryModel.ts";
 
 /**
  * Permet de récupérer l'étape qui est saisi

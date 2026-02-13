@@ -2,6 +2,7 @@ import { Trash, Pencil, Settings, Upload } from "lucide-react";
 import './Panels.css';
 import {deleteModStore} from "../../customObject/DeleteMod/DeleteModStore.ts";
 import {useDeleteMod} from "../../customObject/DeleteMod/useDeleteMod.ts";
+import {itineraryModel} from "../../customObject/Itinerary/ItineraryStore.ts";
 
 export default function ActionButtons() {
     const delMod = useDeleteMod(deleteModStore);
@@ -30,6 +31,7 @@ export default function ActionButtons() {
             <button
                 className={"export-btn"}
                 aria-label={"Export"}
+                onClick={async() => {await itineraryModel.netModel.put()}}
             >
                 <Upload color={"#BB487C"}/>
             </button>

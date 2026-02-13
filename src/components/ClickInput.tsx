@@ -29,7 +29,11 @@ export default function ClickInput({currentStr, setter, Tag, className}: Props) 
     function stopInput() {
         if (isInput) {
             setIsInput(false);
-            setter(text);
+            if (text == " " || text.length == 0) {
+                setText(currentStr);
+            } else {
+                setter(text);
+            }
         }
     }
 

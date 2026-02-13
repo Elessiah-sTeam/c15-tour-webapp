@@ -1,13 +1,12 @@
 import type {TimeSpan} from "../TimeSpan.ts";
 import type {Dispatch, SetStateAction} from "react";
 
+export type Coordinates = { lat: number; lon: number };
+
 export type stepInfo = {
     title: string;
     duration: TimeSpan;
-    location?: {
-        lat: number;
-        lon: number;
-    }
+    location?: Coordinates;
 }
 
 export type Step = {
@@ -19,6 +18,8 @@ export type segmentInfo = {
     title: string;
     hour: Date;
     duration: TimeSpan;
+    distance: number;
+    geometry?: Coordinates[];
 }
 
 export type reorderStepInfo = {
@@ -38,6 +39,7 @@ export type Segment = {
 }
 
 export type Itinerary = {
+    id: number;
     name: string;
     totalDuration: TimeSpan;
     totalDistance: number;

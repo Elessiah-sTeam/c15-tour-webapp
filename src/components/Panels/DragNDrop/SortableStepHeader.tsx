@@ -2,7 +2,7 @@ import {useSortable} from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { Segment } from "../../../customObject/Itinerary/types.ts";
 import SubTitleWHour from "../SubTitleWHour.tsx";
-import type {ItineraryModel} from "../../../customObject/Itinerary/ItineraryModel.ts";
+import ItineraryModel from "../../../customObject/Itinerary/ItineraryModel.ts";
 import Item from "../Item.tsx";
 
 export default function SortableStepHeader({category, model} : {category: Segment, model: ItineraryModel}) {
