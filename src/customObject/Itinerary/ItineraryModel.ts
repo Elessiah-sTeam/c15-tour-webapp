@@ -34,6 +34,11 @@ class ItineraryModel {
             this.store = createItineraryStore(this.formatItinerary(initial));
         } else {
             this.store = createItineraryStore();
+            this.store.set((route: Itinerary) => {
+                return this.formatItinerary({...route});
+            });
+            console.log(this.store.getSnapshot().segments[0].isStartEnd);
+            console.log(this.store.getSnapshot().segments[1]?.isStartEnd);
         }
         this.netModel = new ItineraryNetModel(this.store);
     }
@@ -287,6 +292,7 @@ class ItineraryModel {
      */
     private formatStart(itinerary: Itinerary): Itinerary {
         const index: number = itinerary.segments.findIndex((seg: Segment) => seg.id == "start");
+        console.log("Index start : ", index);
         const segments: Segment[] = itinerary.segments;
         if (index > 0) {
             const [start] = segments.splice(index, 1);
@@ -294,6 +300,7 @@ class ItineraryModel {
                 start.isStartEnd = true;
             segments.splice(0, 0, start);
         } else if (index == -1) {
+            console.log("segments size before : ", segments.length);
             segments.splice(0, 0, {
                 id: "start",
                 content: {
@@ -305,6 +312,8 @@ class ItineraryModel {
                 isStartEnd: true,
                 steps: new Array<Step>()
             });
+            console.log("segments size after : ", segments.length);
+            console.log("segments start inserted : ", segments[0].id);
         } else if (!itinerary.segments[index].isStartEnd) {
             itinerary.segments[index].isStartEnd = true;
         }
@@ -319,13 +328,10 @@ class ItineraryModel {
      */
     private formatEnd(itinerary: Itinerary): Itinerary {
         const index: number = itinerary.segments.findIndex((seg: Segment) => seg.id == "end");
+        console.log("Index end : ", index);
         const segments: Segment[] = itinerary.segments;
-        if (index != segments.length - 1) {
-            const [end] = segments.splice(index, 1);
-            if (!end.isStartEnd)
-                end.isStartEnd = true;
-            segments.push(end);
-        } else if (index == -1) {
+        if (index == -1) {
+            console.log("segments size before : ", segments.length);
             segments.push({
                 id: "end",
                 content: {
@@ -337,6 +343,13 @@ class ItineraryModel {
                 isStartEnd: true,
                 steps: new Array<Step>()
             });
+            console.log("segments size after : ", segments.length);
+            console.log("segments end inserted : ", segments[1].id);
+        } else if (index != segments.length - 1) {
+            const [end] = segments.splice(index, 1);
+            if (!end.isStartEnd)
+                end.isStartEnd = true;
+            segments.push(end);
         } else if (!itinerary.segments[index].isStartEnd) {
             itinerary.segments[index].isStartEnd = true;
         }
