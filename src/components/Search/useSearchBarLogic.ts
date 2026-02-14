@@ -134,6 +134,7 @@ export const useSearchBarLogic = ({
         title: "Nouveau segment",
         hour: new Date(),
         duration: new TimeSpan(),
+        distance:0,
       },
       isStartEnd: false,
       steps: [],
