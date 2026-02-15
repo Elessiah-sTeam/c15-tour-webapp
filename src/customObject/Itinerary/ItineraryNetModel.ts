@@ -186,7 +186,7 @@ export class ItineraryNetModel {
         }
         const endContainer: Segment =  {...startContainer, id: "end"}
         const [startStep] = segments[0].steps.splice(0, 1);
-        startContainer.steps.push(startStep);
+        startContainer.steps.push({...startStep, id: "startSeg-" + startStep.id, isDefaultSegStart: true});
         const [endStep] = segments[segments.length - 1].steps.splice(segments[segments.length - 1].steps.length, 1);
         endContainer.steps.push(endStep);
         segments.splice(0, 0, startContainer);
@@ -205,8 +205,8 @@ export class ItineraryNetModel {
         const startId: number = refId.id;
         const result: Segment[] = segments.map((seg: SegmentResponse) => {
             return {
-                id: seg.name == " " && refId.id == 0 ? "start" : seg.name == " " ? "end" : `${refId.id++}`,
-                isStartEnd: seg.name == " ",
+                id: `${refId.id++}`,
+                isStartEnd: false,
                 content: {
                     title: seg.name,
                     duration: new TimeSpan(seg.duration),
