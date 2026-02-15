@@ -357,7 +357,7 @@ class ItineraryModel {
     }
 
     /**
-     * Vérifie que l'arrivée et le départ existe et sont bien placés
+     * Vérifie que l'arrivée et le départ existent et sont bien placés
      *
      * Si besoin les créés et les déplace
      * @param itinerary itinéraire concerné
