@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { LatLngExpression } from "leaflet";
-import BackgroundMap from "./components/BackgroundMap.tsx";
+import BackgroundMap from "./components/Map/BackgroundMap.tsx";
 import Panels from "./components/Panels/Panels.tsx";
 import SearchBar from "./components/Search/SearchBar.tsx";
 import "./App.css";

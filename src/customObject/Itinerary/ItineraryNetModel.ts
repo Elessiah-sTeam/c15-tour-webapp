@@ -48,7 +48,12 @@ export class ItineraryNetModel {
     public async put(): Promise<boolean>
     {
         const itinerary: Itinerary = this.store.getSnapshot();
-        const request: ItineraryRequest = this.buildNetObject();
+        const request: ItineraryRequest | null = this.buildNetObject();
+        if (!request)
+        {
+            console.error(`Erreur ! Impossible d'envoyer un itinéraire incomplet !`);
+            return false;
+        }
         const response: Response = await fetch(BACKEND_URL + `/tours/${itinerary.id}`, {
             method: "PUT",
             headers: {
@@ -70,7 +75,13 @@ export class ItineraryNetModel {
      */
     public async post() : Promise<boolean>
     {
-        const request: ItineraryRequest = this.buildNetObject();
+        const request: ItineraryRequest | null = this.buildNetObject();
+
+        if (!request) {
+            console.error(`Erreur ! Impossible d'envoyer un itinéraire incomplet !`)
+            return false;
+        }
+
         const response: Response = await fetch(BACKEND_URL + `/tours`, {
             method: "POST",
             headers: {
@@ -156,6 +167,35 @@ export class ItineraryNetModel {
     }
 
     /**
+     * Reconstruit et replace le départ et l'arrivée concaténée pour le backend
+     * @param segments Segment à reconstruire
+     * @private
+     */
+    private reconstructStartEnd(segments: Segment[]): Segment[]
+    {
+        const startContainer: Segment =  {
+            id: "start",
+            isStartEnd: true,
+            content: {
+                title: " ",
+                duration: new TimeSpan(0),
+                distance: 0,
+                geometry: undefined,
+                hour: new Date(),
+            },
+            steps: []
+        }
+        const endContainer: Segment =  {...startContainer, id: "end"}
+        const [startStep] = segments[0].steps.splice(0, 1);
+        startContainer.steps.push(startStep);
+        const [endStep] = segments[segments.length - 1].steps.splice(segments[segments.length - 1].steps.length, 1);
+        endContainer.steps.push(endStep);
+        segments.splice(0, 0, startContainer);
+        segments.push(endContainer);
+        return segments;
+    }
+
+    /**
      * Transforme des segments Net en segments utilisable pour le front
      * @param segments segments Net à normaliser
      * @param refId Compteur d'ID pour définir les ids des nouveaux segments
@@ -163,7 +203,7 @@ export class ItineraryNetModel {
      */
     private normalizeSegments(segments: SegmentResponse[],
                               refId: {id: number} = {id: 0}): Segment[] {
-        return segments.map((seg: SegmentResponse) => {
+        const result: Segment[] = segments.map((seg: SegmentResponse) => {
             return {
                 id: seg.name == " " && refId.id == 0 ? "start" : seg.name == " " ? "end" : `${refId.id++}`,
                 isStartEnd: seg.name == " ",
@@ -177,6 +217,8 @@ export class ItineraryNetModel {
                 steps: this.normalizeWaypoints(seg.waypoints, refId),
             }
         });
+
+        return this.reconstructStartEnd(result);
     }
 
     /**
@@ -216,12 +258,75 @@ export class ItineraryNetModel {
     }
 
     /**
+     * Vérifie que les segments ont bien un départ et une arrivée
+     * @param segments Segments à vérifier
+     * @private
+     */
+    private checkSegmentsValidity(segments: Segment[]): boolean {
+        if (segments.length < 2) {
+            return false;
+        }
+        if (segments[0].steps.length == 0) {
+            return false;
+        }
+        let i;
+        for (i = 1; i < segments.length - 1; i++) {
+            if (segments[i].steps.length < 2) {
+                return false;
+            }
+        }
+        return segments[i].steps.length != 0;
+    }
+
+    /**
+     * Fais une copie profonde des segments
+     * @param segments segments à copier
+     * @private
+     */
+    private segmentsDeepCopy(segments: Segment[]): Segment[] {
+        const copy: Segment[] = [...segments];
+        for (let i = 0; i < segments.length - 1; i++) {
+            copy[i].steps = [...segments[i].steps];
+        }
+        return copy;
+    }
+
+    /**
+     * Rassemble l'arrivée et le départ dans les segments, afin d'avoir une arrivée et un départ dans chaque segment
+     * Fais une copie de segments et la renvoie
+     * @param segments Segment à modifier
+     * @private
+     */
+    private mergeStartEnd(segments: Segment[]): Segment[] | null {
+        const copy : Segment[] = this.segmentsDeepCopy(segments);
+        if (copy.length == 2)
+        {
+            copy[0].steps.push(copy[1].steps[0]);
+            copy.pop();
+        } else {
+            const start = copy[0].steps.pop();
+            if (!start) return null;
+            copy.splice(0, 1)
+            copy[0].steps.splice(0, 0, start);
+            const end = copy[copy.length - 1].steps.pop();
+            if (!end) return null;
+            copy.pop();
+            copy[copy.length - 1].steps.push(end);
+        }
+        return copy;
+    }
+
+    /**
      * Transforme le tableau de segments en segments expédiable au backend
      * @param segments Segments à transformer
      * @private
      */
-    private buildNetSegments(segments: Segment[]): SegmentRequest[] {
-        return segments.map((seg: Segment) => {
+    private buildNetSegments(segments: Segment[]): SegmentRequest[] | null {
+        if (!this.checkSegmentsValidity(segments))
+            return null;
+        const copy: Segment[] | null = this.mergeStartEnd(segments);
+        if (!copy) return null;
+        return copy.map((seg: Segment) => {
             return {
                 name: seg.content.title,
                 waypoints: this.buildNetWaypoints(seg.steps)
@@ -233,11 +338,15 @@ export class ItineraryNetModel {
      * Construit l'objet net à envoyer
      * @private
      */
-    private buildNetObject(): ItineraryRequest {
+    private buildNetObject(): ItineraryRequest | null {
         const itinerary: Itinerary = this.store.getSnapshot();
+        const netSegments: SegmentRequest[] | null = this.buildNetSegments(itinerary.segments);
+        if (!netSegments)
+            return null;
+
         return {
             name: itinerary.name,
-            segments: this.buildNetSegments(itinerary.segments),
+            segments: netSegments,
         }
     }
 }
