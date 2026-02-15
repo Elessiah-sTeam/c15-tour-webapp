@@ -25,21 +25,6 @@ type BackgroundMapProps = {
 export default function BackgroundMap({
   children,
 }: BackgroundMapProps) {
-
-    const route: Feature<LineString> = {
-        type: "Feature",
-        geometry: {
-            type: "LineString",
-            coordinates: [
-                [2.3522, 48.8566],   // Paris
-                [1.0000, 49.5000],
-                [0.2000, 50.2000],
-                [-0.1278, 51.5074],  // Londres
-            ],
-        },
-        properties: {},
-    };
-
   return (
       <div className="map-wrapper">
           <Branding/>
@@ -57,7 +42,6 @@ export default function BackgroundMap({
             <Markers/>
 
             <ItineraryDrawings/>
-              <GeoJSON data={route} />
 
             {children}
         </MapContainer>

@@ -51,6 +51,7 @@ export class ItineraryNetModel {
         if (!request)
         {
             console.error(`Erreur ! Impossible d'envoyer un itinéraire incomplet !`);
+            return false;
         }
         const response: Response = await fetch(BACKEND_URL + `/tours/${itinerary.id}`, {
             method: "PUT",
@@ -165,6 +166,35 @@ export class ItineraryNetModel {
     }
 
     /**
+     * Reconstruit et replace le départ et l'arrivée concaténée pour le backend
+     * @param segments Segment à reconstruire
+     * @private
+     */
+    private reconstructStartEnd(segments: Segment[]): Segment[]
+    {
+        const startContainer: Segment =  {
+            id: "start",
+            isStartEnd: true,
+            content: {
+                title: " ",
+                duration: new TimeSpan(0),
+                distance: 0,
+                geometry: undefined,
+                hour: new Date(),
+            },
+            steps: []
+        }
+        const endContainer: Segment =  {...startContainer, id: "end"}
+        const [startStep] = segments[0].steps.splice(0, 1);
+        startContainer.steps.push(startStep);
+        const [endStep] = segments[segments.length - 1].steps.splice(segments[segments.length - 1].steps.length, 1);
+        endContainer.steps.push(endStep);
+        segments.splice(0, 0, startContainer);
+        segments.push(endContainer);
+        return segments;
+    }
+
+    /**
      * Transforme des segments Net en segments utilisable pour le front
      * @param segments segments Net à normaliser
      * @param refId Compteur d'ID pour définir les ids des nouveaux segments
@@ -173,7 +203,7 @@ export class ItineraryNetModel {
     private normalizeSegments(segments: SegmentResponse[],
                               refId: {id: number} = {id: 0}): Segment[] {
         const startId: number = refId.id;
-        return segments.map((seg: SegmentResponse) => {
+        const result: Segment[] = segments.map((seg: SegmentResponse) => {
             return {
                 id: seg.name == " " && refId.id == 0 ? "start" : seg.name == " " ? "end" : `${refId.id++}`,
                 isStartEnd: seg.name == " ",
@@ -187,6 +217,8 @@ export class ItineraryNetModel {
                 steps: this.normalizeWaypoints(seg.waypoints, refId, refId.id == startId),
             }
         });
+
+        return this.reconstructStartEnd(result);
     }
 
     /**
@@ -294,7 +326,7 @@ export class ItineraryNetModel {
             return null;
         const copy: Segment[] | null = this.mergeStartEnd(segments);
         if (!copy) return null;
-        return segments.map((seg: Segment) => {
+        return copy.map((seg: Segment) => {
             return {
                 name: seg.content.title,
                 waypoints: this.buildNetWaypoints(seg.steps)
