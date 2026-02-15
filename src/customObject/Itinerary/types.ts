@@ -1,5 +1,6 @@
 import type {TimeSpan} from "../TimeSpan.ts";
 import type {Dispatch, SetStateAction} from "react";
+import type {Feature, LineString} from "geojson";
 
 export type Coordinates = { lat: number; lon: number };
 
@@ -19,7 +20,7 @@ export type segmentInfo = {
     hour: Date;
     duration: TimeSpan;
     distance: number;
-    geometry?: Coordinates[];
+    geometry?: Feature<LineString>;
 }
 
 export type reorderStepInfo = {

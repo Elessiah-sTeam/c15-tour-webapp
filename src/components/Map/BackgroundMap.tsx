@@ -1,12 +1,13 @@
 import type { ReactNode } from "react";
 import { MapContainer, TileLayer } from "react-leaflet";
 import type { LatLngExpression } from "leaflet";
-import roadTour from "../../assets/road_tour.svg";
-import byC15Tour from "../../assets/by_c15_tour.svg";
-import logo from "../../assets/logo.svg";
 import "./BackgroundMap.css";
 import "leaflet/dist/leaflet.css";
 import Markers from "./Markers.tsx";
+import ItineraryDrawings from "./ItineraryDrawings.tsx";
+import Branding from "./Branding.tsx";
+import type {Feature, LineString} from "geojson";
+import {GeoJSON} from "react-leaflet";
 
 const initialPosition: LatLngExpression = [47.253927, -1.516436];
 
@@ -16,36 +17,34 @@ type BackgroundMapProps = {
   children?: ReactNode;
 };
 
+/**
+ * Contient la carte et tout ce qui y touche
+ * @param children Composant enfant à insérer en son sein
+ * @constructor
+ */
 export default function BackgroundMap({
   children,
 }: BackgroundMapProps) {
-
   return (
-    <div className="map-wrapper">
-      <div className="map-branding">
-        <img src={roadTour} alt="Roads Tour" className="brand-road" />
-        <img src={byC15Tour} alt="By C15 Tour" className="brand-by" />
-      </div>
+      <div className="map-wrapper">
+          <Branding/>
+          <MapContainer
+            center={initialPosition}
+            zoom={13}
+            className="map-container"
+            zoomControl={false}
+          >
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution="&copy; OpenStreetMap contributors"
+            />
 
-      <div className="map-logo">
-        <img src={logo} alt="C15 Tour" />
-      </div>
+            <Markers/>
 
-      <MapContainer
-        center={initialPosition}
-        zoom={13}
-        className="map-container"
-        zoomControl={false}
-      >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution="&copy; OpenStreetMap contributors"
-        />
+            <ItineraryDrawings/>
 
-      <Markers/>
-
-        {children}
-      </MapContainer>
+            {children}
+        </MapContainer>
     </div>
   );
 }
