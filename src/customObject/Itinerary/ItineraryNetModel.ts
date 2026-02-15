@@ -2,19 +2,18 @@ import type {
     Itinerary,
     ItineraryStore,
     Segment,
-    Step,
-    Coordinates
+    Step
 } from "./types.ts";
 
 import type {
     ItineraryRequest,
     ItineraryResponse,
-    NetGeometry,
     SegmentRequest,
     SegmentResponse,
     Waypoint
 } from "./netTypes.ts";
 import {TimeSpan} from "../TimeSpan.ts";
+import type {Feature, LineString} from "geojson";
 
 
 const BACKEND_URL: string = "http://localhost:8080"
@@ -65,6 +64,7 @@ export class ItineraryNetModel {
             console.error(`Erreur API: ${response.status} ${response.statusText}`);
             return false;
         }
+        console.log(`Response: ${JSON.stringify(response.body)}`);
         return true
     }
 
@@ -133,16 +133,11 @@ export class ItineraryNetModel {
      * @param geometry
      * @private
      */
-    private normalizeNetGeometry(geometry: string): Coordinates[] {
-        const netResponse: NetGeometry = JSON.parse(geometry) as NetGeometry;
-        if (!netResponse.coordinates)
-            return [];
-        const result: Coordinates[] = [];
-        for (let i: number = 0; i < netResponse.coordinates.length; ++i)
-        {
-            result.push({lat: netResponse.coordinates[i][0], lon: netResponse.coordinates[i][1]});
-        }
-        return result;
+    private normalizeNetGeometry(geometry: string): Feature<LineString> | undefined {
+        const netResponse: Feature<LineString> = JSON.parse(geometry) as Feature<LineString>;
+        if (!netResponse)
+            return undefined;
+        return netResponse;
     }
 
     /**
