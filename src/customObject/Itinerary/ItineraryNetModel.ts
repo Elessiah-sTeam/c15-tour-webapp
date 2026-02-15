@@ -166,6 +166,35 @@ export class ItineraryNetModel {
     }
 
     /**
+     * Reconstruit et replace le départ et l'arrivée concaténée pour le backend
+     * @param segments Segment à reconstruire
+     * @private
+     */
+    private reconstructStartEnd(segments: Segment[]): Segment[]
+    {
+        const startContainer: Segment =  {
+            id: "start",
+            isStartEnd: true,
+            content: {
+                title: " ",
+                duration: new TimeSpan(0),
+                distance: 0,
+                geometry: undefined,
+                hour: new Date(),
+            },
+            steps: []
+        }
+        const endContainer: Segment =  {...startContainer, id: "end"}
+        const [startStep] = segments[0].steps.splice(0, 1);
+        startContainer.steps.push(startStep);
+        const [endStep] = segments[segments.length - 1].steps.splice(segments[segments.length - 1].steps.length, 1);
+        endContainer.steps.push(endStep);
+        segments.splice(0, 0, startContainer);
+        segments.push(endContainer);
+        return segments;
+    }
+
+    /**
      * Transforme des segments Net en segments utilisable pour le front
      * @param segments segments Net à normaliser
      * @param refId Compteur d'ID pour définir les ids des nouveaux segments
@@ -173,7 +202,7 @@ export class ItineraryNetModel {
      */
     private normalizeSegments(segments: SegmentResponse[],
                               refId: {id: number} = {id: 0}): Segment[] {
-        return segments.map((seg: SegmentResponse) => {
+        const result: Segment[] = segments.map((seg: SegmentResponse) => {
             return {
                 id: seg.name == " " && refId.id == 0 ? "start" : seg.name == " " ? "end" : `${refId.id++}`,
                 isStartEnd: seg.name == " ",
@@ -187,6 +216,8 @@ export class ItineraryNetModel {
                 steps: this.normalizeWaypoints(seg.waypoints, refId),
             }
         });
+
+        return this.reconstructStartEnd(result);
     }
 
     /**
