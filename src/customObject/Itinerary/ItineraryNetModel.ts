@@ -325,7 +325,7 @@ export class ItineraryNetModel {
         if (!copy) return null;
         return copy.map((seg: Segment) => {
             return {
-                name: seg.content.title,
+                name: seg.content.title.length > 1 ? seg.content.title : "No Name",
                 waypoints: this.buildNetWaypoints(seg.steps)
             }
         })
@@ -342,7 +342,7 @@ export class ItineraryNetModel {
             return null;
 
         return {
-            name: itinerary.name,
+            name: itinerary.name.length > 1 ? itinerary.name : "No Name",
             segments: netSegments,
         }
     }
