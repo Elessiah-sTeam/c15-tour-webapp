@@ -52,6 +52,7 @@ export class ItineraryNetModel {
         if (!request)
         {
             console.error(`Erreur ! Impossible d'envoyer un itinéraire incomplet !`);
+            return false;
         }
         const response: Response = await fetch(BACKEND_URL + `/tours/${itinerary.id}`, {
             method: "PUT",
@@ -325,7 +326,7 @@ export class ItineraryNetModel {
             return null;
         const copy: Segment[] | null = this.mergeStartEnd(segments);
         if (!copy) return null;
-        return segments.map((seg: Segment) => {
+        return copy.map((seg: Segment) => {
             return {
                 name: seg.content.title,
                 waypoints: this.buildNetWaypoints(seg.steps)
