@@ -6,9 +6,6 @@ import "leaflet/dist/leaflet.css";
 import Markers from "./Markers.tsx";
 import ItineraryDrawings from "./ItineraryDrawings.tsx";
 import Branding from "./Branding.tsx";
-import type {Feature, LineString} from "geojson";
-import {GeoJSON} from "react-leaflet";
-
 const initialPosition: LatLngExpression = [47.253927, -1.516436];
 
 type BackgroundMapProps = {
