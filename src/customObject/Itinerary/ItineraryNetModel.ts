@@ -70,8 +70,8 @@ export class ItineraryNetModel {
     }
 
     /**
-     * Créer un nouveau itinéraire dans le backend
-     * Assigne l'ID fournit par le backend à l'itinéraire locale
+     * Créer un nouvel itinéraire dans le backend
+     * Assigne l'ID fournit par le backend à l'itinéraire local
      */
     public async post() : Promise<boolean>
     {
