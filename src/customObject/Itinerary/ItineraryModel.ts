@@ -333,7 +333,6 @@ class ItineraryModel {
         console.log("Index end : ", index);
         const segments: Segment[] = itinerary.segments;
         if (index == -1) {
-            console.log("segments size before : ", segments.length);
             segments.push({
                 id: "end",
                 content: {
@@ -345,8 +344,6 @@ class ItineraryModel {
                 isStartEnd: true,
                 steps: new Array<Step>()
             });
-            console.log("segments size after : ", segments.length);
-            console.log("segments end inserted : ", segments[1].id);
         } else if (index != segments.length - 1) {
             const [end] = segments.splice(index, 1);
             if (!end.isStartEnd)
@@ -359,7 +356,7 @@ class ItineraryModel {
     }
 
     /**
-     * Vérifie que l'arrivée et le départ existe et sont bien placés
+     * Vérifie que l'arrivée et le départ existent et sont bien placés
      *
      * Si besoin les créés et les déplace
      * @param itinerary itinéraire concerné
@@ -368,8 +365,6 @@ class ItineraryModel {
         const result: Itinerary = this.formatStart(itinerary);
         return this.formatEnd(result);
     }
-
-
 
     /**
      * Renvoi n si compris entre min et max sinon renvoi la limite que dépasse n
