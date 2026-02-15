@@ -7,7 +7,7 @@ export function createItineraryStore(initial?: Itinerary): ItineraryStore
     let itinerary: Itinerary;
     if (!initial) {
         itinerary = {
-            id: 0,
+            id: -1,
             name: "Nouveau Convoi",
             totalDuration: new TimeSpan(),
             totalDistance: 0,

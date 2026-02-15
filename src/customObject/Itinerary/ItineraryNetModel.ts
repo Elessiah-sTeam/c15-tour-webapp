@@ -23,7 +23,7 @@ export class ItineraryNetModel {
     public readonly store: ItineraryStore;
 
     // Constructeur
-    constructor(store: ItineraryStore, post: boolean = true) {
+    constructor(store: ItineraryStore, post: boolean = false) {
         this.store = store;
 
         if (post)
@@ -47,6 +47,8 @@ export class ItineraryNetModel {
     public async put(): Promise<boolean>
     {
         const itinerary: Itinerary = this.store.getSnapshot();
+        if (itinerary.id == -1)
+            return this.post();
         const request: ItineraryRequest | null = this.buildNetObject();
         if (!request)
         {
@@ -70,8 +72,8 @@ export class ItineraryNetModel {
     }
 
     /**
-     * Créer un nouveau itinéraire dans le backend
-     * Assigne l'ID fournit par le backend à l'itinéraire locale
+     * Créer un nouvel itinéraire dans le backend
+     * Assigne l'ID fournit par le backend à l'itinéraire local
      */
     public async post() : Promise<boolean>
     {

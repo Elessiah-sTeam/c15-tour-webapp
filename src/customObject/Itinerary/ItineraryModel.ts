@@ -24,7 +24,7 @@ class ItineraryModel {
      * Constructeur du modèle, peut se construire à partir d'un store ou d'un état initial ou de rien
      * POST l'itinéraire au backend
      * @param _store store sur lequel se basé
-     * @param initial valeur initial de l'itinéraire
+     * @param initial valeur initiale de l'itinéraire
      * @constructor
      */
     constructor({_store, initial}: ItineraryArgs) {
@@ -45,7 +45,7 @@ class ItineraryModel {
 
     // Méthodes publiques
     /**
-     * Récupèrer le snapshot de l'itinéraire
+     * Récupérer le snapshot de l'itinéraire
      */
     get route() {
         return this.store.getSnapshot();
