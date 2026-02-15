@@ -144,10 +144,13 @@ export class ItineraryNetModel {
      * Transforme des steps Net en steps utilisable pour le front
      * @param waypoints steps Net à normaliser
      * @param refId Compteur d'ID pour définir les id des nouvelles étapes
+     * @param isFirstSeg Défini si ces étapes sont dans le premier segment pour bloquer ou non le départ
      * @private
      */
     private normalizeWaypoints(waypoints: Waypoint[],
-                               refId: {id: number} = {id: 0}): Step[] {
+                               refId: {id: number} = {id: 0},
+                               isFirstSeg: boolean): Step[] {
+        const startId: number = refId.id;
         return waypoints.map((waypoint: Waypoint) => {
             return {
                 id: `${refId.id++}`,
@@ -156,6 +159,7 @@ export class ItineraryNetModel {
                     duration: new TimeSpan(),
                     location: {lat: waypoint.coordinates.latitude, lon: waypoint.coordinates.longitude},
                 },
+                isDefaultSegStart: !isFirstSeg && startId == refId.id,
             }
         });
     }
@@ -168,6 +172,7 @@ export class ItineraryNetModel {
      */
     private normalizeSegments(segments: SegmentResponse[],
                               refId: {id: number} = {id: 0}): Segment[] {
+        const startId: number = refId.id;
         return segments.map((seg: SegmentResponse) => {
             return {
                 id: seg.name == " " && refId.id == 0 ? "start" : seg.name == " " ? "end" : `${refId.id++}`,
@@ -179,7 +184,7 @@ export class ItineraryNetModel {
                     geometry: this.normalizeNetGeometry(seg.geometry),
                     hour: new Date()
                 },
-                steps: this.normalizeWaypoints(seg.waypoints, refId),
+                steps: this.normalizeWaypoints(seg.waypoints, refId, refId.id == startId),
             }
         });
     }

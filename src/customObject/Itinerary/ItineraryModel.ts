@@ -24,7 +24,7 @@ class ItineraryModel {
      * Constructeur du modèle, peut se construire à partir d'un store ou d'un état initial ou de rien
      * POST l'itinéraire au backend
      * @param _store store sur lequel se basé
-     * @param initial valeur initial de l'itinéraire
+     * @param initial valeur initiale de l'itinéraire
      * @constructor
      */
     constructor({_store, initial}: ItineraryArgs) {
@@ -217,6 +217,12 @@ class ItineraryModel {
                         if (seg.id == toSegmentId) {
                             return {...seg, steps: env.newToSteps};
                         }
+                        if (env.newNextToSteps && seg.id == env.nextToSeg.id) {
+                            return {...seg, steps: env.newNextToSteps};
+                        }
+                        if (env.newPreviousToSteps && seg.id == env.previousToSeg.id) {
+                            return {...seg, steps: env.newPreviousToSteps};
+                        }
                         return seg;
                     }),
                 }
@@ -284,7 +290,7 @@ class ItineraryModel {
         }));
     }
 
-    // Méthodes privés
+    // Méthodes privées
     /**
      * Vérifie que le départ existe et qu'il est à la bonne place
      * Si besoin le créé et/ou le déplace
@@ -292,7 +298,6 @@ class ItineraryModel {
      */
     private formatStart(itinerary: Itinerary): Itinerary {
         const index: number = itinerary.segments.findIndex((seg: Segment) => seg.id == "start");
-        console.log("Index start : ", index);
         const segments: Segment[] = itinerary.segments;
         if (index > 0) {
             const [start] = segments.splice(index, 1);
@@ -300,7 +305,6 @@ class ItineraryModel {
                 start.isStartEnd = true;
             segments.splice(0, 0, start);
         } else if (index == -1) {
-            console.log("segments size before : ", segments.length);
             segments.splice(0, 0, {
                 id: "start",
                 content: {
@@ -312,8 +316,6 @@ class ItineraryModel {
                 isStartEnd: true,
                 steps: new Array<Step>()
             });
-            console.log("segments size after : ", segments.length);
-            console.log("segments start inserted : ", segments[0].id);
         } else if (!itinerary.segments[index].isStartEnd) {
             itinerary.segments[index].isStartEnd = true;
         }
@@ -385,7 +387,7 @@ class ItineraryModel {
     }
 
     /**
-     * Récupère toutes les informations nécessaire au déplacement de l'étape
+     * Récupère toutes les informations nécessaires au déplacement de l'étape
      *
      * Renvoi reorderStepInfo si tout est conforme sinon null
      * @param route itinéraire à modifier
@@ -402,8 +404,11 @@ class ItineraryModel {
                                toStepIndex: number): reorderStepInfo | null {
         const fromSeg: Segment | undefined = route.segments.find((s: Segment) => s.id === fromSegmentId);
         const toSeg: Segment | undefined = route.segments.find((s: Segment) => s.id === toSegmentId);
+        const indexToSeg: number = route.segments.findIndex((s: Segment) => s.id === toSegmentId);
+        const nextToSeg: Segment | undefined = route.segments[indexToSeg + 1];
+        const previousToSeg: Segment | undefined = route.segments[indexToSeg - 1];
 
-        if (!fromSeg || !toSeg) return null;
+        if (!fromSeg || !toSeg || !nextToSeg || !previousToSeg) return null;
 
         // Vérifie l'index d'origine
         if (fromStepIndex < 0 || fromStepIndex >= fromSeg.steps.length) return null;
@@ -420,51 +425,85 @@ class ItineraryModel {
             insertIndex = toStepIndex > fromStepIndex ? toStepIndex - 1 : toStepIndex;
         }
 
-        return {fromSeg, toSeg, sameSeg, newFromSteps, newToSteps, insertIndex};
+        return {fromSeg, toSeg, nextToSeg, previousToSeg, sameSeg, newFromSteps, newToSteps, insertIndex};
     }
 
     /**
-     * Retire l'étape déplacé de l'itinéraire
+     * Retire l'étape déplacée de l'itinéraire
      * Retire l'étape d'arrivée si on déplace dans une catégorie arrivée ou départ
      * @param env Toutes les informations liés au déplacement
      * @param fromStepIndex Index de l'étape au départ
      * @private
      */
-    private retrieveTargets(env: reorderStepInfo, fromStepIndex: number): {movedStep: Step, swapStep: Step | undefined} {
+    private retrieveTargets(env: reorderStepInfo, fromStepIndex: number): Step {
         // On récupère les items pour les replacer
         const [movedStep] = env.newFromSteps.splice(fromStepIndex, 1);
-        let swapStep: Step | undefined = undefined;
+        return movedStep;
+    }
 
-        // Si la destination est l'arrivée ou le départ on échange, donc on récupère l'item à l'arrivée
-        if (env.toSeg.isStartEnd && env.newToSteps.length > 0) {
-            [swapStep] = env.newToSteps.splice(0, 1);
+    /**
+     * Gère les départs des segments.
+     * Si la nouvelle étape est à la fin du segment, alors on l'a défini comme départ de la suivante
+     * Pour le départ
+     * @param env environnement de réorganisation
+     * @param movedStep étape déplacé
+     * @private
+     */
+    private manageNextStart(env: reorderStepInfo, movedStep: Step): void {
+        if (env.insertIndex == (env.toSeg.steps.length - 1)) {
+            const nextStart: Step = {...movedStep, id: "startSeg-" + movedStep.id, isDefaultSegStart: true}
+            env.newNextToSteps = [...env.nextToSeg.steps];
+            if (env.nextToSeg.steps.length == 0) {
+                env.nextToSeg.steps.push(nextStart);
+            } else {
+                env.nextToSeg.steps[0] = nextStart;
+            }
         }
-        if (env.fromSeg.isStartEnd && env.newToSteps.length > 0)
-        {
-            [swapStep] = env.newToSteps.splice(env.insertIndex, 1);
+    }
+
+    /**
+     * Gère le départ de l'itinéraire.
+     * Il est égale à la première étape du premier segment
+     * @param env environnement de réorganisation
+     * @param movedStep étape déplacé
+     * @private
+     */
+    private manageItineraryStart(env: reorderStepInfo, movedStep: Step): void {
+        if (!env.toSeg.steps[0].isDefaultSegStart) { // Si le départ du segment n'est pas imposé, c'est le premier segment
+            env.newPreviousToSteps = [...env.previousToSeg.steps];
+            const previousStart: Step = {...movedStep, id: "startSeg-" + movedStep.id, isDefaultSegStart: true};
+            if (env.nextToSeg.steps.length == 0) {
+                env.nextToSeg.steps.push(previousStart);
+            } else {
+                env.nextToSeg.steps[0] = previousStart;
+            }
         }
-        return {movedStep, swapStep};
+    }
+
+    /**
+     * Gère le départ du prochain segment et le départ du prochain segment en fonction du nouveau placement de l'étape
+     * @param env environnement de réorganisation
+     * @param movedStep étape déplacé
+     * @private
+     */
+    private manageStarts(env: reorderStepInfo, movedStep: Step): void {
+        this.manageNextStart(env, movedStep);
+        this.manageItineraryStart(env, movedStep);
     }
 
     /**
      * Permet de replacer les étapes récupérées dans retrieveTargets
-     * @param env Toutes les informations liés au déplacement
-     * @param fromStepIndex Index de l'étape au départ
+     * @param env Toutes les informations liées au déplacement
      * @param movedStep Etape cible du déplacement
-     * @param swapStep Etape déplacé suite à une inversion pour l'arrivée et départ
      * @private
      */
     private replaceSteps(env: reorderStepInfo,
-                         fromStepIndex: number,
-                         movedStep: Step,
-                         swapStep: Step | undefined): void {
+                         movedStep: Step): void {
         // On clamp après les suppressions pour avoir la dernière taille et éviter les problèmes
         const clamped = this.clamp(env.insertIndex, 0, env.newToSteps.length);
 
         env.newToSteps.splice(clamped, 0, movedStep);
-        if (swapStep) {
-            env.newFromSteps.splice(fromStepIndex, 0, swapStep);
-        }
+        this.manageStarts(env, movedStep);
     }
 
     /**
@@ -475,9 +514,9 @@ class ItineraryModel {
      */
     private moveSteps(env: reorderStepInfo, fromStepIndex: number): boolean {
 
-        const {movedStep, swapStep} = this.retrieveTargets(env, fromStepIndex);
+        const movedStep: Step = this.retrieveTargets(env, fromStepIndex);
         if(!movedStep) return false;
-        this.replaceSteps(env, fromStepIndex, movedStep, swapStep)
+        this.replaceSteps(env, movedStep)
         return true;
     }
 }

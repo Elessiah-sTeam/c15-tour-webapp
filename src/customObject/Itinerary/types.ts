@@ -13,6 +13,7 @@ export type stepInfo = {
 export type Step = {
     id: string;
     content: stepInfo;
+    isDefaultSegStart: boolean;
 }
 
 export type segmentInfo = {
@@ -26,6 +27,10 @@ export type segmentInfo = {
 export type reorderStepInfo = {
     fromSeg: Segment,
     toSeg : Segment,
+    nextToSeg : Segment,
+    newNextToSteps?: Step[],
+    previousToSeg : Segment,
+    newPreviousToSteps?: Step[],
     sameSeg: boolean
     newFromSteps: Step[],
     newToSteps: Step[],
