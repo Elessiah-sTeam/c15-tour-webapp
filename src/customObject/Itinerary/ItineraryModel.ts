@@ -37,8 +37,6 @@ class ItineraryModel {
             this.store.set((route: Itinerary) => {
                 return this.formatItinerary({...route});
             });
-            console.log(this.store.getSnapshot().segments[0].isStartEnd);
-            console.log(this.store.getSnapshot().segments[1]?.isStartEnd);
         }
         this.netModel = new ItineraryNetModel(this.store);
     }
@@ -159,7 +157,7 @@ class ItineraryModel {
      * Permet d'ajouter une étape
      * @param segmentId ID du parent où on veut l'insérer
      * @param step Etape à ajouter
-     * @param index Optionnel Index si on veut pas forcément l'ajouter à la fin
+     * @param index Optionnel Index si on ne veut pas forcément l'ajouter à la fin
      */
     addStep(segmentId: string, step: Step, index?: number): void {
         this.store.set((route: Itinerary) => {
