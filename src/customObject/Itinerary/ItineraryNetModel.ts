@@ -292,31 +292,6 @@ export class ItineraryNetModel {
     }
 
     /**
-     * Rassemble l'arrivée et le départ dans les segments, afin d'avoir une arrivée et un départ dans chaque segment
-     * Fais une copie de segments et la renvoie
-     * @param segments Segment à modifier
-     * @private
-     */
-    private mergeStartEnd(segments: Segment[]): Segment[] | null {
-        const copy : Segment[] = this.segmentsDeepCopy(segments);
-        if (copy.length == 2)
-        {
-            copy[0].steps.push(copy[1].steps[0]);
-            copy.pop();
-        } else {
-            const start = copy[0].steps.pop();
-            if (!start) return null;
-            copy.splice(0, 1)
-            copy[0].steps.splice(0, 0, start);
-            const end = copy[copy.length - 1].steps.pop();
-            if (!end) return null;
-            copy.pop();
-            copy[copy.length - 1].steps.push(end);
-        }
-        return copy;
-    }
-
-    /**
      * Transforme le tableau de segments en segments expédiable au backend
      * @param segments Segments à transformer
      * @private
@@ -324,8 +299,11 @@ export class ItineraryNetModel {
     private buildNetSegments(segments: Segment[]): SegmentRequest[] | null {
         if (!this.checkSegmentsValidity(segments))
             return null;
-        const copy: Segment[] | null = this.mergeStartEnd(segments);
+        const copy: Segment[] = this.segmentsDeepCopy(segments);
         if (!copy) return null;
+        // On retire le départ et l'arrivée qui ne sont qu'esthétique
+        copy.splice(0, 1);
+        copy.pop();
         return copy.map((seg: Segment) => {
             return {
                 name: seg.content.title,
