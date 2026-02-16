@@ -65,7 +65,7 @@ export class ItineraryNetModel {
             console.error(`Erreur API: ${response.status} ${response.statusText}`);
             return false;
         }
-        console.log(`Response: ${JSON.stringify(response.body)}`);
+        await this.applyItinerary((await response.json()) as ItineraryResponse)
         return true
     }
 
@@ -102,9 +102,7 @@ export class ItineraryNetModel {
             return false;
         }
 
-        this.store.set((prev: Itinerary) => {
-            return {...prev, id: itinerary.id};
-        });
+        await this.applyItinerary(itinerary);
 
         return true;
     }
