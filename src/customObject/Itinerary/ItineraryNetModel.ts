@@ -23,7 +23,7 @@ export class ItineraryNetModel {
     public readonly store: ItineraryStore;
 
     // Constructeur
-    constructor(store: ItineraryStore, post: boolean = true) {
+    constructor(store: ItineraryStore, post: boolean = false) {
         this.store = store;
 
         if (post)
@@ -47,6 +47,8 @@ export class ItineraryNetModel {
     public async put(): Promise<boolean>
     {
         const itinerary: Itinerary = this.store.getSnapshot();
+        if (itinerary.id == -1)
+            return this.post();
         const request: ItineraryRequest | null = this.buildNetObject();
         if (!request)
         {
