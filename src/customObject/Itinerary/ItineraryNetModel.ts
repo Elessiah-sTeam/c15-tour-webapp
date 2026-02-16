@@ -14,6 +14,7 @@ import type {
 } from "./netTypes.ts";
 import {TimeSpan} from "../TimeSpan.ts";
 import type {Feature, LineString} from "geojson";
+import {updateStarts} from "./utils.ts";
 
 
 const BACKEND_URL: string = "http://localhost:8080"
@@ -67,8 +68,9 @@ export class ItineraryNetModel {
             console.error(`Erreur API: ${response.status} ${response.statusText}`);
             return false;
         }
-        await this.applyItinerary((await response.json()) as ItineraryResponse)
-        return true
+        await this.applyItinerary((await response.json()) as ItineraryResponse);
+        console.log("Itinerary : ", this.store.getSnapshot());
+        return true;
     }
 
     /**
@@ -105,6 +107,7 @@ export class ItineraryNetModel {
         }
 
         await this.applyItinerary(itinerary);
+        console.log("ItineraryPost : ", this.store.getSnapshot());
 
         return true;
     }
@@ -166,32 +169,25 @@ export class ItineraryNetModel {
     }
 
     /**
-     * Reconstruit et replace le départ et l'arrivée concaténée pour le backend
-     * @param segments Segment à reconstruire
+     * Ajoute le segment conteneur du départ et d'arrivée
+     * @param segments segments à ajouter
      * @private
      */
-    private reconstructStartEnd(segments: Segment[]): Segment[]
-    {
-        const startContainer: Segment =  {
+    private addStartEndSegment(segments: Segment[]): Segment[] {
+        const start: Segment = {
             id: "start",
-            isStartEnd: true,
             content: {
                 title: " ",
+                hour: new Date(),
                 duration: new TimeSpan(0),
                 distance: 0,
-                geometry: undefined,
-                hour: new Date(),
+                geometry: undefined
             },
+            isStartEnd: true,
             steps: []
-        }
-        const endContainer: Segment =  {...startContainer, id: "end"}
-        const [startStep] = segments[0].steps.splice(0, 1);
-        startContainer.steps.push({...startStep, id: "startSeg-" + startStep.id, isDefaultSegStart: true});
-        const [endStep] = segments[segments.length - 1].steps.splice(segments[segments.length - 1].steps.length, 1);
-        endContainer.steps.push(endStep);
-        segments.splice(0, 0, startContainer);
-        segments.push(endContainer);
-        return segments;
+        };
+        const end: Segment = {...start, id: "end", steps: []};
+        return [start, ...segments, end];
     }
 
     /**
@@ -203,22 +199,22 @@ export class ItineraryNetModel {
     private normalizeSegments(segments: SegmentResponse[],
                               refId: {id: number} = {id: 0}): Segment[] {
         const startId: number = refId.id;
-        const result: Segment[] = segments.map((seg: SegmentResponse) => {
-            return {
-                id: `${refId.id++}`,
-                isStartEnd: false,
-                content: {
-                    title: seg.name,
-                    duration: new TimeSpan(seg.duration),
-                    distance: seg.distance,
-                    geometry: this.normalizeNetGeometry(seg.geometry),
-                    hour: new Date()
-                },
-                steps: this.normalizeWaypoints(seg.waypoints, refId, refId.id == startId),
-            }
-        });
-
-        return this.reconstructStartEnd(result);
+        return this.addStartEndSegment(segments.map((seg: SegmentResponse) => {
+                const steps: Step[] = this.normalizeWaypoints(seg.waypoints, refId, refId.id == startId);
+                return {
+                    id: `${refId.id++}`,
+                    isStartEnd: false,
+                    content: {
+                        title: seg.name,
+                        duration: new TimeSpan(seg.duration),
+                        distance: seg.distance,
+                        geometry: this.normalizeNetGeometry(seg.geometry),
+                        hour: new Date()
+                    },
+                    steps: steps,
+                }
+            })
+        );
     }
 
     /**
@@ -230,12 +226,13 @@ export class ItineraryNetModel {
         this.store.set(() => {
             // Une ref pour incrémenter au sein des fonctions et pas perdre le fil
             const refId: {id: number} = {id: 0};
+            const segments: Segment[] = this.normalizeSegments(response.segments, refId);
             return {
                 id: response.id,
                 name: response.name,
-                totalDuration: new TimeSpan(response.totalDuration),
-                totalDistance: response.totalDistance,
-                segments: this.normalizeSegments(response.segments, refId),
+                totalDuration: new TimeSpan(response.totalDuration * 1000),
+                totalDistance: response.totalDistance * 0.001,
+                segments: updateStarts(segments),
             };
         });
     }

@@ -11,6 +11,7 @@ type Props = {
     subtitle: string,
     hour: Date | null,
     model?: ItineraryModel
+    isDefaultSegStart: boolean
 }
 
 /**
@@ -21,9 +22,10 @@ type Props = {
  * @param stepId Optionnel Id de l'étape
  * @param subtitle valeur initial du sous-titre
  * @param hour heure à afficher
+ * @param isDefaultSegStart si c'est un départ par défaut
  * @constructor
  */
-export default function SubTitleWHour({tag: Tag, imgPath, segmentId, stepId, subtitle, hour}: Props) {
+export default function SubTitleWHour({tag: Tag, imgPath, segmentId, stepId, subtitle, hour, isDefaultSegStart}: Props) {
 
     /**
      * Fonction appelé par le composant ClickInput pour mettre à jour la valeur du sous-titre
@@ -44,7 +46,13 @@ export default function SubTitleWHour({tag: Tag, imgPath, segmentId, stepId, sub
         <div className={"subtitle"}>
             <div className={"left"}>
                 <img src={imgPath} alt="" className={classNameIcon} />
-                <ClickInput currentStr={subtitle} setter={manageSetter} Tag={Tag} className={className}/>
+                <ClickInput
+                    currentStr={subtitle}
+                    setter={manageSetter}
+                    Tag={Tag}
+                    className={className}
+                    isDesactivated={isDefaultSegStart}
+                />
             </div>
             {hour ?
                 <b className={"hour"}>{hour.getHours()}:{hour.getMinutes().toString().padStart(2, "0")}</b>

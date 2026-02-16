@@ -7,18 +7,20 @@ export interface Props {
     setter: (newString: string) => void,
     Tag: keyof JSX.IntrinsicElements,
     className: string,
+    isDesactivated: boolean
 }
 
 /**
  * Composant permettant l'édition d'une balise text
  *
- * Est raffraichi à chaque mise à jour de itinéraire et du champs text
+ * Est rafraîchi à chaque mise à jour de l'itinéraire et du champ text
  * @param currentStr contient la valeur de départ de la balise
  * @param setter fonction de mise à jour de la valeur cible
  * @param Tag nom de la balise HTML de l'élément
  * @param className className du style de la balise
+ * @param isDesactivated si vrai = input désactivé, faux
  */
-export default function ClickInput({currentStr, setter, Tag, className}: Props) {
+export default function ClickInput({currentStr, setter, Tag, className, isDesactivated}: Props) {
     const [isInput, setIsInput] = useState(false);
     const [text, setText] = useState<string>(currentStr);
 
@@ -38,7 +40,7 @@ export default function ClickInput({currentStr, setter, Tag, className}: Props) 
     }
 
     /**
-     * Détecte les clicks en dehors de la div qui contient la ref,
+     * Détecte-les clicks en dehors de la div qui contient la ref,
      * et arrête l'input
      */
     const ref = useOutsideClick<HTMLDivElement>(() => {
@@ -46,7 +48,7 @@ export default function ClickInput({currentStr, setter, Tag, className}: Props) 
     });
 
     /**
-     * Gère la pression de touche sur lors de l'édition de l'input
+     * Gère la pression de touche Entrée lors de l'édition de l'input
      * Si c'est la touche "Entrée" on appelle stopInput()
      * @param event
      */
@@ -63,7 +65,7 @@ export default function ClickInput({currentStr, setter, Tag, className}: Props) 
      */
     function handleClick(e: MouseEvent) {
         e.preventDefault();
-        setIsInput(true);
+        setIsInput(!isDesactivated);
     }
 
     return (

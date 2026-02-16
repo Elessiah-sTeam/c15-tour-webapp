@@ -8,7 +8,7 @@ export default function ItineraryDrawings() {
     return (
             itinerary.segments.map((seg: Segment) => {
                 if (seg.content.geometry) {
-                    return <GeoJSON data={seg.content.geometry}/>
+                    return <GeoJSON key={seg.id} data={seg.content.geometry}/>
                 }
             })
     );

@@ -29,6 +29,7 @@ export default function ItineraryTitle({onClose}: ItineraryTitleProps) {
                     setter={(newString) => itineraryModel.renameItinerary(newString)}
                     Tag={"h1"}
                     className={"title"}
+                    isDesactivated={false}
             />
         </div>
     );
