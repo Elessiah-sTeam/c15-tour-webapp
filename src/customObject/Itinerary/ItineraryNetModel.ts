@@ -230,8 +230,8 @@ export class ItineraryNetModel {
             return {
                 id: response.id,
                 name: response.name,
-                totalDuration: new TimeSpan(response.totalDuration),
-                totalDistance: response.totalDistance,
+                totalDuration: new TimeSpan(response.totalDuration * 1000),
+                totalDistance: response.totalDistance * 0.001,
                 segments: updateStarts(segments),
             };
         });
