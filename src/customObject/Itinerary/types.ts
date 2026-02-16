@@ -13,6 +13,7 @@ export type stepInfo = {
 export type Step = {
     id: string;
     content: stepInfo;
+    isDefaultSegStart: boolean;
 }
 
 export type segmentInfo = {

@@ -13,6 +13,7 @@ type Props = {
     children: React.ReactNode;
     categoryId: string;
     itemId?: string;
+    isDefault: boolean;
 }
 
 const units: unitTimeSpan = {days: ":", hours: ":", minutes: "", seconds: "", milliseconds: ""};
@@ -25,8 +26,17 @@ const units: unitTimeSpan = {days: ":", hours: ":", minutes: "", seconds: "", mi
  * @param children Composant englobé
  * @param categoryId ID de la catégorie concerné
  * @param itemId ID de l'item concerné
+ * @param isDefault Est-ce que c'est départ par défaut. Donc est-il DND
  */
-export default function Item({duration, hour, isStartEnd, children, categoryId, itemId}: Props) {
+export default function Item({
+                                 duration,
+                                 hour,
+                                 isStartEnd,
+                                 children,
+                                 categoryId,
+                                 itemId,
+                                 isDefault
+}: Props) {
     const delMod = useDeleteMod(deleteModStore)
     duration = Object.assign(new TimeSpan(), duration);
 
@@ -46,11 +56,13 @@ export default function Item({duration, hour, isStartEnd, children, categoryId, 
                 {children}
             </div>
             {isStartEnd ? <b className={"hour"}>{hour?.getHours()}:{hour?.getMinutes().toString().padStart(2, "0")}</b> : <b className={"hour"}>{duration?.toFStr(TimespanOffset.MINUTES, units)}</b>}
-            {delMod
-                ?
-                <Trash className={"reorder-icon"} color={"#BB487C"} onClick={() => {handleDelete();}}/>
-                :
-                <img className={"reorder-icon"} src="/icons/dragdrop-icon.png" alt={""}/>
+            {isDefault ?
+                <> </>
+                : delMod
+                    ?
+                    <Trash className={"reorder-icon"} color={"#BB487C"} onClick={() => {handleDelete();}}/>
+                    :
+                    <img className={"reorder-icon"} src="/icons/dragdrop-icon.png" alt={""}/>
             }
         </div>
     )

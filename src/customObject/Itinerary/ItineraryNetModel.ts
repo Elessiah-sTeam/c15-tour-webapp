@@ -147,10 +147,13 @@ export class ItineraryNetModel {
      * Transforme des steps Net en steps utilisable pour le front
      * @param waypoints steps Net à normaliser
      * @param refId Compteur d'ID pour définir les id des nouvelles étapes
+     * @param isFirstSeg Défini si ces étapes sont dans le premier segment pour bloquer ou non le départ
      * @private
      */
     private normalizeWaypoints(waypoints: Waypoint[],
-                               refId: {id: number} = {id: 0}): Step[] {
+                               refId: {id: number} = {id: 0},
+                               isFirstSeg: boolean): Step[] {
+        const startId: number = refId.id;
         return waypoints.map((waypoint: Waypoint) => {
             return {
                 id: `${refId.id++}`,
@@ -159,6 +162,7 @@ export class ItineraryNetModel {
                     duration: new TimeSpan(),
                     location: {lat: waypoint.coordinates.latitude, lon: waypoint.coordinates.longitude},
                 },
+                isDefaultSegStart: !isFirstSeg && startId == refId.id,
             }
         });
     }
@@ -184,7 +188,7 @@ export class ItineraryNetModel {
         }
         const endContainer: Segment =  {...startContainer, id: "end"}
         const [startStep] = segments[0].steps.splice(0, 1);
-        startContainer.steps.push(startStep);
+        startContainer.steps.push({...startStep, id: "startSeg-" + startStep.id, isDefaultSegStart: true});
         const [endStep] = segments[segments.length - 1].steps.splice(segments[segments.length - 1].steps.length, 1);
         endContainer.steps.push(endStep);
         segments.splice(0, 0, startContainer);
@@ -200,10 +204,11 @@ export class ItineraryNetModel {
      */
     private normalizeSegments(segments: SegmentResponse[],
                               refId: {id: number} = {id: 0}): Segment[] {
+        const startId: number = refId.id;
         const result: Segment[] = segments.map((seg: SegmentResponse) => {
             return {
-                id: seg.name == " " && refId.id == 0 ? "start" : seg.name == " " ? "end" : `${refId.id++}`,
-                isStartEnd: seg.name == " ",
+                id: `${refId.id++}`,
+                isStartEnd: false,
                 content: {
                     title: seg.name,
                     duration: new TimeSpan(seg.duration),
@@ -211,7 +216,7 @@ export class ItineraryNetModel {
                     geometry: this.normalizeNetGeometry(seg.geometry),
                     hour: new Date()
                 },
-                steps: this.normalizeWaypoints(seg.waypoints, refId),
+                steps: this.normalizeWaypoints(seg.waypoints, refId, refId.id == startId),
             }
         });
 
@@ -289,31 +294,6 @@ export class ItineraryNetModel {
     }
 
     /**
-     * Rassemble l'arrivée et le départ dans les segments, afin d'avoir une arrivée et un départ dans chaque segment
-     * Fais une copie de segments et la renvoie
-     * @param segments Segment à modifier
-     * @private
-     */
-    private mergeStartEnd(segments: Segment[]): Segment[] | null {
-        const copy : Segment[] = this.segmentsDeepCopy(segments);
-        if (copy.length == 2)
-        {
-            copy[0].steps.push(copy[1].steps[0]);
-            copy.pop();
-        } else {
-            const start = copy[0].steps.pop();
-            if (!start) return null;
-            copy.splice(0, 1)
-            copy[0].steps.splice(0, 0, start);
-            const end = copy[copy.length - 1].steps.pop();
-            if (!end) return null;
-            copy.pop();
-            copy[copy.length - 1].steps.push(end);
-        }
-        return copy;
-    }
-
-    /**
      * Transforme le tableau de segments en segments expédiable au backend
      * @param segments Segments à transformer
      * @private
@@ -321,8 +301,11 @@ export class ItineraryNetModel {
     private buildNetSegments(segments: Segment[]): SegmentRequest[] | null {
         if (!this.checkSegmentsValidity(segments))
             return null;
-        const copy: Segment[] | null = this.mergeStartEnd(segments);
+        const copy: Segment[] = this.segmentsDeepCopy(segments);
         if (!copy) return null;
+        // On retire le départ et l'arrivée qui ne sont qu'esthétique
+        copy.splice(0, 1);
+        copy.pop();
         return copy.map((seg: Segment) => {
             return {
                 name: seg.content.title.length > 1 ? seg.content.title : "No Name",

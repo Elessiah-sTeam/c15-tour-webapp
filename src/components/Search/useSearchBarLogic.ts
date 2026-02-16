@@ -180,6 +180,7 @@ export const useSearchBarLogic = ({
             ? { location: { lat: coords[0] as number, lon: coords[1] as number } }
             : {}),
         },
+        isDefaultSegStart: false,
       });
     },
     [ensureDestinationSegment, searchIntent.target]

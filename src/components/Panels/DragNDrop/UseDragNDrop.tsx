@@ -33,12 +33,12 @@ export function useDragNDrop(): DndProps {
 
         if (type === "item") {
             const item: Step | undefined = getActiveItem(active, itinerary.segments);
-            if (item) {
+            if (item && !item.isDefaultSegStart) {
                 setActiveItem(item);
             }
         } else if (type === "category") {
             const category: Segment | undefined = getActiveCat(active, itinerary.segments);
-            if (category) {
+            if (category && !category.isStartEnd) {
                 setActiveCat(category);
             }
         }
