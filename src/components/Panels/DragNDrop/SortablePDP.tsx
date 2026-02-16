@@ -48,7 +48,9 @@ export default function SortablePDP({visible, item, categoryId, isStartEnd, hour
                   segmentId={categoryId}
                   stepId={item.id}
                   subtitle={item.content.title}
-                  hour={null}/>
+                  hour={null}
+                  isDefaultSegStart={isStartEnd}
+              />
           </Item>
       </div>
     );

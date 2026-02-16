@@ -33,6 +33,7 @@ export default function SortableStepHeader({category, model} : {category: Segmen
                     segmentId={category.id}
                     subtitle={category.content.title}
                     hour={category.content.hour}
+                    isDefaultSegStart={false}
                 />
             </Item>
         </div>

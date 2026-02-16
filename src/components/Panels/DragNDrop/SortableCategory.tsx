@@ -30,7 +30,8 @@ export default function SortableCategory({ category, visible, idActiveItem}: Pro
                 id: newStepId, content: {
                     title: "Nouvelle étape",
                     duration: new TimeSpan()
-                }
+                },
+                isDefaultSegStart: false,
             });
         requestSearchForStep({segmentId: category.id, stepId: newStepId});
     }
