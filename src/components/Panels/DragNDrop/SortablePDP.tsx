@@ -40,10 +40,11 @@ export default function SortablePDP({visible, item, categoryId, isStartEnd, hour
               hour={hour}
               itemId={item.id}
               categoryId={categoryId}
+              isDefault={item.isDefaultSegStart}
           >
               <SubTitleWHour
                   tag={isStartEnd ? "h2" : "h3"}
-                  imgPath={isStartEnd ? '/icons/depart-icon.png' : '/icons/pdp-icon.png'}
+                  imgPath={(isStartEnd || item.isDefaultSegStart) ? '/icons/depart-icon.png' : '/icons/pdp-icon.png'}
                   segmentId={categoryId}
                   stepId={item.id}
                   subtitle={item.content.title}
