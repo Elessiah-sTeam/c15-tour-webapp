@@ -78,7 +78,7 @@ class ItineraryModel {
         this.store.set((route: Itinerary) => {
             const segments: Segment[] = [...route.segments];
             segments.splice(segments.length - 1, 0, segment);
-            return {...route, segments: segments};
+            return {...route, segments: this.updateStarts(segments)};
         });
     }
 
@@ -88,7 +88,7 @@ class ItineraryModel {
      */
     removeSegment(segmentId: string): void {
         this.store.set((route: Itinerary) => {
-            return {...route, segments: route.segments.filter(s => s.id != segmentId)}});
+            return {...route, segments: this.updateStarts(route.segments.filter(s => s.id != segmentId))}});
     }
 
     /**
@@ -121,7 +121,7 @@ class ItineraryModel {
                 return route;
             const [moved] = segments.splice(index, 1);
             segments.splice(targetIndex, 0, moved);
-            return {...route, segments};
+            return {...route, segments: this.updateStarts(segments)};
             }
         );
     }
@@ -161,14 +161,11 @@ class ItineraryModel {
      */
     addStep(segmentId: string, step: Step, index?: number): void {
         this.store.set((route: Itinerary) => {
+            const rebuilt: Segment[] = this.rebuildSegmentsWithNewStep(route.segments, segmentId, step, index);
+            const segments: Segment[] = this.updateStarts(rebuilt);
             return {
                 ...route,
-                segments: route.segments.map(seg => {
-                        if (seg.id != segmentId) return seg;
-                        const steps = [...seg.steps];
-                        steps.splice(index ?? steps.length, 0, step);
-                        return {...seg, steps: steps};
-                    })
+                segments: segments
             };
         });
     }
@@ -205,24 +202,7 @@ class ItineraryModel {
                 // Rebuild route en ne recréant que les segments touchés
                 return {
                     ...route,
-                    segments: route.segments.map((seg: Segment) => {
-                        if (seg.id == fromSegmentId && env.sameSeg) {
-                            return {...seg, steps: env.newToSteps};
-                        }
-                        if (seg.id == fromSegmentId) {
-                            return {...seg, steps: env.newFromSteps};
-                        }
-                        if (seg.id == toSegmentId) {
-                            return {...seg, steps: env.newToSteps};
-                        }
-                        if (env.newNextToSteps && seg.id == env.nextToSeg.id) {
-                            return {...seg, steps: env.newNextToSteps};
-                        }
-                        if (env.newPreviousToSteps && seg.id == env.previousToSeg.id) {
-                            return {...seg, steps: env.newPreviousToSteps};
-                        }
-                        return seg;
-                    }),
+                    segments: this.applyStepReorder(route.segments, env, fromSegmentId, toSegmentId),
                 }
             } else {
                 return route;
@@ -239,7 +219,7 @@ class ItineraryModel {
     renameStep(segmentId: string, stepId: string, newName: string): void {
         this.store.set((route: Itinerary) => ({
             ...route,
-            segments: route.segments.map((seg: Segment) => {
+            segments: this.updateStarts(route.segments.map((seg: Segment) => {
                     if (seg.id != segmentId) return seg;
 
                     return {
@@ -255,7 +235,7 @@ class ItineraryModel {
                             };
                         })
                     }
-                }),
+                })),
         }));
     }
 
@@ -268,7 +248,7 @@ class ItineraryModel {
     setStepLocation(segmentId: string, stepId: string, location: {lat: number, lon: number}): void {
         this.store.set((route: Itinerary) => ({
             ...route,
-            segments: route.segments.map((seg: Segment) => {
+            segments: this.updateStarts(route.segments.map((seg: Segment) => {
                 if (seg.id !== segmentId) return seg;
 
                 return {
@@ -284,7 +264,7 @@ class ItineraryModel {
                         };
                     })
                 }
-            }),
+            })),
         }));
     }
 
@@ -397,11 +377,9 @@ class ItineraryModel {
                                toStepIndex: number): reorderStepInfo | null {
         const fromSeg: Segment | undefined = route.segments.find((s: Segment) => s.id === fromSegmentId);
         const toSeg: Segment | undefined = route.segments.find((s: Segment) => s.id === toSegmentId);
-        const indexToSeg: number = route.segments.findIndex((s: Segment) => s.id === toSegmentId);
-        const nextToSeg: Segment | undefined = route.segments[indexToSeg + 1];
-        const previousToSeg: Segment | undefined = route.segments[indexToSeg - 1];
 
-        if (!fromSeg || !toSeg || !nextToSeg || !previousToSeg) return null;
+        if (!fromSeg || !toSeg) return null;
+
 
         // Vérifie l'index d'origine
         if (fromStepIndex < 0 || fromStepIndex >= fromSeg.steps.length) return null;
@@ -412,13 +390,14 @@ class ItineraryModel {
         const newFromSteps: Step[] = [...fromSeg.steps];
         const newToSteps = sameSeg ? newFromSteps : [...toSeg.steps];
 
-        // Si on déplace dans le même segment, attention à l'index après suppression
-        let insertIndex = toStepIndex;
-        if (sameSeg) {
-            insertIndex = toStepIndex > fromStepIndex ? toStepIndex - 1 : toStepIndex;
-        }
-
-        return {fromSeg, toSeg, nextToSeg, previousToSeg, sameSeg, newFromSteps, newToSteps, insertIndex};
+        return {
+            fromSeg: fromSeg,
+            toSeg: toSeg,
+            sameSeg: sameSeg,
+            newFromSteps: newFromSteps,
+            newToSteps: newToSteps,
+            insertIndex: toStepIndex
+        };
     }
 
     /**
@@ -435,56 +414,6 @@ class ItineraryModel {
     }
 
     /**
-     * Gère les départs des segments.
-     * Si la nouvelle étape est à la fin du segment, alors on l'a défini comme départ de la suivante
-     * Pour le départ
-     * @param env environnement de réorganisation
-     * @param movedStep étape déplacé
-     * @private
-     */
-    private manageNextStart(env: reorderStepInfo, movedStep: Step): void {
-        if (env.insertIndex == (env.toSeg.steps.length - 1)) {
-            const nextStart: Step = {...movedStep, id: "startSeg-" + movedStep.id, isDefaultSegStart: true}
-            env.newNextToSteps = [...env.nextToSeg.steps];
-            if (env.nextToSeg.steps.length == 0) {
-                env.nextToSeg.steps.push(nextStart);
-            } else {
-                env.nextToSeg.steps[0] = nextStart;
-            }
-        }
-    }
-
-    /**
-     * Gère le départ de l'itinéraire.
-     * Il est égale à la première étape du premier segment
-     * @param env environnement de réorganisation
-     * @param movedStep étape déplacé
-     * @private
-     */
-    private manageItineraryStart(env: reorderStepInfo, movedStep: Step): void {
-        if (!env.toSeg.steps[0].isDefaultSegStart) { // Si le départ du segment n'est pas imposé, c'est le premier segment
-            env.newPreviousToSteps = [...env.previousToSeg.steps];
-            const previousStart: Step = {...movedStep, id: "startSeg-" + movedStep.id, isDefaultSegStart: true};
-            if (env.nextToSeg.steps.length == 0) {
-                env.nextToSeg.steps.push(previousStart);
-            } else {
-                env.nextToSeg.steps[0] = previousStart;
-            }
-        }
-    }
-
-    /**
-     * Gère le départ du prochain segment et le départ du prochain segment en fonction du nouveau placement de l'étape
-     * @param env environnement de réorganisation
-     * @param movedStep étape déplacé
-     * @private
-     */
-    private manageStarts(env: reorderStepInfo, movedStep: Step): void {
-        this.manageNextStart(env, movedStep);
-        this.manageItineraryStart(env, movedStep);
-    }
-
-    /**
      * Permet de replacer les étapes récupérées dans retrieveTargets
      * @param env Toutes les informations liées au déplacement
      * @param movedStep Etape cible du déplacement
@@ -494,9 +423,7 @@ class ItineraryModel {
                          movedStep: Step): void {
         // On clamp après les suppressions pour avoir la dernière taille et éviter les problèmes
         const clamped = this.clamp(env.insertIndex, 0, env.newToSteps.length);
-
         env.newToSteps.splice(clamped, 0, movedStep);
-        this.manageStarts(env, movedStep);
     }
 
     /**
@@ -509,8 +436,101 @@ class ItineraryModel {
 
         const movedStep: Step = this.retrieveTargets(env, fromStepIndex);
         if(!movedStep) return false;
-        this.replaceSteps(env, movedStep)
+        this.replaceSteps(env, movedStep);
         return true;
+    }
+
+    /**
+     * Reconstruit les segments avec la nouvelle étape ajoutée ainsi que les départs ajoutés
+     * @param segments Snapshot des segments à reconstruire
+     * @param segmentId ID du segment où insérer
+     * @param step Etape à ajouter
+     * @param index index dans le segment où insérer la nouvelle étape
+     * @private
+     */
+    private rebuildSegmentsWithNewStep(segments: Segment[],
+                                      segmentId: string,
+                                      step: Step,
+                                      index?: number): Segment[] {
+       return segments.map((seg) => {
+            if (seg.id != segmentId) return seg;
+            const steps = [...seg.steps];
+            index = index ?? steps.length;
+            steps.splice(index, 0, step);
+            return {...seg, steps: steps};
+        });
+    }
+
+    /**
+     * Applique le départ à un segment
+     * @param segment segment à modifier
+     * @param start départ à ajouter
+     * @private
+     */
+    private applyStart(segment: Segment,
+                       start: Step): Segment {
+        const startCopy: Step = {...start, id: "start-" + segment.id, isDefaultSegStart: true};
+        const steps = segment.steps.length === 0
+            ? [startCopy]
+            : [startCopy, ...segment.steps.slice(1)]
+
+        return { ...segment, steps};
+    }
+
+    /**
+     * Mets à jour les départs de segment
+     * @param segments à mettre jour
+     * @private
+     */
+    private updateStarts(segments: Segment[]): Segment[] {
+        const NB_START_END = 2;
+        const FIRST_SEG_INDEX = 1;
+        const END_SEG_INDEX = segments.length - 1;
+
+        if (segments.length == NB_START_END || segments[FIRST_SEG_INDEX].steps.length == 0)
+            return segments;
+
+        const out = [...segments];
+
+        out[0] = this.applyStart(out[0], out[FIRST_SEG_INDEX].steps[0]);
+
+        this.applyStart(segments[0], segments[FIRST_SEG_INDEX].steps[0]);
+        for (let i = FIRST_SEG_INDEX; i < END_SEG_INDEX; i++) {
+            out[i + 1] = this.applyStart(out[i + 1], out[i].steps[out[i].steps.length - 1]);
+        }
+
+        return out;
+    }
+
+    /**
+     * Créé une copie des segments avec les étapes réagencées
+     * et applique les départs
+     * @param segments Segments à copier
+     * @param env environnement de réorganisation
+     * @param fromSegmentId ID du segment d'origine
+     * @param toSegmentId ID du segment de départ
+     * @private
+     */
+    private applyStepReorder(segments: Segment[],
+                             env: reorderStepInfo,
+                             fromSegmentId: string,
+                             toSegmentId: string): Segment[] {
+        const copy: Segment[] = segments.map((seg: Segment) => {
+            if (seg.id == fromSegmentId && env.sameSeg) {
+                return {...seg, steps: env.newToSteps};
+            }
+            if (seg.id == fromSegmentId) {
+                return {...seg, steps: env.newFromSteps};
+            }
+            if (seg.id == toSegmentId) {
+                return {...seg, steps: env.newToSteps};
+            }
+            return {...seg};
+        });
+        console.log("First Copy : ", copy.length, copy[0].steps.length, copy[1].steps.length, copy[2].steps.length);
+        const result: Segment[] = this.updateStarts(copy);
+        console.log("Second Copy : ", copy.length, copy[0].steps.length, copy[1].steps.length, copy[2].steps.length);
+        return result;
     }
 }
 

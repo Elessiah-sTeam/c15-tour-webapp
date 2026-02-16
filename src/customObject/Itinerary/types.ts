@@ -27,14 +27,10 @@ export type segmentInfo = {
 export type reorderStepInfo = {
     fromSeg: Segment,
     toSeg : Segment,
-    nextToSeg : Segment,
-    previousToSeg : Segment,
     sameSeg: boolean
     newFromSteps: Step[],
     newToSteps: Step[],
     insertIndex : number,
-    newNextToSteps?: Step[],
-    newPreviousToSteps?: Step[],
 }
 
 export type Segment = {
