@@ -10,6 +10,7 @@ import type {
 } from "./types.ts";
 import {TimeSpan} from "../TimeSpan.ts";
 import {ItineraryNetModel} from "./ItineraryNetModel.ts";
+import {updateStarts} from "./utils.ts";
 
 /**
  * Modèle de l'itinéraire, regroupant toutes les fonctions métiers pour le manipuler
@@ -78,7 +79,7 @@ class ItineraryModel {
         this.store.set((route: Itinerary) => {
             const segments: Segment[] = [...route.segments];
             segments.splice(segments.length - 1, 0, segment);
-            return {...route, segments: this.updateStarts(segments)};
+            return {...route, segments: updateStarts(segments)};
         });
     }
 
@@ -88,7 +89,7 @@ class ItineraryModel {
      */
     removeSegment(segmentId: string): void {
         this.store.set((route: Itinerary) => {
-            return {...route, segments: this.updateStarts(route.segments.filter(s => s.id != segmentId))}});
+            return {...route, segments: updateStarts(route.segments.filter(s => s.id != segmentId))}});
     }
 
     /**
@@ -121,7 +122,7 @@ class ItineraryModel {
                 return route;
             const [moved] = segments.splice(index, 1);
             segments.splice(targetIndex, 0, moved);
-            return {...route, segments: this.updateStarts(segments)};
+            return {...route, segments: updateStarts(segments)};
             }
         );
     }
@@ -162,7 +163,7 @@ class ItineraryModel {
     addStep(segmentId: string, step: Step, index?: number): void {
         this.store.set((route: Itinerary) => {
             const rebuilt: Segment[] = this.rebuildSegmentsWithNewStep(route.segments, segmentId, step, index);
-            const segments: Segment[] = this.updateStarts(rebuilt);
+            const segments: Segment[] = updateStarts(rebuilt);
             return {
                 ...route,
                 segments: segments
@@ -219,7 +220,7 @@ class ItineraryModel {
     renameStep(segmentId: string, stepId: string, newName: string): void {
         this.store.set((route: Itinerary) => ({
             ...route,
-            segments: this.updateStarts(route.segments.map((seg: Segment) => {
+            segments: updateStarts(route.segments.map((seg: Segment) => {
                     if (seg.id != segmentId) return seg;
 
                     return {
@@ -248,7 +249,7 @@ class ItineraryModel {
     setStepLocation(segmentId: string, stepId: string, location: {lat: number, lon: number}): void {
         this.store.set((route: Itinerary) => ({
             ...route,
-            segments: this.updateStarts(route.segments.map((seg: Segment) => {
+            segments: updateStarts(route.segments.map((seg: Segment) => {
                 if (seg.id !== segmentId) return seg;
 
                 return {
@@ -462,47 +463,6 @@ class ItineraryModel {
     }
 
     /**
-     * Applique le départ à un segment
-     * @param segment segment à modifier
-     * @param start départ à ajouter
-     * @private
-     */
-    private applyStart(segment: Segment,
-                       start: Step): Segment {
-        const startCopy: Step = {...start, id: "start-" + segment.id, isDefaultSegStart: true};
-        const steps = segment.steps.length === 0
-            ? [startCopy]
-            : [startCopy, ...segment.steps.slice(1)]
-
-        return { ...segment, steps};
-    }
-
-    /**
-     * Mets à jour les départs de segment
-     * @param segments à mettre jour
-     * @private
-     */
-    private updateStarts(segments: Segment[]): Segment[] {
-        const NB_START_END = 2;
-        const FIRST_SEG_INDEX = 1;
-        const END_SEG_INDEX = segments.length - 1;
-
-        if (segments.length == NB_START_END || segments[FIRST_SEG_INDEX].steps.length == 0)
-            return segments;
-
-        const out = [...segments];
-
-        out[0] = this.applyStart(out[0], out[FIRST_SEG_INDEX].steps[0]);
-
-        this.applyStart(segments[0], segments[FIRST_SEG_INDEX].steps[0]);
-        for (let i = FIRST_SEG_INDEX; i < END_SEG_INDEX; i++) {
-            out[i + 1] = this.applyStart(out[i + 1], out[i].steps[out[i].steps.length - 1]);
-        }
-
-        return out;
-    }
-
-    /**
      * Créé une copie des segments avec les étapes réagencées
      * et applique les départs
      * @param segments Segments à copier
@@ -528,7 +488,7 @@ class ItineraryModel {
             return {...seg};
         });
         console.log("First Copy : ", copy.length, copy[0].steps.length, copy[1].steps.length, copy[2].steps.length);
-        const result: Segment[] = this.updateStarts(copy);
+        const result: Segment[] = updateStarts(copy);
         console.log("Second Copy : ", copy.length, copy[0].steps.length, copy[1].steps.length, copy[2].steps.length);
         return result;
     }
