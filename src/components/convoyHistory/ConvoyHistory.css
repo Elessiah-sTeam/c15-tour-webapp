@@ -1,7 +1,30 @@
 .convoy-history {
     min-height: 100vh;
-    background: linear-gradient(135deg, #fafafa 0%, #f0f0f0 100%);
     font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    position: relative;
+
+    /* ✅ Image style carte GPS */
+    background-image: url('https://images.unsplash.com/photo-1577086664693-894d8405334a?w=1920&q=80');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+}
+
+/* ✅ Overlay rose/blanc pour garder les couleurs C15 Tour */
+.convoy-history::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.60);
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* ✅ Contenu au-dessus de l'overlay */
+.convoy-history-header,
+.convoy-history-content {
+    position: relative;
+    z-index: 1;
 }
 
 /* ─── Header ────────────────────────────────────────────────────────────── */
@@ -138,13 +161,16 @@
 .search-input {
     width: 100%;
     padding: 16px 60px 16px 56px;
-    border: 2px solid #e2e8f0;
+    border: 3px solid #bb487c;;
     border-radius: 12px;
     font-size: 15px;
     font-family: inherit;
     transition: all 0.2s;
     background: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    color: #2d3748;
 }
+
 
 .search-input:focus {
     outline: none;
