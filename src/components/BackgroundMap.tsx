@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
+import {MapContainer, Marker, Popup, TileLayer} from "react-leaflet";
 import type { LatLngExpression } from "leaflet";
 import { c15Marker } from "../icons";
 import SearchBar from "./Search/SearchBar";
@@ -9,6 +9,7 @@ import logo from "../assets/logo.svg";
 import "./BackgroundMap.css";
 import "./Search/SearchBar.css";
 import "leaflet/dist/leaflet.css";
+import { InteractiveRouteBuilder } from "./InteractiveRouteBuilder";
 
 const initialPosition: LatLngExpression = [47.253927, -1.516436];
 
@@ -54,6 +55,7 @@ export default function BackgroundMap() {
             setSearchLabel(label);
           }}
         />
+          <InteractiveRouteBuilder />
       </MapContainer>
     </div>
   );

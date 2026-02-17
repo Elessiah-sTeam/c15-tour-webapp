@@ -1,0 +1,217 @@
+.convoy-card {
+    display: flex;
+    gap: 20px;
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    border: 1px solid #f0f0f0;
+}
+
+.convoy-card:hover {
+    box-shadow: 0 4px 16px rgba(180, 88, 158, 0.15);
+    border-color: #bb487c;
+    transform: translateY(-2px);
+}
+
+/* ─── Miniature de carte ────────────────────────────────────────────────── */
+.convoy-thumbnail {
+    width: 200px;
+    height: 140px;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: #f5f5f5;
+    position: relative;
+}
+
+.convoy-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.convoy-thumbnail-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #f0e6f0 0%, #e6d9e6 100%);
+    position: relative;
+}
+
+.mini-marker {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: #bb487c;
+    border: 2px solid white;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* ─── Informations ──────────────────────────────────────────────────────── */
+.convoy-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.convoy-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.convoy-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #2d3748;
+    margin: 0;
+}
+
+.status-badge {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-draft {
+    background: #FEF3C7;
+    color: #92400E;
+}
+
+.status-finalized {
+    background: #D1FAE5;
+    color: #065F46;
+}
+
+.status-archived {
+    background: #E5E7EB;
+    color: #4B5563;
+}
+
+.convoy-route {
+    font-size: 15px;
+    color: #4a5568;
+    font-weight: 500;
+}
+
+.convoy-details {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 14px;
+    color: #718096;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.detail-icon {
+    font-size: 14px;
+}
+
+.detail-separator {
+    color: #cbd5e0;
+}
+
+.convoy-date {
+    font-size: 13px;
+    color: #a0aec0;
+    margin-top: auto;
+}
+
+/* ─── Actions ───────────────────────────────────────────────────────────── */
+.convoy-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-end;
+    justify-content: space-between;
+}
+
+.btn {
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-family: inherit;
+}
+
+.btn-primary {
+    background: #bb487c;
+    color: white;
+    padding: 10px 24px;
+    min-width: 120px;
+}
+
+.btn-primary:hover {
+    background: #bb487c;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(180, 88, 158, 0.3);
+}
+
+.btn-icon {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.btn-arrow {
+    font-size: 20px;
+    font-weight: 300;
+}
+
+.btn-icon-only {
+    background: #f7fafc;
+    color: #718096;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid #e2e8f0;
+}
+
+.btn-icon-only:hover {
+    background: #edf2f7;
+    border-color: #bb487c;
+    color:#bb487c;
+}
+
+.icon-share, .icon-export, .icon-more {
+    font-size: 16px;
+}
+
+/* ─── Responsive ────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .convoy-card {
+        flex-direction: column;
+    }
+
+    .convoy-thumbnail {
+        width: 100%;
+        height: 180px;
+    }
+
+    .convoy-actions {
+        flex-direction: row;
+        width: 100%;
+        gap: 12px;
+    }
+
+    .btn-primary {
+        flex: 1;
+    }
+}

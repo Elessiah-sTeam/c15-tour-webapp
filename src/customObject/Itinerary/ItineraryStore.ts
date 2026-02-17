@@ -53,7 +53,7 @@ const initial: Itinerary = {
             content: {
                 title: "Départ",
                 duration: duration,
-                position: [47.253927, -1.516435]
+                position: [47.218371, -1.553621]
             }
         }]
     },
@@ -70,7 +70,7 @@ const initial: Itinerary = {
                 content: {
                     title: "Point de passage 1",
                     duration: duration,
-                    position: [47.253927, -1.516436]
+                    position: [47.248000, -1.580000]
                 }
             },
                 {
@@ -78,7 +78,7 @@ const initial: Itinerary = {
                     content: {
                         title: "Point de passage 2",
                         duration: duration,
-                        position: [47.253927, -1.516439]
+                        position: [47.270000, -1.520000]
                     }
                 }]
         },
@@ -95,7 +95,7 @@ const initial: Itinerary = {
                 content: {
                     title: "Point de passage 3",
                     duration: duration,
-                    position: [47.253927, -1.516438]
+                    position: [47.230000, -1.480000]
                 }
             }]
         },
@@ -108,7 +108,7 @@ const initial: Itinerary = {
                 content: {
                     title: "Arrivée",
                     duration: duration,
-                    position: [47.253927, -1.516437]
+                    position: [47.200000, -1.550000]
                 }
             }]
         }]

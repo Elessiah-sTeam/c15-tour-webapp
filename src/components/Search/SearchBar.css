@@ -1,9 +1,11 @@
 .search-bar {
-  position: absolute;
-  top: 24px;
+  position: fixed;
+  top: 20px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 20000;
+  z-index: 1000;
+  width: 500px;
+  max-width: calc(100% - 40px);
 }
 
 .search-bar-inner {

@@ -1,0 +1,222 @@
+/* ─── Panneau principal ────────────────────────────────────────────────── */
+.route-builder-panel {
+    position: absolute;
+    top: 80px;
+    right: 20px;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    padding: 20px;
+    width: 320px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+/* ─── Header du panneau ────────────────────────────────────────────────── */
+.panel-header {
+    margin-bottom: 16px;
+    border-bottom: 2px solid #bb487c;
+    padding-bottom: 12px;
+}
+
+.panel-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a2e;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.panel-hint {
+    margin: 8px 0 0 0;
+    font-size: 13px;
+    color: #666;
+    font-style: italic;
+}
+
+/* ─── Infos de la route ────────────────────────────────────────────────── */
+.route-info {
+    background: #f5f5f5;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 16px;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+}
+
+.info-item:not(:last-child) {
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.info-label {
+    font-size: 14px;
+    color: #666;
+    font-weight: 500;
+}
+
+.info-value {
+    font-size: 16px;
+    color: #1a1a2e;
+    font-weight: 700;
+    color: #bb487c;
+}
+
+/* ─── Boutons d'action ──────────────────────────────────────────────────── */
+.panel-actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.btn {
+    flex: 1;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.btn:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn:not(:disabled):active {
+    transform: translateY(0);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:not(:disabled):hover {
+    background: #5a6268;
+}
+
+.btn-danger {
+    background: #bb487c;
+    color: white;
+}
+
+.btn-danger:not(:disabled):hover {
+    background: #bb487c;
+}
+
+/* ─── Liste des waypoints ───────────────────────────────────────────────── */
+.waypoints-list {
+    margin-top: 16px;
+    border-top: 1px solid #e0e0e0;
+    padding-top: 16px;
+}
+
+.waypoints-list h4 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a2e;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.waypoints-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.waypoints-list li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px;
+    background: #f9f9f9;
+    border-radius: 6px;
+    margin-bottom: 6px;
+    font-size: 13px;
+    transition: background 0.2s;
+}
+
+.waypoints-list li:hover {
+    background: #f0f0f0;
+}
+
+.waypoint-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: #bb487c;
+    color: white;
+    font-weight: 700;
+    border-radius: 50%;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.waypoint-coords {
+    color: #666;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+}
+
+/* ─── Scrollbar custom ──────────────────────────────────────────────────── */
+.route-builder-panel::-webkit-scrollbar {
+    width: 6px;
+}
+
+.route-builder-panel::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.route-builder-panel::-webkit-scrollbar-thumb {
+    background: #bb487c;
+    border-radius: 10px;
+}
+
+.route-builder-panel::-webkit-scrollbar-thumb:hover {
+    background: #bb487c;
+}
+
+/* ─── Responsive ────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .route-builder-panel {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        width: auto;
+        max-height: 60vh;
+    }
+
+    .panel-actions {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+    }
+}

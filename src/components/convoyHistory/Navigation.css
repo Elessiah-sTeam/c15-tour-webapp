@@ -1,0 +1,204 @@
+
+.btn-goto-history {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 1000;
+    background: linear-gradient(135deg, #bb487c 0%, #BB487C 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 24px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(180, 88, 158, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.btn-goto-history:hover {
+    background: linear-gradient(135deg, #BB487C 0%, #BB487C 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(180, 88, 158, 0.35);
+}
+
+.btn-goto-history:active {
+    transform: translateY(0);
+}
+
+/* ─── Section sauvegarde dans le panneau ────────────────────────────────── */
+.save-section {
+    position: sticky;
+    bottom: 0;
+    padding: 20px;
+    background: linear-gradient(135deg, #faf5f9 0%, #f5e9f2 100%);
+    border-top: 2px solid #e2d6e6;
+    margin-top: auto;
+    z-index: 10;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* ─── Bouton Historique DANS le panneau ────────────────────────────────── */
+.btn-goto-history-panel {
+    width: calc(100% - 32px);
+    margin: 16px;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #bb487c 0%, #bb487c 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(180, 88, 158, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-goto-history-panel:hover {
+    background: linear-gradient(135deg, #bb487c 0%, #bb487c 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(180, 88, 158, 0.35);
+}
+
+.btn-save-convoy {
+    width: 100%;
+    padding: 16px 24px;
+    background: linear-gradient(135deg, #bb487c 0%, #bb487c 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 17px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow:
+            0 4px 14px rgb(187, 72, 124),
+            inset 0 -2px 0 rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-family: 'Segoe UI', sans-serif;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Animation de brillance au survol */
+.btn-save-convoy::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.2),
+            transparent
+    );
+    transition: left 0.5s;
+}
+
+.btn-save-convoy:hover::before {
+    left: 100%;
+}
+
+.btn-save-convoy:hover {
+    transform: translateY(-3px);
+    box-shadow:
+            0 8px 24px rgb(0, 0, 0),
+            inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.btn-save-convoy:active {
+    transform: translateY(-1px);
+    box-shadow:
+            0 4px 12px rgb(187, 72, 124),
+            inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.save-icon {
+    font-size: 22px;
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-4px);
+    }
+}
+
+.save-text {
+    letter-spacing: 0.3px;
+}
+
+.save-hint {
+    margin: 12px 0 0 0;
+    font-size: 13px;
+    color: #bb487c;
+    text-align: center;
+    font-style: italic;
+    line-height: 1.4;
+}
+
+/* ─── État de succès ────────────────────────────────────────────────────── */
+.btn-save-convoy.success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    animation: successPulse 0.5s ease;
+}
+
+@keyframes successPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+/* ─── Responsive ────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .btn-goto-history {
+        top: 10px;
+        right: 10px;
+        padding: 10px 16px;
+        font-size: 14px;
+    }
+
+    .save-section {
+        padding: 16px;
+    }
+
+    .btn-save-convoy {
+        padding: 14px 20px;
+        font-size: 16px;
+    }
+}
+
+/* ─── Éviter l'espace blanc en bas de page ──────────────────────────────── */
+body, html, #root {
+    height: 100%;
+    overflow: hidden;  /*  Empêche le scroll sur la page principale */
+}
+
+.window {
+    height: 100vh;     /*  Hauteur fixe de la fenêtre */
+    overflow: hidden;  /*  Pas de scroll */
+}
+
+.panel {
+    height: 100vh;     /*  Hauteur fixe du panneau */
+    overflow-y: auto;  /*  Scroll DANS le panneau seulement */
+}
