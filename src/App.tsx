@@ -3,6 +3,8 @@ import type { LatLngExpression } from "leaflet";
 import BackgroundMap from "./components/Map/BackgroundMap.tsx";
 import Panels from "./components/Panels/Panels.tsx";
 import SearchBar from "./components/Search/SearchBar.tsx";
+import { ConvoyHistory } from './components/PageHistory/ConvoyHistory';
+import { itineraryModel } from './customObject/Itinerary/ItineraryStore';
 import "./App.css";
 
 /**
@@ -14,7 +16,27 @@ export default function App() {
   const [searchLabel, setSearchLabel] = useState("");
   const [panelOpen, setPanelOpen] = useState(true);
 
-  return (
+  const [showHistory, setShowHistory] = useState(true);
+
+    const handleCreateNew = () => {
+        setShowHistory(false);
+    };
+
+    const handleOpenConvoy = async (id: number) => {
+        await itineraryModel.netModel.get(id);
+        setShowHistory(false);
+    };
+
+    if (showHistory) {
+        return (
+            <ConvoyHistory
+                onCreateNew={handleCreateNew}
+                onOpenConvoy={handleOpenConvoy}
+            />
+        );
+    }
+
+    return (
     <div className="window">
       <BackgroundMap
         searchPosition={searchPosition}
