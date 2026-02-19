@@ -5,11 +5,12 @@ import Panels from "./components/Panels/Panels.tsx";
 import SearchBar from "./components/Search/SearchBar.tsx";
 import { ConvoyHistory } from './components/PageHistory/ConvoyHistory';
 import { itineraryModel } from './customObject/Itinerary/ItineraryStore';
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+
+import HomePage from "./pages/HomePage.tsx";
+import PlannerPage from "./pages/PlannerPage.tsx";
 import "./App.css";
 
-/**
- * Fonction racine de l'application.
- */
 export default function App() {
   const [searchPosition, setSearchPosition] =
     useState<LatLngExpression | null>(null);
@@ -66,5 +67,14 @@ export default function App() {
         </button>
       )}
     </div>
+      
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/planner" element={<PlannerPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
