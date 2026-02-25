@@ -69,7 +69,6 @@ export class ItineraryNetModel {
             return false;
         }
         await this.applyItinerary((await response.json()) as ItineraryResponse);
-        console.log("Itinerary : ", this.store.getSnapshot());
         return true;
     }
 
@@ -107,7 +106,6 @@ export class ItineraryNetModel {
         }
 
         await this.applyItinerary(itinerary);
-        console.log("ItineraryPost : ", this.store.getSnapshot());
 
         return true;
     }
