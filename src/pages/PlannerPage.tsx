@@ -1,13 +1,15 @@
-import { useState } from "react";
+import {useState} from "react";
 import type { LatLngExpression } from "leaflet";
-import { useNavigate } from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 import BackgroundMap from "../components/Map/BackgroundMap.tsx";
 import Panels from "../components/Panels/Panels.tsx";
 import SearchBar from "../components/Search/SearchBar.tsx";
 import "../App.css";
+import IdRoutingManager from "../components/IdRoutingManager.tsx";
 
 export default function PlannerPage() {
   const navigate = useNavigate();
+
   const [searchPosition, setSearchPosition] =
     useState<LatLngExpression | null>(null);
   const [searchLabel, setSearchLabel] = useState("");
@@ -15,6 +17,7 @@ export default function PlannerPage() {
 
   return (
     <div className="window">
+        <IdRoutingManager/>
       <button
         className="home-return"
         type="button"

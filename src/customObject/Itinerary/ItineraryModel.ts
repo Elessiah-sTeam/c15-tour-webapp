@@ -19,7 +19,6 @@ class ItineraryModel {
     // Attributs
     public readonly store: ItineraryStore;
     public readonly netModel: ItineraryNetModel;
-
     // Constructeurs
     /**
      * Constructeur du modèle, peut se construire à partir d'un store ou d'un état initial ou de rien
@@ -59,6 +58,7 @@ class ItineraryModel {
            ...route,
             name: newName
         }));
+        this.netModel.setupSave();
     }
 
     /**
@@ -81,7 +81,7 @@ class ItineraryModel {
             segments.splice(segments.length - 1, 0, segment);
             return {...route, segments: updateStarts(segments)};
         });
-        this.netModel.put().then();
+        this.netModel.setupSave();
     }
 
     /**
@@ -91,7 +91,7 @@ class ItineraryModel {
     removeSegment(segmentId: string): void {
         this.store.set((route: Itinerary) => {
             return {...route, segments: updateStarts(route.segments.filter(s => s.id != segmentId))}});
-        this.netModel.put().then();
+        this.netModel.setupSave();
     }
 
     /**
@@ -109,6 +109,7 @@ class ItineraryModel {
                                 : {...seg, info})
                 };
             });
+        this.netModel.setupSave();
     }
 
     /**
@@ -127,7 +128,7 @@ class ItineraryModel {
             return {...route, segments: updateStarts(segments)};
             }
         );
-        this.netModel.put().then();
+        this.netModel.setupSave();
     }
 
     /**
@@ -146,6 +147,7 @@ class ItineraryModel {
                     })
             };
         });
+        this.netModel.setupSave();
     }
 
     /**
@@ -174,7 +176,7 @@ class ItineraryModel {
         });
         // Pour les ajouts temporaire par la barre de recherche
         if (step.content.location)
-            this.netModel.put().then();
+            this.netModel.setupSave();
     }
 
     /**
@@ -193,7 +195,7 @@ class ItineraryModel {
                 segments: newSegments
             }
         });
-        this.netModel.put().then();
+        this.netModel.setupSave();
     }
 
     /**
@@ -217,7 +219,7 @@ class ItineraryModel {
                 return route;
             }
         });
-        // this.netModel.put().then();
+        this.netModel.setupSave();
     }
 
     /**
@@ -247,6 +249,7 @@ class ItineraryModel {
                     }
                 })),
         }));
+        this.netModel.setupSave();
     }
 
     /**
@@ -276,7 +279,7 @@ class ItineraryModel {
                 }
             })),
         }));
-        this.netModel.put().then();
+        this.netModel.setupSave();
     }
 
     // Méthodes privées
