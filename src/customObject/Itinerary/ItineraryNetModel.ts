@@ -51,6 +51,7 @@ export class ItineraryNetModel {
         const itinerary: Itinerary = this.store.getSnapshot();
         if (itinerary.id == -1)
             return this.post();
+        console.log("Before save : ", itinerary.segments);
         const request: ItineraryRequest | null = this.buildNetObject();
         if (!request)
         {
@@ -124,6 +125,7 @@ export class ItineraryNetModel {
         this.timeoutID = setTimeout(() => {
                                             this.timeoutID = -1;
                                             this.put().then();
+                                            console.log("Saved !");
                                             }, 2000);
     }
 
@@ -246,6 +248,7 @@ export class ItineraryNetModel {
             // Une ref pour incrémenter au sein des fonctions et pas perdre le fil
             const refId: {id: number} = {id: 0};
             const segments: Segment[] = this.normalizeSegments(response.segments, refId);
+            console.log(segments);
             return {
                 id: response.id,
                 name: response.name,
