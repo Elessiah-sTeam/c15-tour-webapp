@@ -1,0 +1,145 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ItineraryCard } from '../components/History/ItineraryCard';
+import type { ItineraryResponse } from '../customObject/Itinerary/netTypes';
+import { itineraryModel } from '../customObject/Itinerary/ItineraryStore';
+import '../components/History/HistoryPage.css';
+
+const BACKEND_URL = "http://localhost:8080";
+
+export default function HistoryPage() {
+    const navigate = useNavigate();
+    const [itineraries, setItineraries] = useState<ItineraryResponse[]>([]);
+    const [filtered, setFiltered] = useState<ItineraryResponse[]>([]);
+    const [search, setSearch] = useState('');
+    const [filter, setFilter] = useState<'all' | 'draft' | 'finalized' | 'recent'>('all');
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => { loadItineraries(); }, []);
+    useEffect(() => { applyFilters(); }, [search, filter, itineraries]);
+
+    const loadItineraries = async () => {
+        try {
+            setLoading(true);
+            // Temporaire : fetch direct en attendant itineraryModel.netModel.getAll()
+            const res = await fetch(`${BACKEND_URL}/tours`);
+            if (!res.ok) throw new Error('Backend error');
+            const data: ItineraryResponse[] = await res.json();
+            setItineraries(data);
+        } catch (err) {
+            console.error('Erreur chargement:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const applyFilters = () => {
+        let result = [...itineraries];
+
+        if (search) {
+            const q = search.toLowerCase();
+            result = result.filter(i => i.name.toLowerCase().includes(q));
+        }
+
+        if (filter === 'draft') {
+            result = result.filter(i => i.segments.every(s => s.waypoints.length < 2));
+        } else if (filter === 'finalized') {
+            result = result.filter(i => i.segments.every(s => s.waypoints.length >= 2));
+        }
+
+        setFiltered(result);
+    };
+
+    const handleDelete = async (id: number) => {
+        if (!confirm('Supprimer ce convoi ?')) return;
+        try {
+            await fetch(`${BACKEND_URL}/tours/${id}`, { method: 'DELETE' });
+            setItineraries(prev => prev.filter(i => i.id !== id));
+        } catch (err) {
+            console.error('Erreur suppression:', err);
+        }
+    };
+
+    const handleCreateNew = () => {
+        navigate('/planner');
+    };
+
+    const handleOpenConvoy = async (id: number) => {
+        await itineraryModel.netModel.get(id);
+        navigate('/planner');
+    };
+
+    return (
+        <div className="convoy-history-page">
+            <div className="map-background" />
+
+            <header className="ch-header">
+                <div className="ch-brand">
+                    <span className="ch-logo">🚗</span>
+                    <h1 className="ch-brand-title">C15 FIESTA TOUR</h1>
+                </div>
+                <button className="ch-btn-new" onClick={handleCreateNew}>
+                    <span className="ch-plus">+</span>
+                    Nouveau convoi
+                    <span className="ch-arrow">›</span>
+                </button>
+            </header>
+
+            <main className="ch-content">
+                <h2 className="ch-page-title">Historique des convois</h2>
+
+                <div className="ch-search">
+                    <span className="ch-search-icon">🔍</span>
+                    <input
+                        type="text"
+                        placeholder="Rechercher un convoi (nom / ville)"
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                        className="ch-search-input"
+                    />
+                    {search && (
+                        <button className="ch-search-clear" onClick={() => setSearch('')}>✕</button>
+                    )}
+                </div>
+
+                <div className="ch-filters">
+                    <button
+                        className={`ch-filter ${filter === 'all' ? 'active' : ''}`}
+                        onClick={() => setFilter('all')}
+                    >
+                        Tous
+                    </button>
+                    <button
+                        className={`ch-filter ${filter === 'draft' ? 'active' : ''}`}
+                        onClick={() => setFilter('draft')}
+                    >
+                        Brouillons
+                    </button>
+                    <button
+                        className={`ch-filter ${filter === 'finalized' ? 'active' : ''}`}
+                        onClick={() => setFilter('finalized')}
+                    >
+                        Finalisés
+                    </button>
+                </div>
+
+                {loading ? (
+                    <div className="ch-empty">Chargement...</div>
+                ) : filtered.length === 0 ? (
+                    <div className="ch-empty">📭 Aucun convoi trouvé</div>
+                ) : (
+                    <div className="ch-list">
+                        {filtered.map(itinerary => (
+                            <ItineraryCard
+                                key={itinerary.id}
+                                itinerary={itinerary}
+                                onOpen={handleOpenConvoy}
+                                onDelete={handleDelete}
+                            />
+                        ))}
+                    </div>
+                )}
+            </main>
+        </div>
+    );
+}

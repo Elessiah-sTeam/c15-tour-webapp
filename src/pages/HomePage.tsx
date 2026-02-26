@@ -7,6 +7,7 @@ export default function HomePage() {
   return (
     <HomeLanding
       onCreateNew={() => navigate("/planner")}
+      onOpenHistory={() => navigate("/history")}
     />
   );
 }
