@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ItineraryCard } from '../components/History/ItineraryCard';
 import type { ItineraryResponse } from '../customObject/Itinerary/netTypes';
@@ -15,13 +15,9 @@ export default function HistoryPage() {
     const [filter, setFilter] = useState<'all' | 'draft' | 'finalized' | 'recent'>('all');
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => { loadItineraries(); }, []);
-    useEffect(() => { applyFilters(); }, [search, filter, itineraries]);
-
-    const loadItineraries = async () => {
+    const loadItineraries = useCallback(async () => {
         try {
             setLoading(true);
-            // Temporaire : fetch direct en attendant itineraryModel.netModel.getAll()
             const res = await fetch(`${BACKEND_URL}/tours`);
             if (!res.ok) throw new Error('Backend error');
             const data: ItineraryResponse[] = await res.json();
@@ -31,9 +27,9 @@ export default function HistoryPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const applyFilters = () => {
+    const applyFilters = useCallback(() => {
         let result = [...itineraries];
 
         if (search) {
@@ -48,7 +44,15 @@ export default function HistoryPage() {
         }
 
         setFiltered(result);
-    };
+    }, [search, filter, itineraries]);
+
+    useEffect(() => {
+        loadItineraries();
+    }, [loadItineraries]);
+
+    useEffect(() => {
+        applyFilters();
+    }, [applyFilters]);
 
     const handleDelete = async (id: number) => {
         if (!confirm('Supprimer ce convoi ?')) return;
