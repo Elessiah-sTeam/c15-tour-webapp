@@ -6,6 +6,7 @@ import "leaflet/dist/leaflet.css";
 import Markers from "./Markers.tsx";
 import ItineraryDrawings from "./ItineraryDrawings.tsx";
 import Branding from "./Branding.tsx";
+import MapClickHandler from "./MapClickHandler.tsx";
 const initialPosition: LatLngExpression = [47.253927, -1.516436];
 
 type BackgroundMapProps = {
@@ -39,6 +40,8 @@ export default function BackgroundMap({
             <Markers/>
 
             <ItineraryDrawings/>
+
+            <MapClickHandler/>
 
             {children}
         </MapContainer>
