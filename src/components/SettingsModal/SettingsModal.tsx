@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './SettingsModal.css';
 
 interface SettingsModalProps {
@@ -8,54 +8,54 @@ interface SettingsModalProps {
     initialSettings?: GlobalSettings;
 }
 
+export interface PauseConfig {
+    segmentId: string;
+    segmentName: string;
+    duration: number;
+}
+
 export interface GlobalSettings {
     convoyName: string;
     departureDate: string;
     departureTime: string;
-
-    // Préférences de route
-    routeType: 'fastest' | 'shortest' | 'balanced';
-    averageSpeed: number;
-    breakInterval: number;
-
-    // Gestion des pauses
-    breakDuration: number;
-    breakType: 'short' | 'meal' | 'overnight';
-    includeBreaksInTotal: boolean;
-
-    // Sauvegarde automatique
-    autoSaveEnabled: boolean;
-    autoSaveFrequency: number;
-
-    // Préférences de carte
-    mapStyle: 'standard' | 'satellite' | 'terrain' | 'dark';
-    defaultZoom: number;
-    showPOI: boolean;
-
-    // Affichage
-    distanceUnit: 'km' | 'mi';
+    speedPercentage: number;
+    minSegmentDuration: number;
+    maxSegmentDuration: number;
+    pauseConfigs: PauseConfig[];
 }
 
 const defaultSettings: GlobalSettings = {
     convoyName: 'Mon convoi',
     departureDate: new Date().toISOString().split('T')[0],
     departureTime: '08:00',
-    routeType: 'fastest',
-    averageSpeed: 90,
-    breakInterval: 2,
-    breakDuration: 30,
-    breakType: 'meal',
-    includeBreaksInTotal: true,
-    autoSaveEnabled: true,
-    autoSaveFrequency: 2,
-    mapStyle: 'standard',
-    defaultZoom: 10,
-    showPOI: true,
-    distanceUnit: 'km'
+    speedPercentage: 100,
+    minSegmentDuration: 1,
+    maxSegmentDuration: 4,
+    pauseConfigs: []
 };
 
 export function SettingsModal({ isOpen, onClose, onSave, initialSettings }: SettingsModalProps) {
-    const [settings, setSettings] = useState<GlobalSettings>(initialSettings || defaultSettings);
+    const [settings, setSettings] = useState<GlobalSettings>(defaultSettings);
+
+    // Mettre à jour les settings quand initialSettings change
+    useEffect(() => {
+        if (initialSettings) {
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+            setSettings(initialSettings);
+        }
+    }, [initialSettings]);
+
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [isOpen]);
 
     if (!isOpen) return null;
 
@@ -70,9 +70,18 @@ export function SettingsModal({ isOpen, onClose, onSave, initialSettings }: Sett
         }
     };
 
+    const updatePauseDuration = (segmentId: string, duration: number) => {
+        setSettings(prev => ({
+            ...prev,
+            pauseConfigs: prev.pauseConfigs.map(p =>
+                p.segmentId === segmentId ? { ...p, duration } : p
+            )
+        }));
+    };
+
     return (
         <div className="settings-modal-overlay" onClick={handleOverlayClick}>
-            <div className="settings-modal">
+            <div className="settings-modal" onClick={e => e.stopPropagation()}>
                 {/* Header */}
                 <div className="settings-modal-header">
                     <h2>
@@ -86,6 +95,7 @@ export function SettingsModal({ isOpen, onClose, onSave, initialSettings }: Sett
 
                 {/* Content */}
                 <div className="settings-modal-content">
+                    {/* Section Informations */}
                     <div className="settings-section">
                         <div className="settings-section-title">
                             <span>📍</span>
@@ -125,203 +135,98 @@ export function SettingsModal({ isOpen, onClose, onSave, initialSettings }: Sett
                         </div>
                     </div>
 
-                    {/* Section Route */}
+                    {/* Section Vitesse */}
                     <div className="settings-section">
                         <div className="settings-section-title">
                             <span>🚗</span>
-                            Préférences de route
+                            Vitesse de conduite
                         </div>
 
                         <div className="settings-form-group">
-                            <label className="settings-label">Type de route</label>
-                            <select
-                                className="settings-select"
-                                value={settings.routeType}
-                                onChange={(e) => setSettings({...settings, routeType: e.target.value as 'fastest' | 'shortest' | 'balanced'})}
-                            >
-                                <option value="fastest">Plus rapide (recommandé)</option>
-                                <option value="shortest">Plus court (distance)</option>
-                                <option value="balanced">Équilibré</option>
-                            </select>
-                            <div className="settings-hint">Définit comment la route est calculée</div>
+                            <label className="settings-label">
+                                Pourcentage sur les limites de vitesse : {settings.speedPercentage}%
+                            </label>
+                            <input
+                                type="range"
+                                min="70"
+                                max="130"
+                                value={settings.speedPercentage}
+                                onChange={(e) => setSettings({...settings, speedPercentage: Number(e.target.value)})}
+                                className="settings-slider"
+                            />
+                            <div className="settings-hint">
+
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Section Segments */}
+                    <div className="settings-section">
+                        <div className="settings-section-title">
+                            <span>📏</span>
+                            Durée des segments
                         </div>
 
                         <div className="settings-form-row">
                             <div className="settings-form-group">
-                                <label className="settings-label">Vitesse moyenne (km/h)</label>
+                                <label className="settings-label">Durée minimale (heures)</label>
                                 <input
                                     type="number"
                                     className="settings-input"
-                                    value={settings.averageSpeed}
-                                    onChange={(e) => setSettings({...settings, averageSpeed: Number(e.target.value)})}
-                                    min="30"
-                                    max="130"
-                                />
-                            </div>
-                            <div className="settings-form-group">
-                                <label className="settings-label">Pause toutes les (heures)</label>
-                                <input
-                                    type="number"
-                                    className="settings-input"
-                                    value={settings.breakInterval}
-                                    onChange={(e) => setSettings({...settings, breakInterval: Number(e.target.value)})}
-                                    min="0"
+                                    value={settings.minSegmentDuration}
+                                    onChange={(e) => setSettings({...settings, minSegmentDuration: Number(e.target.value)})}
+                                    min="0.5"
                                     max="6"
                                     step="0.5"
                                 />
                             </div>
+                            <div className="settings-form-group">
+                                <label className="settings-label">Durée maximale (heures)</label>
+                                <input
+                                    type="number"
+                                    className="settings-input"
+                                    value={settings.maxSegmentDuration}
+                                    onChange={(e) => setSettings({...settings, maxSegmentDuration: Number(e.target.value)})}
+                                    min="1"
+                                    max="8"
+                                    step="0.5"
+                                />
+                            </div>
+                        </div>
+                        <div className="settings-hint">
+                            Définit la durée de conduite avant une pause obligatoire
                         </div>
                     </div>
 
-                    {/* Section Pauses */}
+                    {/* Section Pauses dynamiques */}
                     <div className="settings-section">
                         <div className="settings-section-title">
                             <span>☕</span>
-                            Gestion des pauses
+                            Pauses
                         </div>
 
-                        <div className="settings-form-row">
-                            <div className="settings-form-group">
-                                <label className="settings-label">Durée de pause</label>
-                                <select
-                                    className="settings-select"
-                                    value={settings.breakDuration}
-                                    onChange={(e) => setSettings({...settings, breakDuration: Number(e.target.value)})}
-                                >
-                                    <option value="15">15 minutes</option>
-                                    <option value="30">30 minutes</option>
-                                    <option value="45">45 minutes</option>
-                                    <option value="60">1 heure</option>
-                                </select>
+                        {settings.pauseConfigs.length === 0 ? (
+                            <div className="settings-hint">
+                                Les pauses apparaîtront ici une fois créés dans votre itinéraire
                             </div>
-                            <div className="settings-form-group">
-                                <label className="settings-label">Type de pause</label>
-                                <select
-                                    className="settings-select"
-                                    value={settings.breakType}
-                                    onChange={(e) => setSettings({...settings, breakType: e.target.value as 'short' | 'meal' | 'overnight'})}
-                                >
-                                    <option value="short">Courte (café)</option>
-                                    <option value="meal">Repas</option>
-                                    <option value="overnight">Nuit (hébergement)</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div className="settings-form-group">
-                            <label className="settings-checkbox-label">
-                                <input
-                                    type="checkbox"
-                                    checked={settings.includeBreaksInTotal}
-                                    onChange={(e) => setSettings({...settings, includeBreaksInTotal: e.target.checked})}
-                                />
-                                Inclure les pauses dans le calcul de durée totale
-                            </label>
-                        </div>
-                    </div>
-
-                    {/* Section Sauvegarde */}
-                    <div className="settings-section">
-                        <div className="settings-section-title">
-                            <span>💾</span>
-                            Sauvegarde automatique
-                        </div>
-
-                        <div className="settings-form-group">
-                            <label className="settings-checkbox-label">
-                                <input
-                                    type="checkbox"
-                                    checked={settings.autoSaveEnabled}
-                                    onChange={(e) => setSettings({...settings, autoSaveEnabled: e.target.checked})}
-                                />
-                                Activer la sauvegarde automatique
-                            </label>
-                            <div className="settings-hint">Le convoi sera enregistré automatiquement lors des modifications</div>
-                        </div>
-
-                        {settings.autoSaveEnabled && (
-                            <div className="settings-form-group">
-                                <label className="settings-label">Fréquence de sauvegarde</label>
-                                <select
-                                    className="settings-select"
-                                    value={settings.autoSaveFrequency}
-                                    onChange={(e) => setSettings({...settings, autoSaveFrequency: Number(e.target.value)})}
-                                >
-                                    <option value="0">Immédiate (à chaque modification)</option>
-                                    <option value="1">1 minute</option>
-                                    <option value="2">2 minutes</option>
-                                    <option value="5">5 minutes</option>
-                                    <option value="10">10 minutes</option>
-                                </select>
-                                <div className="settings-hint">Délai avant la sauvegarde automatique</div>
-                            </div>
+                        ) : (
+                            settings.pauseConfigs.map((pause) => (
+                                <div key={pause.segmentId} className="settings-form-group">
+                                    <label className="settings-label">
+                                        ⏸ Pause (minutes)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        className="settings-input"
+                                        value={pause.duration}
+                                        onChange={(e) => updatePauseDuration(pause.segmentId, Number(e.target.value))}
+                                        min="0"
+                                        max="120"
+                                        step="5"
+                                    />
+                                </div>
+                            ))
                         )}
-                    </div>
-
-                    {/* Section Carte */}
-                    <div className="settings-section">
-                        <div className="settings-section-title">
-                            <span>🗺️</span>
-                            Préférences de carte
-                        </div>
-
-                        <div className="settings-form-group">
-                            <label className="settings-label">Style de carte</label>
-                            <select
-                                className="settings-select"
-                                value={settings.mapStyle}
-                                onChange={(e) => setSettings({...settings, mapStyle: e.target.value as 'standard' | 'satellite' | 'terrain' | 'dark'})}
-                            >
-                                <option value="standard">Standard (OpenStreetMap)</option>
-                                <option value="satellite">Satellite</option>
-                                <option value="terrain">Terrain</option>
-                                <option value="dark">Sombre</option>
-                            </select>
-                        </div>
-
-                        <div className="settings-form-group">
-                            <label className="settings-label">Zoom par défaut</label>
-                            <input
-                                type="range"
-                                min="5"
-                                max="15"
-                                value={settings.defaultZoom}
-                                onChange={(e) => setSettings({...settings, defaultZoom: Number(e.target.value)})}
-                                className="settings-slider"
-                            />
-                            <div className="settings-hint">Niveau {settings.defaultZoom}</div>
-                        </div>
-
-                        <div className="settings-form-group">
-                            <label className="settings-checkbox-label">
-                                <input
-                                    type="checkbox"
-                                    checked={settings.showPOI}
-                                    onChange={(e) => setSettings({...settings, showPOI: e.target.checked})}
-                                />
-                                Afficher les points d'intérêt (stations, restaurants)
-                            </label>
-                        </div>
-                    </div>
-
-                    {/* Section Affichage */}
-                    <div className="settings-section">
-                        <div className="settings-section-title">
-                            <span>👁️</span>
-                            Affichage
-                        </div>
-
-                        <div className="settings-form-group">
-                            <label className="settings-label">Unité de distance</label>
-                            <select
-                                className="settings-select"
-                                value={settings.distanceUnit}
-                                onChange={(e) => setSettings({...settings, distanceUnit: e.target.value as 'km' | 'mi'})}
-                            >
-                                <option value="km">Kilomètres (km)</option>
-                                <option value="mi">Miles (mi)</option>
-                            </select>
-                        </div>
                     </div>
                 </div>
 
