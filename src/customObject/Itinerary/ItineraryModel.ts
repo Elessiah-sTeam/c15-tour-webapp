@@ -193,13 +193,14 @@ class ItineraryModel {
      */
     removeStep(segmentId: string, stepId: string): void {
         this.store.set((route: Itinerary) => {
+            const newSegments: Segment[] = updateStarts(route.segments.map((seg: Segment) =>
+                seg.id !== segmentId
+                    ? seg
+                    : {...seg, steps: seg.steps.filter((s) => s.id != stepId)}))
             return {
                 ...route,
-                segments: route.segments.map((seg: Segment) =>
-                        seg.id !== segmentId
-                            ? seg
-                            : {...seg, steps: seg.steps.filter((s) => s.id != stepId)})
-                }
+                segments: newSegments
+            }
         });
     }
 
@@ -324,7 +325,6 @@ class ItineraryModel {
      */
     private formatEnd(itinerary: Itinerary): Itinerary {
         const index: number = itinerary.segments.findIndex((seg: Segment) => seg.id == "end");
-        console.log("Index end : ", index);
         const segments: Segment[] = itinerary.segments;
         if (index == -1) {
             segments.push({
@@ -470,9 +470,12 @@ class ItineraryModel {
                                       index?: number): Segment[] {
        return segments.map((seg) => {
             if (seg.id != segmentId) return seg;
+            console.log("Adding Step 2", step);
             const steps = [...seg.steps];
             index = index ?? steps.length;
+            console.log("Index : ", index);
             steps.splice(index, 0, step);
+            console.log("New Length : ", steps.length);
             return {...seg, steps: steps};
         });
     }
@@ -502,9 +505,7 @@ class ItineraryModel {
             }
             return {...seg};
         });
-        console.log("First Copy : ", copy.length, copy[0].steps.length, copy[1].steps.length, copy[2].steps.length);
         const result: Segment[] = updateStarts(copy);
-        console.log("Second Copy : ", copy.length, copy[0].steps.length, copy[1].steps.length, copy[2].steps.length);
         return result;
     }
 }

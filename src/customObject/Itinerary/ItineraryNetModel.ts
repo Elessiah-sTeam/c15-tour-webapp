@@ -69,7 +69,6 @@ export class ItineraryNetModel {
             return false;
         }
         await this.applyItinerary((await response.json()) as ItineraryResponse);
-        console.log("Itinerary : ", this.store.getSnapshot());
         return true;
     }
 
@@ -107,7 +106,6 @@ export class ItineraryNetModel {
         }
 
         await this.applyItinerary(itinerary);
-        console.log("ItineraryPost : ", this.store.getSnapshot());
 
         return true;
     }
@@ -199,8 +197,12 @@ export class ItineraryNetModel {
     private normalizeSegments(segments: SegmentResponse[],
                               refId: {id: number} = {id: 0}): Segment[] {
         const startId: number = refId.id;
-        return this.addStartEndSegment(segments.map((seg: SegmentResponse) => {
+        return this.addStartEndSegment(segments.map((seg: SegmentResponse, index: number) => {
                 const steps: Step[] = this.normalizeWaypoints(seg.waypoints, refId, refId.id == startId);
+                if (index > 0) {
+                    // On est pas le premier segment, on retire le départ par défaut
+                    steps.splice(0, 1);
+                }
                 return {
                     id: `${refId.id++}`,
                     isStartEnd: false,
