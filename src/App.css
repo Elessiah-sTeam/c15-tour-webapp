@@ -3,12 +3,18 @@ html, body {
     height: 100%;
     margin: 0;
     padding: 0;
-    overflow: hidden; /* évite la scrollbar globale */
+    overflow: hidden;
 }
 
 :root {
-    --panel-top-offset: clamp(18px, 4vh, 30px);
-    --panel-bottom-offset: clamp(14px, 3vh, 24px);
+    --panel-width: clamp(190px, 40vw, 300px);
+    --panel-left: clamp(10px, 1.5vw, 16px);
+    --panel-top-offset: clamp(14px, 3vh, 24px);
+    --panel-bottom-offset: clamp(14px, 3vh, 22px);
+
+    --ui-gap: clamp(10px, 1.5vw, 16px);
+    --brand-safe-width: clamp(120px, 16vw, 210px);
+    --home-top-offset: clamp(68px, 9vh, 104px);
 }
 
 .window {
@@ -19,26 +25,29 @@ html, body {
 
 .home-return {
     position: absolute;
-    top: clamp(64px, 8vh, 108px);
-    right: clamp(12px, 3vw, 18px);
+    top: var(--home-top-offset);
+    right: var(--ui-gap);
     z-index: 22000;
     border: 1px solid rgba(170, 50, 122, 0.12);
     background: rgba(255, 255, 255, 0.46);
     color: #8c1f65;
     border-radius: 12px;
-    padding: 8px 12px;
+    padding: clamp(7px, 1.1vh, 10px) clamp(12px, 2vw, 16px);
     font-weight: 800;
-    letter-spacing: 0.4px;
+    font-size: clamp(12px, 1.4vw, 16px);
+    letter-spacing: 0.3px;
     cursor: pointer;
     backdrop-filter: blur(8px) saturate(1.1);
     -webkit-backdrop-filter: blur(8px) saturate(1.1);
-    box-shadow: 0 10px 24px rgba(0,0,0,0.12);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
     transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+    max-width: var(--brand-safe-width);
+    white-space: nowrap;
 }
 
 .home-return:hover {
     transform: translateY(-1px);
-    box-shadow: 0 14px 28px rgba(0,0,0,0.18);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.18);
     background: rgba(255, 255, 255, 0.6);
 }
 
@@ -46,17 +55,17 @@ html, body {
     position: absolute;
     top: var(--panel-top-offset);
     bottom: var(--panel-bottom-offset);
-    left: 14px;
-    width: 25vw;
+    left: var(--panel-left);
+    width: var(--panel-width);
     height: calc(100vh - var(--panel-top-offset) - var(--panel-bottom-offset));
-    min-height: calc(100vh - var(--panel-top-offset) - var(--panel-bottom-offset));
+    min-height: 0;
     z-index: 9999;
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: clamp(16px, 2.5vh, 24px); /* écart entre config et info */
-    padding-bottom: clamp(16px, 2.5vh, 24px); /* même écart en bas qu'entre les blocs */
-    box-sizing: border-box; /* inclut le padding dans la hauteur pour éviter l'overflow */
+    gap: clamp(12px, 1.8vh, 18px);
+    padding-bottom: clamp(12px, 1.8vh, 18px);
+    box-sizing: border-box;
 }
 
 .search-panel {
@@ -70,7 +79,7 @@ html, body {
 .panel-toggle {
     position: absolute;
     top: var(--panel-top-offset);
-    left: 14px;
+    left: var(--panel-left);
     z-index: 12000;
     border: 2px solid #BB487C;
     background: rgba(255, 255, 255, 0.2);
@@ -81,54 +90,52 @@ html, body {
     cursor: pointer;
     backdrop-filter: blur(5px);
     -webkit-backdrop-filter: blur(10px);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.18);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.18);
     transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
 }
 
 .panel-toggle:hover {
     transform: translateY(-1px);
-    box-shadow: 0 10px 18px rgba(0,0,0,0.22);
+    box-shadow: 0 10px 18px rgba(0, 0, 0, 0.22);
     background: rgba(255, 255, 255, 0.3);
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
     :root {
-        --panel-top-offset: clamp(14px, 4vh, 24px);
-        --panel-bottom-offset: clamp(12px, 3vh, 20px);
-    }
-    .panel {
-        left: 12px;
-    }
-    .panel-toggle {
-        left: 12px;
+        --panel-width: clamp(180px, 38vw, 260px);
+        --brand-safe-width: clamp(110px, 15vw, 180px);
+        --home-top-offset: clamp(64px, 8vh, 92px);
     }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 780px) {
     .window {
         height: 100dvh;
     }
+
     :root {
-        --panel-top-offset: clamp(12px, 4vh, 20px);
-        --panel-bottom-offset: clamp(10px, 3vh, 18px);
+        --panel-width: clamp(170px, 34vw, 230px);
+        --panel-left: clamp(8px, 2vw, 12px);
+        --brand-safe-width: clamp(96px, 14vw, 145px);
+        --home-top-offset: clamp(58px, 8vh, 82px);
     }
-    .panel {
-        left: 10px;
-    }
+
     .panel-toggle {
-        left: 10px;
+        font-size: 16px;
+        padding: 9px 10px;
     }
 }
 
-@media (max-height: 780px) {
+@media (max-width: 540px) {
     :root {
-        --panel-top-offset: clamp(10px, 3vh, 16px);
-        --panel-bottom-offset: clamp(8px, 2.5vh, 14px);
+        --panel-width: clamp(160px, 30vw, 210px);
+        --panel-left: 8px;
+        --brand-safe-width: clamp(84px, 13vw, 118px);
+        --home-top-offset: clamp(52px, 8vh, 72px);
     }
-    .panel {
-        left: 10px;
-    }
-    .panel-toggle {
-        left: 10px;
+
+    .home-return {
+        font-size: clamp(11px, 2.1vw, 13px);
+        padding: clamp(6px, 1vh, 8px) clamp(10px, 3vw, 12px);
     }
 }

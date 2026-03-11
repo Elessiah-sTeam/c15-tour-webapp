@@ -1,6 +1,13 @@
-import {type JSX,type MouseEvent, type KeyboardEvent, useState} from "react";
+import {
+    type JSX,
+    type MouseEvent,
+    type KeyboardEvent,
+    useEffect,
+    useRef,
+    useState
+} from "react";
 import useOutsideClick from "./useOutsideClick.ts";
-import './Panels/Panels.css';
+import "./Panels/Panels.css";
 
 export interface Props {
     currentStr: string,
@@ -20,9 +27,39 @@ export interface Props {
  * @param className className du style de la balise
  * @param isDesactivated si vrai = input désactivé, faux
  */
-export default function ClickInput({currentStr, setter, Tag, className, isDesactivated}: Props) {
+export default function ClickInput({ currentStr, setter, Tag, className, isDesactivated }: Props) {
     const [isInput, setIsInput] = useState(false);
     const [text, setText] = useState<string>(currentStr);
+    const [showTooltip, setShowTooltip] = useState(false);
+
+    const tooltipTimerRef = useRef<number | null>(null);
+
+    function clearTooltipTimer() {
+        if (tooltipTimerRef.current !== null) {
+            window.clearTimeout(tooltipTimerRef.current);
+            tooltipTimerRef.current = null;
+        }
+    }
+
+    function handleMouseEnter() {
+        if (isInput || !currentStr?.trim()) return;
+
+        clearTooltipTimer();
+        tooltipTimerRef.current = window.setTimeout(() => {
+            setShowTooltip(true);
+        }, 700);
+    }
+
+    function handleMouseLeave() {
+        clearTooltipTimer();
+        setShowTooltip(false);
+    }
+
+    useEffect(() => {
+        return () => {
+            clearTooltipTimer();
+        };
+    }, []);
 
     /**
      * Arrête le mode édition de la balise,
@@ -40,11 +77,12 @@ export default function ClickInput({currentStr, setter, Tag, className, isDesact
     }
 
     /**
-     * Détecte-les clicks en dehors de la div qui contient la ref,
+     * Détecte les clicks en dehors de la div qui contient la ref,
      * et arrête l'input
      */
     const ref = useOutsideClick<HTMLDivElement>(() => {
         stopInput();
+        setShowTooltip(false);
     });
 
     /**
@@ -59,38 +97,60 @@ export default function ClickInput({currentStr, setter, Tag, className, isDesact
     }
 
     /**
-     * Gère le click sur la balise visé.
+     * Gère le click sur la balise visée.
      * Au click, transforme la balise en input
      * @param e
      */
     function handleClick(e: MouseEvent) {
         e.preventDefault();
+        setShowTooltip(false);
         setIsInput(!isDesactivated);
     }
 
     return (
-      <div ref={ref}>
-          {isInput ?
-              <input
-                  type={"text"}
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  className={className}
-                  style={{
-                      background: "#ffffff26",
-                      width: "100%",
-                      color: "#BB487C"
-              }}
-              />
-              :
-              <Tag
-                  onClick={handleClick}
-                  className={className}
-              >
-                  {currentStr}
-              </Tag>
-          }
-      </div>
+        <div
+            ref={ref}
+            className="click-input-wrapper"
+            style={{ minWidth: 0, width: "100%", overflow: "visible" }}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+        >
+            {isInput ? (
+                <input
+                    type={"text"}
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    className={className}
+                    style={{
+                        background: "#ffffff26",
+                        width: "100%",
+                        minWidth: 0,
+                        color: "#BB487C"
+                    }}
+                />
+            ) : (
+                <Tag
+                    onClick={handleClick}
+                    className={className}
+                    style={{
+                        width: "100%",
+                        minWidth: 0,
+                        overflow: "hidden",
+                        whiteSpace: "nowrap",
+                        textOverflow: "ellipsis",
+                        display: "block"
+                    }}
+                >
+                    {currentStr}
+                </Tag>
+            )}
+
+            {!isInput && showTooltip && currentStr?.trim() && (
+                <div className="app-tooltip" role="tooltip">
+                    {currentStr}
+                </div>
+            )}
+        </div>
     );
 }
