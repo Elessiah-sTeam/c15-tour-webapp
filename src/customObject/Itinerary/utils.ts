@@ -9,9 +9,9 @@ import type {Segment, Step} from "./types.ts";
 function applyStart(segment: Segment,
     start: Step): Segment {
     const startCopy: Step = {...start, id: "start-" + segment.id, isDefaultSegStart: true};
-    const steps = segment.steps.length === 0
+    const steps: Step[] = segment.steps.length === 0
         ? [startCopy]
-        : [startCopy, ...segment.steps.slice(1)]
+        : [startCopy, ...segment.steps];
 
     return { ...segment, steps};
 }
@@ -26,10 +26,13 @@ export function updateStarts(segments: Segment[]): Segment[] {
     const FIRST_SEG_INDEX = 1;
     const END_SEG_INDEX = segments.length - 1;
 
-    if (segments.length == NB_START_END || segments[FIRST_SEG_INDEX].steps.length == 0)
-        return segments;
+    const out: Segment[] = segments.map(seg => ({
+        ...seg,
+        steps: seg.steps.filter(s => !s.isDefaultSegStart),
+    }));
 
-    const out = [...segments];
+    if (out.length == NB_START_END || out[FIRST_SEG_INDEX].steps.length == 0)
+        return out;
 
     out[0] = applyStart(out[0], out[FIRST_SEG_INDEX].steps[0]);
 

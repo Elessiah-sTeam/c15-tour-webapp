@@ -7,8 +7,6 @@ export default function InfoPanel() {
     const units: unitTimeSpan = {days: "J ", hours: "H ", minutes: "MIN ", seconds: "S ", milliseconds: "MS "}
     const itinerary = useItinerary(itineraryModel.store);
 
-    console.log("Duration : ", itinerary.totalDuration.duration, itinerary.totalDuration);
-
     return (
         <div className={"info-panel"}>
             <h1>Total</h1>

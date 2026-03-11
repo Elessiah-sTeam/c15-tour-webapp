@@ -22,6 +22,7 @@ const BACKEND_URL: string = "http://localhost:8080"
 export class ItineraryNetModel {
     // Attributs
     public readonly store: ItineraryStore;
+    public timeoutID: number = -1;
 
     // Constructeur
     constructor(store: ItineraryStore, post: boolean = false) {
@@ -69,7 +70,6 @@ export class ItineraryNetModel {
             return false;
         }
         await this.applyItinerary((await response.json()) as ItineraryResponse);
-        console.log("Itinerary : ", this.store.getSnapshot());
         return true;
     }
 
@@ -107,9 +107,24 @@ export class ItineraryNetModel {
         }
 
         await this.applyItinerary(itinerary);
-        console.log("ItineraryPost : ", this.store.getSnapshot());
 
         return true;
+    }
+
+    /**
+     * Permet de lancer un put 2s après la dernière modification
+     *
+     * Evite trop de sauvegarde, et des problèmes lors d'une réorganisation
+     */
+    public setupSave(): void {
+        if (this.timeoutID != -1) {
+            clearTimeout(this.timeoutID);
+            this.timeoutID = -1;
+        }
+        this.timeoutID = setTimeout(() => {
+                                            this.timeoutID = -1;
+                                            this.put().then();
+                                            }, 2000);
     }
 
     // Méthodes Privées
@@ -199,8 +214,12 @@ export class ItineraryNetModel {
     private normalizeSegments(segments: SegmentResponse[],
                               refId: {id: number} = {id: 0}): Segment[] {
         const startId: number = refId.id;
-        return this.addStartEndSegment(segments.map((seg: SegmentResponse) => {
+        return this.addStartEndSegment(segments.map((seg: SegmentResponse, index: number) => {
                 const steps: Step[] = this.normalizeWaypoints(seg.waypoints, refId, refId.id == startId);
+                if (index > 0) {
+                    // On est pas le premier segment, on retire le départ par défaut
+                    steps.splice(0, 1);
+                }
                 return {
                     id: `${refId.id++}`,
                     isStartEnd: false,

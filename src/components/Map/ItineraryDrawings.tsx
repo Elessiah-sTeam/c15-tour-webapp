@@ -5,6 +5,7 @@ import {GeoJSON} from "react-leaflet";
 
 export default function ItineraryDrawings() {
     const itinerary: Itinerary = useItinerary(itineraryModel.store);
+
     return (
             itinerary.segments.map((seg: Segment) => {
                 if (seg.content.geometry) {

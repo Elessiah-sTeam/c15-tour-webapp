@@ -108,6 +108,5 @@ export function reorderItems(itinerary: Itinerary,
     OGnT = getOriginsNTargets(itinerary.segments, srcCategory, destCategory, active, over);
     if (!OGnT || OGnT.category.from.isStartEnd || OGnT.category.to.isStartEnd || OGnT.category.from.steps[OGnT.itemIndex.old].isDefaultSegStart)
         return;
-    console.log("Passed !");
     itineraryModel.reorderStep(OGnT.category.from.id, OGnT.itemIndex.old, OGnT.category.to.id, OGnT.itemIndex.new);
 }

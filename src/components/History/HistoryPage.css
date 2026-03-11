@@ -1,0 +1,295 @@
+.convoy-history-page {
+    min-height: 100vh;
+    background: #f5f5f5;
+    font-family: 'Segoe UI', sans-serif;
+    position: relative;
+    padding-bottom: 100px;
+}
+
+html, body {
+    overflow-y: auto !important;
+    height: auto !important;
+}
+
+.map-background {
+    position: fixed;
+    inset: 0;
+    background-image: url('/photo.png');
+    background-size: cover;
+    background-position: center;
+    opacity: 0.5;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.ch-header {
+    background: white;
+    padding: 20px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.ch-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.ch-logo {
+    font-size: 40px;
+}
+
+.ch-brand-title {
+    font-size: 28px;
+    font-weight: 800;
+    color: #BB487C;
+    margin: 0;
+}
+
+.ch-btn-new {
+    background: linear-gradient(135deg, #BB487C 0%, #BB487C 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 24px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ch-btn-new:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(180,88,158,0.3);
+}
+
+.ch-plus, .ch-arrow {
+    font-size: 20px;
+}
+
+.ch-content {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 40px 20px 100px 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.ch-page-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #2d3748;
+    margin: 0 0 24px 0;
+}
+
+.ch-search {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.ch-search-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px;
+    color: #a0aec0;
+}
+
+.ch-search-input {
+    width: 100%;
+    padding: 14px 50px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 15px;
+    background: white;
+}
+
+.ch-search-input:focus {
+    outline: none;
+    border-color: #BB487C;
+}
+
+.ch-search-clear {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #e2e8f0;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+}
+
+.ch-filters {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.ch-filter {
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #4a5568;
+    cursor: pointer;
+}
+
+.ch-filter:hover {
+    border-color: #BB487C;
+    color: #BB487C;
+}
+
+.ch-filter.active {
+    background: #BB487C;
+    border-color: #BB487C;
+    color: white;
+}
+
+.ch-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.ch-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    gap: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    transition: all 0.2s;
+}
+
+.ch-card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.ch-thumb {
+    width: 180px;
+    height: 120px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid #e2e8f0;
+}
+
+.ch-info {
+    flex: 1;
+}
+
+.ch-title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.ch-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #2d3748;
+    margin: 0;
+}
+
+.ch-badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.ch-badge.draft {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.ch-badge.finalized {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.ch-route {
+    font-size: 14px;
+    color: #4a5568;
+    margin-bottom: 8px;
+}
+
+.ch-stats {
+    font-size: 13px;
+    color: #718096;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.ch-dot {
+    color: #cbd5e0;
+}
+
+.ch-date {
+    font-size: 12px;
+    color: #a0aec0;
+}
+
+.ch-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-end;
+}
+
+.ch-btn-open {
+    background: #BB487C;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    min-width: 100px;
+}
+
+.ch-btn-open:hover {
+    background: #9d4a88;
+}
+
+.ch-btn-icon {
+    background: #f7fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ch-btn-icon:hover {
+    background: #edf2f7;
+    border-color: #BB487C;
+}
+
+.ch-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: #718096;
+}

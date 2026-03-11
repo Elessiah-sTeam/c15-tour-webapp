@@ -19,7 +19,6 @@ class ItineraryModel {
     // Attributs
     public readonly store: ItineraryStore;
     public readonly netModel: ItineraryNetModel;
-
     // Constructeurs
     /**
      * Constructeur du modèle, peut se construire à partir d'un store ou d'un état initial ou de rien
@@ -51,6 +50,21 @@ class ItineraryModel {
     }
 
     /**
+     * Réinitialise l'itinéraire
+     */
+    reset() {
+        return this.store.set(() => {
+            return this.formatItinerary({
+                id: -1,
+                name: "Nouveau Convoi",
+                totalDuration: new TimeSpan(),
+                totalDistance: 0,
+                segments: []
+            });
+        });
+    }
+
+    /**
      * Fonction pour renommer l'itinéraire
      * @param newName nouveau nom à appliquer
      */
@@ -59,6 +73,7 @@ class ItineraryModel {
            ...route,
             name: newName
         }));
+        this.netModel.setupSave();
     }
 
     /**
@@ -81,6 +96,7 @@ class ItineraryModel {
             segments.splice(segments.length - 1, 0, segment);
             return {...route, segments: updateStarts(segments)};
         });
+        this.netModel.setupSave();
     }
 
     /**
@@ -90,6 +106,7 @@ class ItineraryModel {
     removeSegment(segmentId: string): void {
         this.store.set((route: Itinerary) => {
             return {...route, segments: updateStarts(route.segments.filter(s => s.id != segmentId))}});
+        this.netModel.setupSave();
     }
 
     /**
@@ -107,6 +124,7 @@ class ItineraryModel {
                                 : {...seg, info})
                 };
             });
+        this.netModel.setupSave();
     }
 
     /**
@@ -125,6 +143,7 @@ class ItineraryModel {
             return {...route, segments: updateStarts(segments)};
             }
         );
+        this.netModel.setupSave();
     }
 
     /**
@@ -143,6 +162,7 @@ class ItineraryModel {
                     })
             };
         });
+        this.netModel.setupSave();
     }
 
     /**
@@ -169,6 +189,9 @@ class ItineraryModel {
                 segments: segments
             };
         });
+        // Pour les ajouts temporaire par la barre de recherche
+        if (step.content.location)
+            this.netModel.setupSave();
     }
 
     /**
@@ -178,14 +201,16 @@ class ItineraryModel {
      */
     removeStep(segmentId: string, stepId: string): void {
         this.store.set((route: Itinerary) => {
+            const newSegments: Segment[] = updateStarts(route.segments.map((seg: Segment) =>
+                seg.id !== segmentId
+                    ? seg
+                    : {...seg, steps: seg.steps.filter((s) => s.id != stepId)}))
             return {
                 ...route,
-                segments: route.segments.map((seg: Segment) =>
-                        seg.id !== segmentId
-                            ? seg
-                            : {...seg, steps: seg.steps.filter((s) => s.id != stepId)})
-                }
+                segments: newSegments
+            }
         });
+        this.netModel.setupSave();
     }
 
     /**
@@ -209,6 +234,7 @@ class ItineraryModel {
                 return route;
             }
         });
+        this.netModel.setupSave();
     }
 
     /**
@@ -238,6 +264,7 @@ class ItineraryModel {
                     }
                 })),
         }));
+        this.netModel.setupSave();
     }
 
     /**
@@ -267,6 +294,7 @@ class ItineraryModel {
                 }
             })),
         }));
+        this.netModel.setupSave();
     }
 
     // Méthodes privées
@@ -309,7 +337,6 @@ class ItineraryModel {
      */
     private formatEnd(itinerary: Itinerary): Itinerary {
         const index: number = itinerary.segments.findIndex((seg: Segment) => seg.id == "end");
-        console.log("Index end : ", index);
         const segments: Segment[] = itinerary.segments;
         if (index == -1) {
             segments.push({
@@ -487,9 +514,7 @@ class ItineraryModel {
             }
             return {...seg};
         });
-        console.log("First Copy : ", copy.length, copy[0].steps.length, copy[1].steps.length, copy[2].steps.length);
         const result: Segment[] = updateStarts(copy);
-        console.log("Second Copy : ", copy.length, copy[0].steps.length, copy[1].steps.length, copy[2].steps.length);
         return result;
     }
 }
