@@ -23,15 +23,15 @@
 }
 
 .map-branding .brand-road {
-    width: clamp(150px, 19vw, 190px);
+    width: clamp(100px, 14vw, 180px);
     height: auto;
-    max-width: 32vw;
+    max-width: 24vw;
 }
 
 .map-branding .brand-by {
-    width: clamp(56px, 10vw, 74px);
+    width: clamp(42px, 6vw, 68px);
     height: auto;
-    max-width: 16vw;
+    max-width: 10vw;
 }
 
 .map-logo {
@@ -55,6 +55,14 @@
     .map-branding {
         right: clamp(8px, 3vw, 14px);
     }
+
+    .map-branding .brand-road {
+        width: clamp(92px, 13vw, 145px);
+    }
+
+    .map-branding .brand-by {
+        width: clamp(40px, 5.5vw, 56px);
+    }
 }
 
 @media (max-width: 640px) {
@@ -62,8 +70,19 @@
         top: clamp(6px, 2vh, 10px);
         right: clamp(8px, 3vw, 12px);
     }
+
+    .map-branding .brand-road {
+        width: clamp(82px, 12vw, 118px);
+    }
+
+    .map-branding .brand-by {
+        width: clamp(36px, 5vw, 48px);
+    }
+
     .map-logo {
         right: clamp(8px, 3vw, 12px);
         bottom: clamp(8px, 3vw, 12px);
+        width: clamp(38px, 4.2vw, 48px);
+        height: clamp(26px, 3.2vw, 34px);
     }
 }

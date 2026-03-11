@@ -7,7 +7,7 @@
     padding: clamp(10px, 1.4vh, 14px) clamp(12px, 1.6vw, 16px) clamp(12px, 1.5vh, 16px) clamp(12px, 1.6vw, 16px);
     border: 2px solid #BB487C;
     border-radius: clamp(16px, 2vw, 20px);
-    margin-bottom: 0; /* l'espacement est géré par gap sur le conteneur */
+    margin-bottom: 0;
 
     color: #BB487C;
     display: flex;
@@ -17,16 +17,16 @@
 }
 
 .config-panel {
-    flex: 1 1 auto; /* occupe l'espace restant dans la colonne */
-    min-height: clamp(190px, 42vh, 320px);  /* garde une base mais laisse le flex grandir */
+    flex: 1 1 auto;
+    min-height: clamp(190px, 42vh, 320px);
 }
 
 .info-panel {
     flex: 0 0 auto;
-    margin-top: 0; /* l'espacement vient du gap du conteneur */
-    height: clamp(58px, 7.4vh, 90px); /* dimension plus proche de la maquette */
+    margin-top: 0;
+    height: clamp(58px, 7.4vh, 90px);
     padding: clamp(8px, 1.2vh, 12px) clamp(12px, 1.6vw, 16px);
-    justify-content: center; /* remonte et centre le contenu */
+    justify-content: center;
     align-items: center;
     gap: clamp(4px, 0.8vh, 8px);
 }
@@ -104,6 +104,8 @@ h1, .title {
     align-items: center;
     gap: clamp(6px, 1vw, 10px);
     cursor: grab;
+    width: 100%;
+    min-width: 0;
 }
 
 .item:active {
@@ -111,10 +113,12 @@ h1, .title {
 }
 
 .left-part-item {
-    flex: 1;
+    flex: 1 1 auto;
     display: flex;
     align-items: center;
     gap: clamp(6px, 1vw, 10px);
+    min-width: 0;
+    overflow: hidden;
 }
 
 .subtitle {
@@ -122,12 +126,23 @@ h1, .title {
     align-items: center;
     justify-content: space-between;
     width: 100%;
+    min-width: 0;
+    gap: 6px;
 }
 
 .left {
     display: flex;
     align-items: center;
-    gap: clamp(6px, 1vw, 10px); /* espace entre l'icône et le titre */
+    gap: clamp(6px, 1vw, 10px);
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+}
+
+.left > div {
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
 }
 
 h2, .segmentTitle {
@@ -137,6 +152,13 @@ h2, .segmentTitle {
     font-size: clamp(11px, 2.2vw, 18px);
     line-height: 1;
     margin: 0;
+    display: block;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 h3, .stepTitle {
@@ -147,22 +169,32 @@ h3, .stepTitle {
     line-height: 1;
     letter-spacing: 0;
     margin: 0;
+    display: block;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .icon-h2 {
     height: clamp(16px, 2.4vw, 24px);
     width: auto;
+    flex: 0 0 auto;
 }
 
 .icon-h3 {
     height: clamp(12px, 2vw, 16px);
     width: auto;
     margin-left: clamp(10px, 1.8vw, 18px);
+    flex: 0 0 auto;
 }
 
 .reorder-icon {
     height: clamp(12px, 1.8vw, 16px);
     width: clamp(12px, 1.8vw, 16px);
+    flex: 0 0 auto;
 }
 
 .hour {
@@ -173,6 +205,8 @@ h3, .stepTitle {
     line-height: 1;
     text-align: right;
     margin-left: auto;
+    white-space: nowrap;
+    flex: 0 0 auto;
 }
 
 .total-info {
@@ -219,6 +253,57 @@ h3, .stepTitle {
     align-items: center;
 }
 
+/* Tooltip custom style app */
+.click-input-wrapper {
+    position: relative;
+}
+
+.app-tooltip {
+    position: absolute;
+    left: 0;
+    top: calc(100% + 8px);
+    z-index: 30000;
+
+    min-width: min(220px, 70vw);
+    max-width: min(360px, 78vw);
+    width: max-content;
+
+    padding: 10px 12px;
+    border: 1.5px solid #BB487C;
+    border-radius: 12px;
+
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+
+    color: #BB487C;
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(11px, 1.8vw, 13px);
+    font-weight: 600;
+    line-height: 1.35;
+
+    white-space: normal;
+    overflow-wrap: break-word;
+    pointer-events: none;
+}
+
+.app-tooltip::before {
+    content: "";
+    position: absolute;
+    left: 14px;
+    top: -7px;
+    width: 12px;
+    height: 12px;
+    background: rgba(255, 255, 255, 0.78);
+    border-left: 1.5px solid #BB487C;
+    border-top: 1.5px solid #BB487C;
+    transform: rotate(45deg);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
 @media (max-width: 1100px) {
     .config-panel, .info-panel {
         width: 100%;
@@ -226,14 +311,17 @@ h3, .stepTitle {
         margin: 0 0 10px 0;
         border-radius: clamp(14px, 2vw, 18px);
     }
+
     .config-panel {
         min-height: clamp(170px, 48vh, 280px);
         gap: clamp(6px, 1vh, 10px);
     }
+
     .route {
         min-height: clamp(150px, 42vh, 240px);
         scrollbar-width: none;
     }
+
     .route::-webkit-scrollbar {
         display: none;
     }
@@ -244,21 +332,30 @@ h3, .stepTitle {
         padding: clamp(9px, 1.2vh, 12px) clamp(10px, 2.4vw, 14px);
         min-height: clamp(150px, 52vh, 260px);
     }
+
     .route {
         overflow-y: visible;
         border-width: 1px;
     }
+
     h1, .title {
         font-size: clamp(12px, 2.8vw, 20px);
     }
+
     h2, .segmentTitle {
         font-size: clamp(11px, 2.6vw, 17px);
     }
+
     h3, .stepTitle {
         font-size: clamp(10px, 2.2vw, 12px);
     }
+
     .action-buttons {
         padding-top: 2px;
+    }
+
+    .app-tooltip {
+        max-width: min(300px, 76vw);
     }
 }
 
@@ -268,15 +365,27 @@ h3, .stepTitle {
         border-radius: 14px;
         gap: 6px;
     }
+
     .info-panel {
         padding: 10px 12px;
         height: clamp(52px, 10vh, 80px);
     }
+
     .item {
         gap: 6px;
     }
+
     .route {
         min-height: clamp(140px, 48vh, 220px);
+    }
+
+    .app-tooltip {
+        left: 0;
+        right: auto;
+        min-width: min(180px, 72vw);
+        max-width: min(250px, 74vw);
+        font-size: 11px;
+        padding: 8px 10px;
     }
 }
 
@@ -284,20 +393,25 @@ h3, .stepTitle {
     h1, .title {
         font-size: clamp(12px, 2.4vw, 20px);
     }
+
     h2, .segmentTitle {
         font-size: clamp(11px, 2.2vw, 17px);
     }
+
     h3, .stepTitle {
         font-size: clamp(10px, 1.9vw, 12px);
     }
+
     .config-panel {
         max-height: calc(100vh - 110px);
         min-height: clamp(160px, 44vh, 260px);
     }
+
     .route {
         min-height: clamp(140px, 40vh, 220px);
     }
+
     .action-buttons {
         padding-top: 4px;
     }
-}
+}   

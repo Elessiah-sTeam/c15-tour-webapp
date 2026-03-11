@@ -7,11 +7,14 @@ html, body {
 }
 
 :root {
-    /* panel plus fluide : se cale entre 190 et 300px et ne dépasse jamais 40vw */
     --panel-width: clamp(190px, 40vw, 300px);
     --panel-left: clamp(10px, 1.5vw, 16px);
     --panel-top-offset: clamp(14px, 3vh, 24px);
     --panel-bottom-offset: clamp(14px, 3vh, 22px);
+
+    --ui-gap: clamp(10px, 1.5vw, 16px);
+    --brand-safe-width: clamp(120px, 16vw, 210px);
+    --home-top-offset: clamp(68px, 9vh, 104px);
 }
 
 .window {
@@ -22,8 +25,8 @@ html, body {
 
 .home-return {
     position: absolute;
-    top: clamp(60px, 7vh, 90px);
-    right: clamp(12px, 2vw, 18px);
+    top: var(--home-top-offset);
+    right: var(--ui-gap);
     z-index: 22000;
     border: 1px solid rgba(170, 50, 122, 0.12);
     background: rgba(255, 255, 255, 0.46);
@@ -36,13 +39,15 @@ html, body {
     cursor: pointer;
     backdrop-filter: blur(8px) saturate(1.1);
     -webkit-backdrop-filter: blur(8px) saturate(1.1);
-    box-shadow: 0 10px 24px rgba(0,0,0,0.12);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
     transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+    max-width: var(--brand-safe-width);
+    white-space: nowrap;
 }
 
 .home-return:hover {
     transform: translateY(-1px);
-    box-shadow: 0 14px 28px rgba(0,0,0,0.18);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.18);
     background: rgba(255, 255, 255, 0.6);
 }
 
@@ -53,7 +58,7 @@ html, body {
     left: var(--panel-left);
     width: var(--panel-width);
     height: calc(100vh - var(--panel-top-offset) - var(--panel-bottom-offset));
-    min-height: calc(100vh - var(--panel-top-offset) - var(--panel-bottom-offset));
+    min-height: 0;
     z-index: 9999;
     display: flex;
     flex-direction: column;
@@ -85,31 +90,36 @@ html, body {
     cursor: pointer;
     backdrop-filter: blur(5px);
     -webkit-backdrop-filter: blur(10px);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.18);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.18);
     transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
 }
 
 .panel-toggle:hover {
     transform: translateY(-1px);
-    box-shadow: 0 10px 18px rgba(0,0,0,0.22);
+    box-shadow: 0 10px 18px rgba(0, 0, 0, 0.22);
     background: rgba(255, 255, 255, 0.3);
 }
 
 @media (max-width: 1100px) {
     :root {
         --panel-width: clamp(180px, 38vw, 260px);
-    }
-    .home-return {
-        top: clamp(56px, 8vh, 80px);
+        --brand-safe-width: clamp(110px, 15vw, 180px);
+        --home-top-offset: clamp(64px, 8vh, 92px);
     }
 }
 
 @media (max-width: 780px) {
-    .window { height: 100dvh; }
-    :root {
-        --panel-width: clamp(170px, 56vw, 230px);
-        --panel-left: clamp(8px, 2vw, 12px);
+    .window {
+        height: 100dvh;
     }
+
+    :root {
+        --panel-width: clamp(170px, 34vw, 230px);
+        --panel-left: clamp(8px, 2vw, 12px);
+        --brand-safe-width: clamp(96px, 14vw, 145px);
+        --home-top-offset: clamp(58px, 8vh, 82px);
+    }
+
     .panel-toggle {
         font-size: 16px;
         padding: 9px 10px;
@@ -118,12 +128,14 @@ html, body {
 
 @media (max-width: 540px) {
     :root {
-        --panel-width: clamp(160px, 84vw, 210px);
+        --panel-width: clamp(160px, 30vw, 210px);
         --panel-left: 8px;
+        --brand-safe-width: clamp(84px, 13vw, 118px);
+        --home-top-offset: clamp(52px, 8vh, 72px);
     }
+
     .home-return {
-        top: clamp(48px, 10vh, 70px);
-        font-size: clamp(11px, 2.4vw, 13px);
-        padding: clamp(6px, 1vh, 8px) clamp(11px, 5vw, 13px);
+        font-size: clamp(11px, 2.1vw, 13px);
+        padding: clamp(6px, 1vh, 8px) clamp(10px, 3vw, 12px);
     }
 }
