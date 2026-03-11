@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import type { LatLngExpression } from "leaflet";
 import { useNavigate } from "react-router-dom";
 import BackgroundMap from "../components/Map/BackgroundMap.tsx";
@@ -50,3 +50,4 @@ export default function PlannerPage() {
     </div>
   );
 }
+

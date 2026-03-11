@@ -4,41 +4,39 @@
     -webkit-backdrop-filter: blur(10px);
 
     width: 100%;
-    padding: 12px 14px 14px 14px;
+    padding: clamp(10px, 1.4vh, 14px) clamp(12px, 1.6vw, 16px) clamp(12px, 1.5vh, 16px) clamp(12px, 1.6vw, 16px);
     border: 2px solid #BB487C;
-    border-radius: 20px;
+    border-radius: clamp(16px, 2vw, 20px);
     margin-bottom: 0; /* l'espacement est géré par gap sur le conteneur */
 
     color: #BB487C;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    /* la hauteur est gérée par le conteneur parent (.panel) */
-    overflow: hidden;
-    font-size: clamp(9px, 1.9vw, 14px);
+    gap: clamp(6px, 1vh, 10px);
+    font-size: clamp(10px, 1.5vw, 13px);
 }
 
 .config-panel {
     flex: 1 1 auto; /* occupe l'espace restant dans la colonne */
-    min-height: 240px;  /* garde une base mais laisse le flex grandir */
+    min-height: clamp(190px, 42vh, 320px);  /* garde une base mais laisse le flex grandir */
 }
 
 .info-panel {
     flex: 0 0 auto;
     margin-top: 0; /* l'espacement vient du gap du conteneur */
-    height: clamp(64px, 8vh, 96px); /* dimension plus proche de la maquette */
-    padding: clamp(10px, 1.6vh, 12px) 14px clamp(10px, 1.6vh, 12px) 14px;
+    height: clamp(58px, 7.4vh, 90px); /* dimension plus proche de la maquette */
+    padding: clamp(8px, 1.2vh, 12px) clamp(12px, 1.6vw, 16px);
     justify-content: center; /* remonte et centre le contenu */
     align-items: center;
-    gap: 6px;
+    gap: clamp(4px, 0.8vh, 8px);
 }
 
 .route {
     flex: 1 1 auto;
-    min-height: 240px;
+    min-height: clamp(170px, 38vh, 260px);
     overflow-y: auto;
-    overflow-x: auto;
-    padding-bottom: 8px;
+    overflow-x: hidden;
+    padding-bottom: 6px;
     overscroll-behavior: contain;
     scrollbar-width: thin;
     scrollbar-color: #BB487C #FBEAF3;
@@ -46,8 +44,7 @@
 }
 
 .route-inner {
-    width: max-content;
-    min-width: 100%;
+    width: 100%;
 }
 
 .route::-webkit-scrollbar {
@@ -68,7 +65,7 @@ h1, .title {
     font-family: 'Montserrat', sans-serif;
     font-weight: 700;
     font-style: normal;
-    font-size: clamp(12px, 3vw, 26px);
+    font-size: clamp(12px, 2.6vw, 22px);
     line-height: 1;
     letter-spacing: 0.3px;
     text-align: center;
@@ -86,13 +83,13 @@ h1, .title {
     background: rgba(255, 255, 255, 0.2);
     color: #BB487C;
     border-radius: 10px;
-    width: clamp(24px, 3vw, 32px);
-    height: clamp(24px, 3vw, 32px);
+    width: clamp(22px, 2.6vw, 30px);
+    height: clamp(22px, 2.6vw, 30px);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    font-size: clamp(12px, 2.2vw, 16px);
+    font-size: clamp(12px, 2vw, 15px);
     transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
 }
 
@@ -105,7 +102,7 @@ h1, .title {
 .item {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: clamp(6px, 1vw, 10px);
     cursor: grab;
 }
 
@@ -117,7 +114,7 @@ h1, .title {
     flex: 1;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: clamp(6px, 1vw, 10px);
 }
 
 .subtitle {
@@ -130,14 +127,14 @@ h1, .title {
 .left {
     display: flex;
     align-items: center;
-    gap: 8px; /* espace entre l'icône et le titre */
+    gap: clamp(6px, 1vw, 10px); /* espace entre l'icône et le titre */
 }
 
 h2, .segmentTitle {
     font-family: 'Montserrat', sans-serif;
     font-weight: 500;
     font-style: normal;
-    font-size: clamp(12px, 2.8vw, 20px);
+    font-size: clamp(11px, 2.2vw, 18px);
     line-height: 1;
     margin: 0;
 }
@@ -146,33 +143,33 @@ h3, .stepTitle {
     font-family: 'Montserrat', sans-serif;
     font-weight: 500;
     font-style: normal;
-    font-size: clamp(10px, 2vw, 13px);
+    font-size: clamp(10px, 1.8vw, 13px);
     line-height: 1;
     letter-spacing: 0;
     margin: 0;
 }
 
 .icon-h2 {
-    height: clamp(18px, 2.6vw, 26px);
+    height: clamp(16px, 2.4vw, 24px);
     width: auto;
 }
 
 .icon-h3 {
-    height: clamp(12px, 2.2vw, 18px);
+    height: clamp(12px, 2vw, 16px);
     width: auto;
-    margin-left: clamp(12px, 2vw, 20px);
+    margin-left: clamp(10px, 1.8vw, 18px);
 }
 
 .reorder-icon {
-    height: clamp(12px, 2vw, 18px);
-    width: clamp(12px, 2vw, 18px);
+    height: clamp(12px, 1.8vw, 16px);
+    width: clamp(12px, 1.8vw, 16px);
 }
 
 .hour {
     font-family: 'Montserrat', sans-serif;
     font-weight: 800;
     font-style: normal;
-    font-size: clamp(10px, 2vw, 13px);
+    font-size: clamp(10px, 1.9vw, 13px);
     line-height: 1;
     text-align: right;
     margin-left: auto;
@@ -183,21 +180,22 @@ h3, .stepTitle {
     align-items: center;
     justify-content: space-between;
     width: 100%;
+    gap: 10px;
 }
 
 .add-step-btn, .add-seg-btn {
     text-decoration: underline;
-    font-size: small;
-    padding: 0 0 0 0;
+    font-size: clamp(10px, 1.8vw, 12px);
+    padding: 0;
     cursor: pointer;
 }
 
 .add-step-btn {
-    margin: 0 0 0 20px;
+    margin: 0 0 0 16px;
 }
 
 .add-seg-btn {
-    margin: 0 0 0 0;
+    margin: 0;
 }
 
 .add-step-btn:hover, .add-seg-btn:hover {
@@ -208,8 +206,8 @@ h3, .stepTitle {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 8px 4px 8px;
-    gap: 10px;
+    padding: 8px 6px 4px 6px;
+    gap: 8px;
     margin-top: auto;
 }
 
@@ -221,46 +219,83 @@ h3, .stepTitle {
     align-items: center;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
     .config-panel, .info-panel {
         width: 100%;
         max-width: none;
-        margin: 0 0 12px 0;
+        margin: 0 0 10px 0;
+        border-radius: clamp(14px, 2vw, 18px);
+    }
+    .config-panel {
+        min-height: clamp(170px, 48vh, 280px);
+        gap: clamp(6px, 1vh, 10px);
+    }
+    .route {
+        min-height: clamp(150px, 42vh, 240px);
+        scrollbar-width: none;
+    }
+    .route::-webkit-scrollbar {
+        display: none;
     }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 780px) {
     .config-panel {
-        padding: 12px;
-        border-radius: 16px;
+        padding: clamp(9px, 1.2vh, 12px) clamp(10px, 2.4vw, 14px);
+        min-height: clamp(150px, 52vh, 260px);
+    }
+    .route {
+        overflow-y: visible;
+        border-width: 1px;
+    }
+    h1, .title {
+        font-size: clamp(12px, 2.8vw, 20px);
+    }
+    h2, .segmentTitle {
+        font-size: clamp(11px, 2.6vw, 17px);
+    }
+    h3, .stepTitle {
+        font-size: clamp(10px, 2.2vw, 12px);
+    }
+    .action-buttons {
+        padding-top: 2px;
+    }
+}
+
+@media (max-width: 540px) {
+    .config-panel {
+        padding: 10px;
+        border-radius: 14px;
+        gap: 6px;
+    }
+    .info-panel {
+        padding: 10px 12px;
+        height: clamp(52px, 10vh, 80px);
     }
     .item {
         gap: 6px;
     }
-    h2, .segmentTitle {
-        font-size: 20px;
-    }
-    h3, .stepTitle {
-        font-size: 13px;
+    .route {
+        min-height: clamp(140px, 48vh, 220px);
     }
 }
 
 @media (max-height: 780px) {
     h1, .title {
-        font-size: 24px;
+        font-size: clamp(12px, 2.4vw, 20px);
     }
     h2, .segmentTitle {
-        font-size: 20px;
+        font-size: clamp(11px, 2.2vw, 17px);
     }
     h3, .stepTitle {
-        font-size: 13px;
+        font-size: clamp(10px, 1.9vw, 12px);
     }
     .config-panel {
-        max-height: calc(100vh - 120px);
-        min-height: 320px;
+        max-height: calc(100vh - 110px);
+        min-height: clamp(160px, 44vh, 260px);
     }
     .route {
-        min-height: 180px;
+        min-height: clamp(140px, 40vh, 220px);
     }
     .action-buttons {
         padding-top: 4px;
