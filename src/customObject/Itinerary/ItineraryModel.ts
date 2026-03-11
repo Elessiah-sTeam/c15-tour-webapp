@@ -166,6 +166,32 @@ class ItineraryModel {
     }
 
     /**
+     * DÃ©fini la durÃ©e de pause associÃ©e Ã  un segment
+     * @param segmentId ID du segment concernÃ©
+     * @param durationMinutes DurÃ©e en minutes
+     */
+    setSegmentBreakDuration(segmentId: string, durationMinutes: number): void {
+        const safeDuration: number = Math.max(0, Math.round(durationMinutes));
+        const durationMs: number = safeDuration * 60_000;
+        this.store.set((route: Itinerary) => {
+            return {
+                ...route,
+                segments: route.segments.map((seg: Segment) => {
+                    if (seg.id !== segmentId) return seg;
+                    return {
+                        ...seg,
+                        content: {
+                            ...seg.content,
+                            breakDuration: new TimeSpan(durationMs),
+                        }
+                    }
+                })
+            }
+        });
+        this.netModel.setupSave();
+    }
+
+    /**
      * Permet de récupérer une étape
      * @param segmentId Id du segment parent
      * @param stepId Id de l'étape
@@ -318,7 +344,8 @@ class ItineraryModel {
                     title: " ",
                     hour: new Date(),
                     duration: new TimeSpan(),
-                    distance: 0
+                    distance: 0,
+                    breakDuration: new TimeSpan(),
                 },
                 isStartEnd: true,
                 steps: new Array<Step>()
@@ -346,6 +373,7 @@ class ItineraryModel {
                     hour: new Date(),
                     duration: new TimeSpan(),
                     distance: 0,
+                    breakDuration: new TimeSpan(),
                 },
                 isStartEnd: true,
                 steps: new Array<Step>()

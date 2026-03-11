@@ -196,6 +196,7 @@ export class ItineraryNetModel {
                 hour: new Date(),
                 duration: new TimeSpan(0),
                 distance: 0,
+                breakDuration: new TimeSpan(0),
                 geometry: undefined
             },
             isStartEnd: true,
@@ -228,6 +229,7 @@ export class ItineraryNetModel {
                         duration: new TimeSpan(seg.duration),
                         distance: seg.distance,
                         geometry: this.normalizeNetGeometry(seg.geometry),
+                        breakDuration: new TimeSpan(0),
                         hour: new Date()
                     },
                     steps: steps,

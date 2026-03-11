@@ -22,6 +22,7 @@ export type segmentInfo = {
     duration: TimeSpan;
     distance: number;
     geometry?: Feature<LineString>;
+    breakDuration?: TimeSpan;
 }
 
 export type reorderStepInfo = {

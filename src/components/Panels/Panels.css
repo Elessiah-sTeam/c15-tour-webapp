@@ -197,6 +197,144 @@ h3, .stepTitle {
     flex: 0 0 auto;
 }
 
+.item-action-btn {
+    border: none;
+    background: transparent;
+    color: #BB487C;
+    border-radius: 8px;
+    padding: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    cursor: pointer;
+    transition: color 120ms ease;
+}
+
+.item-action-btn:hover {
+    color: #8c2f5b;
+}
+
+.action-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.action-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-weight: 700;
+    color: #BB487C;
+    font-size: 13px;
+}
+
+.action-form input {
+    border: 1.5px solid #BB487C;
+    border-radius: 10px;
+    padding: 8px 10px;
+    background: rgba(255, 255, 255, 0.9);
+    color: #BB487C;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+}
+
+.pause-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.pause-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+}
+
+.modal-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.primary-btn,
+.danger-btn,
+.ghost-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-weight: 700;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    background: none;
+    color: #BB487C;
+    transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+}
+
+.primary-btn {
+    border-color: #BB487C;
+    background: #FBEAF3;
+}
+
+.primary-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(187, 72, 124, 0.26);
+}
+
+.danger-btn {
+    border-color: #f87171;
+    background: #fff1f2;
+    color: #b91c1c;
+}
+
+.danger-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(248, 113, 113, 0.26);
+}
+
+.ghost-btn {
+    border-color: #d6b4c5;
+    background: #ffffff;
+}
+
+.ghost-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(187, 72, 124, 0.16);
+}
+
+.input-error {
+    margin: 0;
+    color: #b91c1c;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.confirm-dialog {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.confirm-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #BB487C;
+    font-weight: 700;
+    font-size: 14px;
+    margin: 0;
+}
+
+.confirm-header p {
+    margin: 0;
+}
+
 .hour {
     font-family: 'Montserrat', sans-serif;
     font-weight: 800;

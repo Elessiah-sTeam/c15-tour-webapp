@@ -49,6 +49,7 @@ export default function SortableCategory({ category, visible, idActiveItem}: Pro
                 hour: new Date(),
                 duration: new TimeSpan(),
                 distance: 0,
+                breakDuration: new TimeSpan(),
             },
             isStartEnd: false,
             steps: new Array<Step>()

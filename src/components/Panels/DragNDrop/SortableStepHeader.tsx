@@ -4,6 +4,7 @@ import type { Segment } from "../../../customObject/Itinerary/types.ts";
 import SubTitleWHour from "../SubTitleWHour.tsx";
 import ItineraryModel from "../../../customObject/Itinerary/ItineraryModel.ts";
 import Item from "../Item.tsx";
+import {SegmentActionsButton} from "../ItemActions.tsx";
 
 export default function SortableStepHeader({category, model} : {category: Segment, model: ItineraryModel}) {
     const { attributes, listeners, setNodeRef, transform, transition } =
@@ -25,6 +26,13 @@ export default function SortableStepHeader({category, model} : {category: Segmen
                 isStartEnd={false}
                 categoryId={category.id}
                 isDefault={false}
+                rightComponent={
+                    <SegmentActionsButton
+                        segmentId={category.id}
+                        currentTitle={category.content.title}
+                        breakDuration={category.content.breakDuration}
+                    />
+                }
             >
                 <SubTitleWHour
                     tag={"h2"}

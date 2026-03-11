@@ -3,6 +3,7 @@ import { CSS } from "@dnd-kit/utilities";
 import type { Step } from "../../../customObject/Itinerary/types.ts";
 import Item from "../Item.tsx";
 import SubTitleWHour from "../SubTitleWHour.tsx";
+import {StepActionsButton} from "../ItemActions.tsx";
 
 type Props = {
     visible: boolean,
@@ -41,6 +42,14 @@ export default function SortablePDP({visible, item, categoryId, isStartEnd, hour
               itemId={item.id}
               categoryId={categoryId}
               isDefault={item.isDefaultSegStart}
+              rightComponent={
+                  <StepActionsButton
+                      segmentId={categoryId}
+                      stepId={item.id}
+                      currentTitle={item.content.title}
+                      disabled={item.isDefaultSegStart}
+                  />
+              }
           >
               <SubTitleWHour
                   tag={isStartEnd ? "h2" : "h3"}
