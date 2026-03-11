@@ -19,7 +19,6 @@ class ItineraryModel {
     // Attributs
     public readonly store: ItineraryStore;
     public readonly netModel: ItineraryNetModel;
-
     // Constructeurs
     /**
      * Constructeur du modèle, peut se construire à partir d'un store ou d'un état initial ou de rien
@@ -74,6 +73,7 @@ class ItineraryModel {
            ...route,
             name: newName
         }));
+        this.netModel.setupSave();
     }
 
     /**
@@ -96,6 +96,7 @@ class ItineraryModel {
             segments.splice(segments.length - 1, 0, segment);
             return {...route, segments: updateStarts(segments)};
         });
+        this.netModel.setupSave();
     }
 
     /**
@@ -105,6 +106,7 @@ class ItineraryModel {
     removeSegment(segmentId: string): void {
         this.store.set((route: Itinerary) => {
             return {...route, segments: updateStarts(route.segments.filter(s => s.id != segmentId))}});
+        this.netModel.setupSave();
     }
 
     /**
@@ -122,6 +124,7 @@ class ItineraryModel {
                                 : {...seg, info})
                 };
             });
+        this.netModel.setupSave();
     }
 
     /**
@@ -140,6 +143,7 @@ class ItineraryModel {
             return {...route, segments: updateStarts(segments)};
             }
         );
+        this.netModel.setupSave();
     }
 
     /**
@@ -158,6 +162,7 @@ class ItineraryModel {
                     })
             };
         });
+        this.netModel.setupSave();
     }
 
     /**
@@ -184,6 +189,9 @@ class ItineraryModel {
                 segments: segments
             };
         });
+        // Pour les ajouts temporaire par la barre de recherche
+        if (step.content.location)
+            this.netModel.setupSave();
     }
 
     /**
@@ -202,6 +210,7 @@ class ItineraryModel {
                 segments: newSegments
             }
         });
+        this.netModel.setupSave();
     }
 
     /**
@@ -225,6 +234,7 @@ class ItineraryModel {
                 return route;
             }
         });
+        this.netModel.setupSave();
     }
 
     /**
@@ -254,6 +264,7 @@ class ItineraryModel {
                     }
                 })),
         }));
+        this.netModel.setupSave();
     }
 
     /**
@@ -283,6 +294,7 @@ class ItineraryModel {
                 }
             })),
         }));
+        this.netModel.setupSave();
     }
 
     // Méthodes privées
@@ -470,12 +482,9 @@ class ItineraryModel {
                                       index?: number): Segment[] {
        return segments.map((seg) => {
             if (seg.id != segmentId) return seg;
-            console.log("Adding Step 2", step);
             const steps = [...seg.steps];
             index = index ?? steps.length;
-            console.log("Index : ", index);
             steps.splice(index, 0, step);
-            console.log("New Length : ", steps.length);
             return {...seg, steps: steps};
         });
     }

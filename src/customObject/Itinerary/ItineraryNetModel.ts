@@ -22,6 +22,7 @@ const BACKEND_URL: string = "http://localhost:8080"
 export class ItineraryNetModel {
     // Attributs
     public readonly store: ItineraryStore;
+    public timeoutID: number = -1;
 
     // Constructeur
     constructor(store: ItineraryStore, post: boolean = false) {
@@ -108,6 +109,22 @@ export class ItineraryNetModel {
         await this.applyItinerary(itinerary);
 
         return true;
+    }
+
+    /**
+     * Permet de lancer un put 2s après la dernière modification
+     *
+     * Evite trop de sauvegarde, et des problèmes lors d'une réorganisation
+     */
+    public setupSave(): void {
+        if (this.timeoutID != -1) {
+            clearTimeout(this.timeoutID);
+            this.timeoutID = -1;
+        }
+        this.timeoutID = setTimeout(() => {
+                                            this.timeoutID = -1;
+                                            this.put().then();
+                                            }, 2000);
     }
 
     // Méthodes Privées
