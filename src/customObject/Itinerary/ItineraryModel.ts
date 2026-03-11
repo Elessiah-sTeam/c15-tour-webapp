@@ -467,12 +467,9 @@ class ItineraryModel {
                                       index?: number): Segment[] {
        return segments.map((seg) => {
             if (seg.id != segmentId) return seg;
-            console.log("Adding Step 2", step);
             const steps = [...seg.steps];
             index = index ?? steps.length;
-            console.log("Index : ", index);
             steps.splice(index, 0, step);
-            console.log("New Length : ", steps.length);
             return {...seg, steps: steps};
         });
     }

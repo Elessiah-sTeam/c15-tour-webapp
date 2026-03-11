@@ -12,7 +12,6 @@ export default function IdRoutingManager() {
 
     useEffect(() => {
         if (itinerary.id != -1 && (id == null || Number(id) != itinerary.id)) {
-            console.log("Navigate");
             navigate("/planner?id=" + itinerary.id);
         }
         if (id) {
