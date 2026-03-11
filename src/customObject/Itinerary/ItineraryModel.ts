@@ -55,13 +55,13 @@ class ItineraryModel {
      */
     reset() {
         return this.store.set(() => {
-            return {
+            return this.formatItinerary({
                 id: -1,
                 name: "Nouveau Convoi",
                 totalDuration: new TimeSpan(),
                 totalDistance: 0,
                 segments: []
-            };
+            });
         });
     }
 

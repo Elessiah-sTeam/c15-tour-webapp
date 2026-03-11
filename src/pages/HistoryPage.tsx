@@ -65,12 +65,13 @@ export default function HistoryPage() {
     };
 
     const handleCreateNew = () => {
+        itineraryModel.reset();
         navigate('/planner');
     };
 
     const handleOpenConvoy = async (id: number) => {
         await itineraryModel.netModel.get(id);
-        navigate('/planner');
+        navigate('/planner?id=' + id);
     };
 
     return (
