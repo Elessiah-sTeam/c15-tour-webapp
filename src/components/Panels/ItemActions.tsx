@@ -104,6 +104,8 @@ export function StepActionsButton({segmentId, stepId, currentTitle, disabled}: S
                                 setName(e.target.value);
                                 if (error) setError("");
                             }}
+                            onPointerDown={(e) => e.stopPropagation()}
+                            onMouseDown={(e) => e.stopPropagation()}
                             placeholder="Renommer l'étape"
                             autoFocus
                         />
@@ -241,6 +243,8 @@ export function SegmentActionsButton({segmentId, currentTitle, breakDuration}: S
                                 setName(e.target.value);
                                 if (error) setError("");
                             }}
+                            onPointerDown={(e) => e.stopPropagation()}
+                            onMouseDown={(e) => e.stopPropagation()}
                             placeholder="Renommer le segment"
                             autoFocus
                         />
@@ -256,6 +260,8 @@ export function SegmentActionsButton({segmentId, currentTitle, breakDuration}: S
                             step={5}
                             value={pauseMinutes}
                             onChange={(e) => setPauseMinutes(Number(e.target.value))}
+                            onPointerDown={(e) => e.stopPropagation()}
+                            onMouseDown={(e) => e.stopPropagation()}
                         />
                     </label>
                     <div className="modal-actions">

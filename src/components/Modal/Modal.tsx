@@ -12,17 +12,6 @@ type ModalProps = {
 export default function Modal({open, title, onClose, children}: ModalProps) {
     useEffect(() => {
         if (!open) return;
-        const handler = (event: KeyboardEvent) => {
-            if (event.key === "Escape") {
-                onClose();
-            }
-        };
-        document.addEventListener("keydown", handler);
-        return () => document.removeEventListener("keydown", handler);
-    }, [open, onClose]);
-
-    useEffect(() => {
-        if (!open) return;
         const previousOverflow = document.body.style.overflow;
         document.body.style.overflow = "hidden";
         document.body.classList.add("modal-open");
@@ -35,7 +24,7 @@ export default function Modal({open, title, onClose, children}: ModalProps) {
     if (!open) return null;
 
     return createPortal(
-        <div className="modal-backdrop" role="presentation" onClick={onClose}>
+        <div className="modal-backdrop" role="presentation">
             <div
                 className="modal-card"
                 role="dialog"

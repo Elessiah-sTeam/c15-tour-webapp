@@ -121,6 +121,8 @@ export default function ClickInput({ currentStr, setter, Tag, className, isDesac
                     value={text}
                     onChange={(e) => setText(e.target.value)}
                     onKeyDown={handleKeyDown}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
                     className={className}
                     style={{
                         background: "#ffffff26",
