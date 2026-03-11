@@ -51,6 +51,21 @@ class ItineraryModel {
     }
 
     /**
+     * Réinitialise l'itinéraire
+     */
+    reset() {
+        return this.store.set(() => {
+            return {
+                id: -1,
+                name: "Nouveau Convoi",
+                totalDuration: new TimeSpan(),
+                totalDistance: 0,
+                segments: []
+            };
+        });
+    }
+
+    /**
      * Fonction pour renommer l'itinéraire
      * @param newName nouveau nom à appliquer
      */
