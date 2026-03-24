@@ -61,6 +61,10 @@ export default function ClickInput({ currentStr, setter, Tag, className, isDesac
         };
     }, []);
 
+    useEffect(() => {
+        setText(currentStr);
+    }, [currentStr]);
+
     /**
      * Arrête le mode édition de la balise,
      * et applique les modifications avec la fonction setter
@@ -103,6 +107,7 @@ export default function ClickInput({ currentStr, setter, Tag, className, isDesac
      */
     function handleClick(e: MouseEvent) {
         e.preventDefault();
+        setText(currentStr);
         setShowTooltip(false);
         setIsInput(!isDesactivated);
     }

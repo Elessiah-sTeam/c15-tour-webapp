@@ -98,7 +98,6 @@ export function SettingsModal({ isOpen, onClose, onSave, initialSettings }: Sett
                     {/* Section Informations */}
                     <div className="settings-section">
                         <div className="settings-section-title">
-                            <span>📍</span>
                             Informations du convoi
                         </div>
 
@@ -138,7 +137,6 @@ export function SettingsModal({ isOpen, onClose, onSave, initialSettings }: Sett
                     {/* Section Vitesse */}
                     <div className="settings-section">
                         <div className="settings-section-title">
-                            <span>🚗</span>
                             Vitesse de conduite
                         </div>
 
@@ -148,7 +146,7 @@ export function SettingsModal({ isOpen, onClose, onSave, initialSettings }: Sett
                             </label>
                             <input
                                 type="range"
-                                min="70"
+                                min="20"
                                 max="130"
                                 value={settings.speedPercentage}
                                 onChange={(e) => setSettings({...settings, speedPercentage: Number(e.target.value)})}
@@ -163,7 +161,6 @@ export function SettingsModal({ isOpen, onClose, onSave, initialSettings }: Sett
                     {/* Section Segments */}
                     <div className="settings-section">
                         <div className="settings-section-title">
-                            <span>📏</span>
                             Durée des segments
                         </div>
 
@@ -201,8 +198,7 @@ export function SettingsModal({ isOpen, onClose, onSave, initialSettings }: Sett
                     {/* Section Pauses dynamiques */}
                     <div className="settings-section">
                         <div className="settings-section-title">
-                            <span>☕</span>
-                            Pauses
+                            Pauses (minutes)
                         </div>
 
                         {settings.pauseConfigs.length === 0 ? (
@@ -213,7 +209,7 @@ export function SettingsModal({ isOpen, onClose, onSave, initialSettings }: Sett
                             settings.pauseConfigs.map((pause) => (
                                 <div key={pause.segmentId} className="settings-form-group">
                                     <label className="settings-label">
-                                        ⏸ Pause (minutes)
+                                        Pause  "{pause.segmentName}"
                                     </label>
                                     <input
                                         type="number"

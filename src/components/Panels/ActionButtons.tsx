@@ -15,13 +15,16 @@ export default function ActionButtons() {
 
     const handleOpenSettings = () => {
 
-        const saved = localStorage.getItem('globalSettings');
+        const isNewEmptyConvoy = itinerary.id === -1 &&
+            itinerary.segments.filter(s => !s.isStartEnd).length === 0;
+
+        const storageKey = `globalSettings_${itinerary.id}`;
+        const saved = localStorage.getItem(storageKey);
         let baseSettings: GlobalSettings;
 
-        if (saved) {
+        if (saved && !isNewEmptyConvoy) {
             baseSettings = JSON.parse(saved);
         } else {
-
             baseSettings = {
                 convoyName: itinerary.name || 'Mon convoi',
                 departureDate: new Date().toISOString().split('T')[0],
@@ -29,14 +32,13 @@ export default function ActionButtons() {
                 speedPercentage: 100,
                 minSegmentDuration: 1,
                 maxSegmentDuration: 4,
-                pauseConfigs: [],
+                pauseConfigs: []
             };
         }
 
         const pauseConfigs: PauseConfig[] = itinerary.segments
             .filter(seg => !seg.isStartEnd && seg.id !== 'start' && seg.id !== 'end')
             .map(seg => {
-
                 const existingPause = baseSettings.pauseConfigs.find(p => p.segmentId === seg.id);
                 return {
                     segmentId: seg.id,
@@ -45,9 +47,9 @@ export default function ActionButtons() {
                 };
             });
 
-        // Mettre à jour avec les nouveaux segments
         setCurrentSettings({
             ...baseSettings,
+            convoyName: itinerary.name || baseSettings.convoyName || 'Mon convoi',
             pauseConfigs
         });
 
@@ -56,8 +58,15 @@ export default function ActionButtons() {
 
     const handleSaveSettings = (settings: GlobalSettings) => {
         console.log('Paramètres sauvegardés:', settings);
-        localStorage.setItem('globalSettings', JSON.stringify(settings));
-        alert('Paramètres enregistrés avec succès !');
+
+        // Sauvegarder avec l'ID du convoi
+        const storageKey = `globalSettings_${itinerary.id}`;
+        localStorage.setItem(storageKey, JSON.stringify(settings));
+
+        // Synchroniser le nom du convoi avec itineraryModel
+        if (settings.convoyName && settings.convoyName !== itinerary.name) {
+            itineraryModel.renameItinerary(settings.convoyName);
+        }
     };
 
     return (
