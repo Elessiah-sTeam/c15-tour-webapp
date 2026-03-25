@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import HomeLanding from "../components/Home/HomeLanding.tsx";
 import {itineraryModel} from "../customObject/Itinerary/ItineraryStore.ts";
-import { useAuth } from "../auth/AuthContext";
+import { useAuth } from "../auth/useAuth";
 
 export default function HomePage() {
   const navigate = useNavigate();

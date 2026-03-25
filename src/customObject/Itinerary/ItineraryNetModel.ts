@@ -15,7 +15,7 @@ import type {
 import {TimeSpan} from "../TimeSpan.ts";
 import type {Feature, LineString} from "geojson";
 import {updateStarts} from "./utils.ts";
-import {getAuthToken} from "../../auth/AuthContext.tsx";
+import {getAuthToken} from "../../auth/useAuth";
 
 
 const BACKEND_URL: string = "http://localhost:8080"

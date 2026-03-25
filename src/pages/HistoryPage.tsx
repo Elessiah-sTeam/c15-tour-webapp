@@ -4,7 +4,7 @@ import { LogOut } from 'lucide-react';
 import { ItineraryCard } from '../components/History/ItineraryCard';
 import type { ItineraryResponse } from '../customObject/Itinerary/netTypes';
 import { itineraryModel } from '../customObject/Itinerary/ItineraryStore';
-import { getAuthToken, useAuth } from '../auth/AuthContext';
+import { getAuthToken, useAuth } from '../auth/useAuth';
 import '../components/History/HistoryPage.css';
 
 const BACKEND_URL = "http://localhost:8080";

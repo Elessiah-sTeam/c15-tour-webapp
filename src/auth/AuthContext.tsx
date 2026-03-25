@@ -1,12 +1,5 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
-
-interface AuthContextType {
-    token: string | null;
-    login: (token: string) => void;
-    logout: () => void;
-}
-
-const AuthContext = createContext<AuthContextType | null>(null);
+import { useState, type ReactNode } from "react";
+import { AuthContext } from "./authContext";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [token, setToken] = useState<string | null>(() =>
@@ -28,15 +21,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             {children}
         </AuthContext.Provider>
     );
-}
-
-export function useAuth(): AuthContextType {
-    const ctx = useContext(AuthContext);
-    if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
-    return ctx;
-}
-
-/** Helper for non-component code (classes, utils) */
-export function getAuthToken(): string | null {
-    return localStorage.getItem("auth_token");
 }
