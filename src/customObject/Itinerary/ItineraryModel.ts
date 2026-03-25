@@ -77,6 +77,32 @@ class ItineraryModel {
     }
 
     /**
+     * Met à jour la date et l'heure de depart de l'itineraire.
+     * Toutes les heures de segments sont recalculees à partir de cette valeur.
+     * @param departureDateTime nouvelle date/heure de depart
+     */
+    setDepartureDateTime(departureDateTime: Date): void {
+        if (Number.isNaN(departureDateTime.getTime())) {
+            return;
+        }
+
+        this.store.set((route: Itinerary) => ({
+            ...route,
+            segments: updateStarts(route.segments.map((seg: Segment, index: number) =>
+                index !== 0
+                    ? seg
+                    : {
+                        ...seg,
+                        content: {
+                            ...seg.content,
+                            hour: new Date(departureDateTime.getTime())
+                        }
+                    }
+            ))
+        }));
+    }
+
+    /**
      * Permet de récuperer un segment à partir d'un id.
      *
      * Renvoi undefined si ne trouve pas sinon un Segment
@@ -118,10 +144,10 @@ class ItineraryModel {
                       info: segmentInfo): void {
         this.store.set((route: Itinerary) => {
                 return {
-                    ...route, segments: route.segments.map((seg: Segment) =>
+                    ...route, segments: updateStarts(route.segments.map((seg: Segment) =>
                             seg.id !== segmentId
                                 ? seg
-                                : {...seg, info})
+                                : {...seg, content: info}))
                 };
             });
         this.netModel.setupSave();
@@ -369,7 +395,11 @@ class ItineraryModel {
      */
     private formatItinerary(itinerary: Itinerary): Itinerary {
         const result: Itinerary = this.formatStart(itinerary);
-        return this.formatEnd(result);
+        const formatted: Itinerary = this.formatEnd(result);
+        return {
+            ...formatted,
+            segments: updateStarts(formatted.segments)
+        };
     }
 
     /**

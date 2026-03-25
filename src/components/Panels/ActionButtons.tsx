@@ -7,6 +7,34 @@ import { itineraryModel } from "../../customObject/Itinerary/ItineraryStore.ts";
 import { useItinerary } from "../../customObject/Itinerary/UseItinerary.ts";
 import { SettingsModal, type GlobalSettings, type PauseConfig } from "../SettingsModal/SettingsModal";
 
+function formatLocalDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+}
+
+function formatLocalTime(date: Date): string {
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${hours}:${minutes}`;
+}
+
+function buildDepartureDateTime(departureDate: string, departureTime: string): Date | null {
+    if (!departureDate || !departureTime) {
+        return null;
+    }
+
+    const [year, month, day] = departureDate.split("-").map(Number);
+    const [hours, minutes] = departureTime.split(":").map(Number);
+
+    if ([year, month, day, hours, minutes].some(Number.isNaN)) {
+        return null;
+    }
+
+    return new Date(year, month - 1, day, hours, minutes, 0, 0);
+}
+
 export default function ActionButtons() {
     const delMod = useDeleteMod(deleteModStore);
     const itinerary = useItinerary(itineraryModel.store);
@@ -25,10 +53,11 @@ export default function ActionButtons() {
         if (saved && !isNewEmptyConvoy) {
             baseSettings = JSON.parse(saved);
         } else {
+            const currentDeparture = itinerary.segments[0]?.content.hour ?? new Date();
             baseSettings = {
                 convoyName: itinerary.name || 'Mon convoi',
-                departureDate: new Date().toISOString().split('T')[0],
-                departureTime: '08:00',
+                departureDate: formatLocalDate(currentDeparture),
+                departureTime: formatLocalTime(currentDeparture),
                 speedPercentage: 100,
                 minSegmentDuration: 1,
                 maxSegmentDuration: 4,
@@ -66,6 +95,11 @@ export default function ActionButtons() {
         // Synchroniser le nom du convoi avec itineraryModel
         if (settings.convoyName && settings.convoyName !== itinerary.name) {
             itineraryModel.renameItinerary(settings.convoyName);
+        }
+
+        const departureDateTime = buildDepartureDateTime(settings.departureDate, settings.departureTime);
+        if (departureDateTime) {
+            itineraryModel.setDepartureDateTime(departureDateTime);
         }
     };
 
