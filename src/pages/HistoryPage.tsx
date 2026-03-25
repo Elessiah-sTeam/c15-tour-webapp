@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { LogOut } from 'lucide-react';
 import { ItineraryCard } from '../components/History/ItineraryCard';
 import type { ItineraryResponse } from '../customObject/Itinerary/netTypes';
 import { itineraryModel } from '../customObject/Itinerary/ItineraryStore';
-import { getAuthToken } from '../auth/AuthContext';
+import { getAuthToken, useAuth } from '../auth/AuthContext';
 import '../components/History/HistoryPage.css';
 
 const BACKEND_URL = "http://localhost:8080";
@@ -15,6 +16,7 @@ function authHeaders(): HeadersInit {
 
 export default function HistoryPage() {
     const navigate = useNavigate();
+    const { logout } = useAuth();
     const [itineraries, setItineraries] = useState<ItineraryResponse[]>([]);
     const [filtered, setFiltered] = useState<ItineraryResponse[]>([]);
     const [search, setSearch] = useState('');
@@ -70,6 +72,11 @@ export default function HistoryPage() {
         }
     };
 
+    const handleLogout = () => {
+        logout();
+        navigate("/login", { replace: true });
+    };
+
     const handleCreateNew = () => {
         itineraryModel.reset();
         navigate('/planner');
@@ -89,11 +96,16 @@ export default function HistoryPage() {
                     <span className="ch-logo">🚗</span>
                     <h1 className="ch-brand-title">C15 FIESTA TOUR</h1>
                 </div>
-                <button className="ch-btn-new" onClick={handleCreateNew}>
-                    <span className="ch-plus">+</span>
-                    Nouveau convoi
-                    <span className="ch-arrow">›</span>
-                </button>
+                <div className="ch-header-actions">
+                    <button className="ch-btn-new" onClick={handleCreateNew}>
+                        <span className="ch-plus">+</span>
+                        Nouveau convoi
+                        <span className="ch-arrow">›</span>
+                    </button>
+                    <button className="ch-btn-logout" onClick={handleLogout} aria-label="Se déconnecter">
+                        <LogOut size={18} strokeWidth={2.4} />
+                    </button>
+                </div>
             </header>
 
             <main className="ch-content">
