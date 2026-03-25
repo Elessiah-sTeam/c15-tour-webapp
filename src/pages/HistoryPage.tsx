@@ -3,9 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { ItineraryCard } from '../components/History/ItineraryCard';
 import type { ItineraryResponse } from '../customObject/Itinerary/netTypes';
 import { itineraryModel } from '../customObject/Itinerary/ItineraryStore';
+import { getAuthToken } from '../auth/AuthContext';
 import '../components/History/HistoryPage.css';
 
 const BACKEND_URL = "http://localhost:8080";
+
+function authHeaders(): HeadersInit {
+    const token = getAuthToken();
+    return token ? { "Authorization": `Bearer ${token}` } : {};
+}
 
 export default function HistoryPage() {
     const navigate = useNavigate();
@@ -18,7 +24,7 @@ export default function HistoryPage() {
     const loadItineraries = useCallback(async () => {
         try {
             setLoading(true);
-            const res = await fetch(`${BACKEND_URL}/tours`);
+            const res = await fetch(`${BACKEND_URL}/tours`, { headers: authHeaders() });
             if (!res.ok) throw new Error('Backend error');
             const data: ItineraryResponse[] = await res.json();
             setItineraries(data);
@@ -57,7 +63,7 @@ export default function HistoryPage() {
     const handleDelete = async (id: number) => {
         if (!confirm('Supprimer ce convoi ?')) return;
         try {
-            await fetch(`${BACKEND_URL}/tours/${id}`, { method: 'DELETE' });
+            await fetch(`${BACKEND_URL}/tours/${id}`, { method: 'DELETE', headers: authHeaders() });
             setItineraries(prev => prev.filter(i => i.id !== id));
         } catch (err) {
             console.error('Erreur suppression:', err);

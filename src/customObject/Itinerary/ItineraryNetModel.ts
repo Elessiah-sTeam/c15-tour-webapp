@@ -15,9 +15,18 @@ import type {
 import {TimeSpan} from "../TimeSpan.ts";
 import type {Feature, LineString} from "geojson";
 import {updateStarts} from "./utils.ts";
+import {getAuthToken} from "../../auth/AuthContext.tsx";
 
 
 const BACKEND_URL: string = "http://localhost:8080"
+
+function authHeaders(): HeadersInit {
+    const token = getAuthToken();
+    return {
+        "Content-Type": "application/json",
+        ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+    };
+}
 
 export class ItineraryNetModel {
     // Attributs
@@ -59,9 +68,7 @@ export class ItineraryNetModel {
         }
         const response: Response = await fetch(BACKEND_URL + `/tours/${itinerary.id}`, {
             method: "PUT",
-            headers: {
-                "Content-Type": "application/json"
-            },
+            headers: authHeaders(),
             body: JSON.stringify(request),
         });
 
@@ -88,9 +95,7 @@ export class ItineraryNetModel {
 
         const response: Response = await fetch(BACKEND_URL + `/tours`, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
+            headers: authHeaders(),
             body: JSON.stringify(request),
         })
 
@@ -135,9 +140,7 @@ export class ItineraryNetModel {
     private async retrieveItinerary(id: number): Promise<ItineraryResponse> {
         const response: Response = await fetch(BACKEND_URL + `/tours/${id}`, {
             method: "GET",
-            headers: {
-                "Content-Type": "application/json"
-            }
+            headers: authHeaders(),
         });
 
         if (!response.ok) {
