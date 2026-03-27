@@ -1,0 +1,120 @@
+.share-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 30000;
+    background: rgba(0, 0, 0, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.share-modal {
+    position: relative;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 2px solid #BB487C;
+    border-radius: 20px;
+    padding: 28px 32px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+    min-width: 260px;
+    max-width: 340px;
+}
+
+.share-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 8px;
+    transition: background 120ms ease;
+}
+
+.share-close-btn:hover {
+    background: rgba(187, 72, 124, 0.1);
+}
+
+.share-title {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: #BB487C;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin: 0;
+}
+
+.share-qr-container {
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 14px;
+    border: 1px solid rgba(187, 72, 124, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.share-code-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.share-code-label {
+    font-weight: 500;
+    font-size: 14px;
+    color: #BB487C;
+}
+
+.share-code-value {
+    font-weight: 800;
+    font-size: 20px;
+    color: #8c1f65;
+    letter-spacing: 2px;
+    font-family: 'Montserrat', monospace;
+}
+
+.share-copy-btn {
+    background: none;
+    border: 1.5px solid #BB487C;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    transition: background 120ms ease, transform 120ms ease;
+}
+
+.share-copy-btn:hover {
+    background: rgba(187, 72, 124, 0.1);
+    transform: translateY(-1px);
+}
+
+@media (max-width: 540px) {
+    .share-modal {
+        padding: 20px 20px 18px;
+        min-width: 220px;
+        max-width: 90vw;
+        gap: 14px;
+    }
+
+    .share-title {
+        font-size: 14px;
+    }
+
+    .share-code-value {
+        font-size: 17px;
+    }
+}

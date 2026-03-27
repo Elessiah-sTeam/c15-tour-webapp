@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Trash, Pencil, Settings, Upload } from "lucide-react";
+import { Trash, Pencil, Settings, Upload, Share2 } from "lucide-react";
 import './Panels.css';
 import { deleteModStore } from "../../customObject/DeleteMod/DeleteModStore.ts";
 import { useDeleteMod } from "../../customObject/DeleteMod/useDeleteMod.ts";
@@ -8,6 +8,7 @@ import { useItinerary } from "../../customObject/Itinerary/UseItinerary.ts";
 import { SettingsModal } from "../SettingsModal/SettingsModal";
 import { loadGlobalSettings, persistGlobalSettings } from "../SettingsModal/settingsStorage.ts";
 import type { GlobalSettings } from "../SettingsModal/settingsTypes.ts";
+import ShareModal from "./ShareModal.tsx";
 
 function buildDepartureDateTime(departureDate: string, departureTime: string): Date | null {
     if (!departureDate || !departureTime) {
@@ -28,6 +29,7 @@ export default function ActionButtons() {
     const delMod = useDeleteMod(deleteModStore);
     const itinerary = useItinerary(itineraryModel.store);
     const [showSettings, setShowSettings] = useState(false);
+    const [showShare, setShowShare] = useState(false);
     const [currentSettings, setCurrentSettings] = useState<GlobalSettings | undefined>(undefined);
 
     const handleOpenSettings = () => {
@@ -71,6 +73,14 @@ export default function ActionButtons() {
                     }
                 </button>
                 <button
+                    className={"share-btn"}
+                    aria-label={"Partager"}
+                    onClick={() => setShowShare(true)}
+                    disabled={!itinerary.shareCode}
+                >
+                    <Share2 color={itinerary.shareCode ? "#BB487C" : "#ccc"}/>
+                </button>
+                <button
                     className={"export-btn"}
                     aria-label={"Export"}
                     onClick={async() => {await itineraryModel.netModel.put()}}
@@ -85,6 +95,13 @@ export default function ActionButtons() {
                     onClose={() => setShowSettings(false)}
                     onSave={handleSaveSettings}
                     initialSettings={currentSettings}
+                />
+            )}
+
+            {showShare && itinerary.shareCode && (
+                <ShareModal
+                    shareCode={itinerary.shareCode}
+                    onClose={() => setShowShare(false)}
                 />
             )}
         </>
