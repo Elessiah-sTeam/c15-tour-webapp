@@ -138,16 +138,16 @@ class ItineraryModel {
     /**
      * Permet de mettre à jour les informations d'un Segment à partir de son ID
      * @param segmentId ID du segment à modifier
-     * @param info nouvelles infos du segment
+     * @param content nouvelles infos du segment
      */
     updateSegmentInfo(segmentId: string,
-                      info: segmentInfo): void {
+                      content: segmentInfo): void {
         this.store.set((route: Itinerary) => {
                 return {
                     ...route, segments: updateStarts(route.segments.map((seg: Segment) =>
                             seg.id !== segmentId
                                 ? seg
-                                : {...seg, content: info}))
+                                : {...seg, content}))
                 };
             });
         this.netModel.setupSave();

@@ -35,15 +35,7 @@ const defaultSettings: GlobalSettings = {
 };
 
 export function SettingsModal({ isOpen, onClose, onSave, initialSettings }: SettingsModalProps) {
-    const [settings, setSettings] = useState<GlobalSettings>(defaultSettings);
-
-    // Mettre à jour les settings quand initialSettings change
-    useEffect(() => {
-        if (initialSettings) {
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-            setSettings(initialSettings);
-        }
-    }, [initialSettings]);
+    const [settings, setSettings] = useState<GlobalSettings>(initialSettings ?? defaultSettings);
 
     useEffect(() => {
         if (isOpen) {
@@ -152,9 +144,6 @@ export function SettingsModal({ isOpen, onClose, onSave, initialSettings }: Sett
                                 onChange={(e) => setSettings({...settings, speedPercentage: Number(e.target.value)})}
                                 className="settings-slider"
                             />
-                            <div className="settings-hint">
-
-                            </div>
                         </div>
                     </div>
 

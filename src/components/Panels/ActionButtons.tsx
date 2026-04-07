@@ -51,8 +51,13 @@ export default function ActionButtons() {
         let baseSettings: GlobalSettings;
 
         if (saved && !isNewEmptyConvoy) {
-            baseSettings = JSON.parse(saved);
-        } else {
+            try {
+                baseSettings = JSON.parse(saved);
+            } catch {
+                baseSettings = null!;
+            }
+        }
+        if (!baseSettings) {
             const currentDeparture = itinerary.segments[0]?.content.hour ?? new Date();
             baseSettings = {
                 convoyName: itinerary.name || 'Mon convoi',
@@ -86,8 +91,6 @@ export default function ActionButtons() {
     };
 
     const handleSaveSettings = (settings: GlobalSettings) => {
-        console.log('Paramètres sauvegardés:', settings);
-
         // Sauvegarder avec l'ID du convoi
         const storageKey = `globalSettings_${itinerary.id}`;
         localStorage.setItem(storageKey, JSON.stringify(settings));
@@ -134,12 +137,14 @@ export default function ActionButtons() {
                 </button>
             </div>
 
-            <SettingsModal
-                isOpen={showSettings}
-                onClose={() => setShowSettings(false)}
-                onSave={handleSaveSettings}
-                initialSettings={currentSettings}
-            />
+            {showSettings && (
+                <SettingsModal
+                    isOpen={showSettings}
+                    onClose={() => setShowSettings(false)}
+                    onSave={handleSaveSettings}
+                    initialSettings={currentSettings}
+                />
+            )}
         </>
     );
 }
