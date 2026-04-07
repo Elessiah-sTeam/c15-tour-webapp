@@ -48,13 +48,13 @@ export default function ActionButtons() {
 
         const storageKey = `globalSettings_${itinerary.id}`;
         const saved = localStorage.getItem(storageKey);
-        let baseSettings: GlobalSettings;
+        let baseSettings: GlobalSettings | null = null;
 
         if (saved && !isNewEmptyConvoy) {
             try {
                 baseSettings = JSON.parse(saved);
             } catch {
-                baseSettings = null!;
+                baseSettings = null;
             }
         }
         if (!baseSettings) {
