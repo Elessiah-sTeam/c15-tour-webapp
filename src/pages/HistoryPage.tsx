@@ -1,14 +1,22 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { LogOut } from 'lucide-react';
 import { ItineraryCard } from '../components/History/ItineraryCard';
 import type { ItineraryResponse } from '../customObject/Itinerary/netTypes';
 import { itineraryModel } from '../customObject/Itinerary/ItineraryStore';
+import { getAuthToken, useAuth } from '../auth/useAuth';
 import '../components/History/HistoryPage.css';
 
 const BACKEND_URL = "http://localhost:8080";
 
+function authHeaders(): HeadersInit {
+    const token = getAuthToken();
+    return token ? { "Authorization": `Bearer ${token}` } : {};
+}
+
 export default function HistoryPage() {
     const navigate = useNavigate();
+    const { logout } = useAuth();
     const [itineraries, setItineraries] = useState<ItineraryResponse[]>([]);
     const [filtered, setFiltered] = useState<ItineraryResponse[]>([]);
     const [search, setSearch] = useState('');
@@ -18,7 +26,7 @@ export default function HistoryPage() {
     const loadItineraries = useCallback(async () => {
         try {
             setLoading(true);
-            const res = await fetch(`${BACKEND_URL}/tours`);
+            const res = await fetch(`${BACKEND_URL}/tours`, { headers: authHeaders() });
             if (!res.ok) throw new Error('Backend error');
             const data: ItineraryResponse[] = await res.json();
             setItineraries(data);
@@ -57,11 +65,16 @@ export default function HistoryPage() {
     const handleDelete = async (id: number) => {
         if (!confirm('Supprimer ce convoi ?')) return;
         try {
-            await fetch(`${BACKEND_URL}/tours/${id}`, { method: 'DELETE' });
+            await fetch(`${BACKEND_URL}/tours/${id}`, { method: 'DELETE', headers: authHeaders() });
             setItineraries(prev => prev.filter(i => i.id !== id));
         } catch (err) {
             console.error('Erreur suppression:', err);
         }
+    };
+
+    const handleLogout = () => {
+        logout();
+        navigate("/login", { replace: true });
     };
 
     const handleCreateNew = () => {
@@ -83,11 +96,16 @@ export default function HistoryPage() {
                     <span className="ch-logo">🚗</span>
                     <h1 className="ch-brand-title">C15 FIESTA TOUR</h1>
                 </div>
-                <button className="ch-btn-new" onClick={handleCreateNew}>
-                    <span className="ch-plus">+</span>
-                    Nouveau convoi
-                    <span className="ch-arrow">›</span>
-                </button>
+                <div className="ch-header-actions">
+                    <button className="ch-btn-new" onClick={handleCreateNew}>
+                        <span className="ch-plus">+</span>
+                        Nouveau convoi
+                        <span className="ch-arrow">›</span>
+                    </button>
+                    <button className="ch-btn-logout" onClick={handleLogout} aria-label="Se déconnecter">
+                        <LogOut size={18} strokeWidth={2.4} />
+                    </button>
+                </div>
             </header>
 
             <main className="ch-content">

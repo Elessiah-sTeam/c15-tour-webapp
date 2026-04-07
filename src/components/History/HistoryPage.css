@@ -70,6 +70,31 @@ html, body {
     box-shadow: 0 4px 12px rgba(180,88,158,0.3);
 }
 
+.ch-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ch-btn-logout {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 12px;
+    border: 1.5px solid rgba(165, 45, 120, 0.2);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.82);
+    color: #8c1f65;
+    cursor: pointer;
+    transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+}
+
+.ch-btn-logout:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(44, 18, 60, 0.14);
+    background: rgba(255, 255, 255, 0.94);
+}
+
 .ch-plus, .ch-arrow {
     font-size: 20px;
 }
