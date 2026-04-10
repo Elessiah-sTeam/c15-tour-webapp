@@ -14,6 +14,8 @@ function authHeaders(): HeadersInit {
     return token ? { "Authorization": `Bearer ${token}` } : {};
 }
 
+const PAGE_SIZE = 20;
+
 export default function HistoryPage() {
     const navigate = useNavigate();
     const { logout } = useAuth();
@@ -22,20 +24,25 @@ export default function HistoryPage() {
     const [search, setSearch] = useState('');
     const [filter, setFilter] = useState<'all' | 'draft' | 'finalized' | 'recent'>('all');
     const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalElements, setTotalElements] = useState(0);
 
     const loadItineraries = useCallback(async () => {
         try {
             setLoading(true);
-            const res = await fetch(`${BACKEND_URL}/tours`, { headers: authHeaders() });
+            const res = await fetch(`${BACKEND_URL}/tours?page=${page}&size=${PAGE_SIZE}`, { headers: authHeaders() });
             if (!res.ok) throw new Error('Backend error');
-            const data: ItineraryResponse[] = await res.json();
-            setItineraries(data);
+            const data = await res.json();
+            setItineraries(data.content);
+            setTotalPages(data.totalPages);
+            setTotalElements(data.totalElements);
         } catch (err) {
             console.error('Erreur chargement:', err);
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [page]);
 
     const applyFilters = useCallback(() => {
         let result = [...itineraries];
@@ -159,6 +166,29 @@ export default function HistoryPage() {
                                 onDelete={handleDelete}
                             />
                         ))}
+                    </div>
+                )}
+
+                {totalPages > 1 && (
+                    <div className="ch-pagination">
+                        <button
+                            className="ch-page-btn"
+                            onClick={() => setPage(p => p - 1)}
+                            disabled={page === 0}
+                        >
+                            ‹
+                        </button>
+                        <span className="ch-page-info">
+                            {page + 1} / {totalPages}
+                            <span className="ch-page-total"> ({totalElements} convois)</span>
+                        </span>
+                        <button
+                            className="ch-page-btn"
+                            onClick={() => setPage(p => p + 1)}
+                            disabled={page >= totalPages - 1}
+                        >
+                            ›
+                        </button>
                     </div>
                 )}
             </main>
