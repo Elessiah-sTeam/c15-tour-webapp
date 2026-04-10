@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut } from 'lucide-react';
+import { LogOut, Search, Inbox } from 'lucide-react';
 import { ItineraryCard } from '../components/History/ItineraryCard';
 import type { ItineraryResponse } from '../customObject/Itinerary/netTypes';
 import { itineraryModel } from '../customObject/Itinerary/ItineraryStore';
@@ -93,7 +93,6 @@ export default function HistoryPage() {
 
             <header className="ch-header">
                 <div className="ch-brand">
-                    <span className="ch-logo">🚗</span>
                     <h1 className="ch-brand-title">C15 FIESTA TOUR</h1>
                 </div>
                 <div className="ch-header-actions">
@@ -112,7 +111,7 @@ export default function HistoryPage() {
                 <h2 className="ch-page-title">Historique des convois</h2>
 
                 <div className="ch-search">
-                    <span className="ch-search-icon">🔍</span>
+                    <Search size={16} className="ch-search-icon" />
                     <input
                         type="text"
                         placeholder="Rechercher un convoi (nom / ville)"
@@ -149,7 +148,7 @@ export default function HistoryPage() {
                 {loading ? (
                     <div className="ch-empty">Chargement...</div>
                 ) : filtered.length === 0 ? (
-                    <div className="ch-empty">📭 Aucun convoi trouvé</div>
+                    <div className="ch-empty"><Inbox size={20} style={{ marginRight: 8, verticalAlign: 'middle' }} />Aucun convoi trouvé</div>
                 ) : (
                     <div className="ch-list">
                         {filtered.map(itinerary => (

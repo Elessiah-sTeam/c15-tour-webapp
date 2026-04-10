@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { Search } from "lucide-react";
 import type { ChangeEvent } from "react";
 import type { LatLngExpression } from "leaflet";
 import "./SearchBar.css";
@@ -39,9 +40,7 @@ export default function SearchBar({ onLocationSelected }: Props) {
         onSubmit={handlers.handleSearch}
       >
         <div className="search-bar-inner">
-          <span className="search-icon" aria-hidden>
-            {"\uD83D\uDD0D"}
-          </span>
+          <Search size={14} className="search-icon" aria-hidden />
           <input
             type="text"
             value={state.query}
