@@ -1,3 +1,4 @@
+import { Trash2 } from 'lucide-react';
 import { ConvoyThumbnail } from './ConvoyThumbnail';
 import type { ItineraryResponse, SegmentResponse } from '../../customObject/Itinerary/netTypes';
 
@@ -73,7 +74,7 @@ export function ItineraryCard({ itinerary, onOpen, onDelete }: ItineraryCardProp
                     onClick={() => onDelete(itinerary.id)}
                     title="Supprimer"
                 >
-                    🗑️
+                    <Trash2 size={16} />
                 </button>
             </div>
         </div>
