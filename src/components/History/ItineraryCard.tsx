@@ -1,4 +1,4 @@
-import { Trash2 } from 'lucide-react';
+import { Trash2, Share2 } from 'lucide-react';
 import { ConvoyThumbnail } from './ConvoyThumbnail';
 import type { ItineraryResponse, SegmentResponse } from '../../customObject/Itinerary/netTypes';
 
@@ -6,6 +6,7 @@ interface ItineraryCardProps {
     itinerary: ItineraryResponse;
     onOpen: (id: number) => void;
     onDelete: (id: number) => void;
+    onShare: (shareCode: string) => void;
 }
 
 function getStatus(itinerary: ItineraryResponse): 'draft' | 'finalized' {
@@ -35,7 +36,7 @@ function getEndCity(segments: SegmentResponse[]): string {
     return last?.waypoints[last.waypoints.length - 1]?.name || 'Arrivée';
 }
 
-export function ItineraryCard({ itinerary, onOpen, onDelete }: ItineraryCardProps) {
+export function ItineraryCard({ itinerary, onOpen, onDelete, onShare }: ItineraryCardProps) {
     const status = getStatus(itinerary);
 
     return (
@@ -68,6 +69,14 @@ export function ItineraryCard({ itinerary, onOpen, onDelete }: ItineraryCardProp
             <div className="ch-actions">
                 <button className="ch-btn-open" onClick={() => onOpen(itinerary.id)}>
                     Ouvrir ›
+                </button>
+                <button
+                    className="ch-btn-icon"
+                    onClick={() => itinerary.shareCode && onShare(itinerary.shareCode)}
+                    title="Partager"
+                    disabled={!itinerary.shareCode}
+                >
+                    <Share2 size={16} color={itinerary.shareCode ? "#BB487C" : "#ccc"} />
                 </button>
                 <button
                     className="ch-btn-icon"
