@@ -1,4 +1,5 @@
 import './Panels.css';
+import { Flag, Rocket } from "lucide-react";
 import { TimespanOffset, type unitTimeSpan } from "../../customObject/TimeSpan.ts";
 import { useItinerary } from "../../customObject/Itinerary/UseItinerary.ts";
 import { itineraryModel } from "../../customObject/Itinerary/ItineraryStore.ts";
@@ -25,13 +26,19 @@ export default function InfoPanel() {
             {canDisplayTimes && (
                 <div className={"time-info"}>
                     <div className={"time-row"}>
-                        <span className={"time-label"}>🚀 Départ :</span>
+                        <span className={"time-label"}>
+                            <Rocket className={"time-icon"} aria-hidden={true} />
+                            Départ :
+                        </span>
                         <span className={"time-value"}>
                             {formatTime(departureTime)}
                         </span>
                     </div>
                     <div className={"time-row"}>
-                        <span className={"time-label"}>🏁 Arrivée :</span>
+                        <span className={"time-label"}>
+                            <Flag className={"time-icon"} aria-hidden={true} />
+                            Arrivée :
+                        </span>
                         <span className={"time-value"}>
                             {formatTime(arrivalTime)}
                         </span>
