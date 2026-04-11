@@ -431,3 +431,56 @@ h3, .stepTitle {
         padding-top: 4px;
     }
 }
+/*
+   Styles pour les horaires
+*/
+.time-info {
+    margin-top: clamp(6px, 1vh, 10px);
+    padding-top: clamp(6px, 1vh, 10px);
+    border-top: 2px solid rgba(187, 72, 124, 0.3);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(4px, 0.6vh, 6px);
+}
+
+.time-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+.time-label {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(9px, 1.6vw, 12px);
+    font-weight: 600;
+    color: #BB487C;
+}
+
+.time-value {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(10px, 1.8vw, 13px);
+    font-weight: 800;
+    color: #BB487C;
+    text-align: right;
+}
+
+@media (max-width: 780px) {
+    .time-label {
+        font-size: clamp(9px, 2vw, 11px);
+    }
+
+    .time-value {
+        font-size: clamp(10px, 2.2vw, 12px);
+    }
+}
+
+@media (max-width: 540px) {
+    .time-info {
+        gap: 3px;
+    }
+
+    .time-row {
+        gap: 6px;
+    }
+}

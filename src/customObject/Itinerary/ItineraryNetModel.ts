@@ -127,9 +127,9 @@ export class ItineraryNetModel {
             this.timeoutID = -1;
         }
         this.timeoutID = setTimeout(() => {
-                                            this.timeoutID = -1;
-                                            this.put().then();
-                                            }, 2000);
+            this.timeoutID = -1;
+            this.put().then();
+        }, 2000);
     }
 
     // Méthodes Privées
@@ -228,7 +228,7 @@ export class ItineraryNetModel {
                     isStartEnd: false,
                     content: {
                         title: seg.name,
-                        duration: new TimeSpan(seg.duration),
+                        duration: new TimeSpan(seg.duration * 1000),
                         distance: seg.distance,
                         geometry: this.normalizeNetGeometry(seg.geometry),
                         hour: new Date()
