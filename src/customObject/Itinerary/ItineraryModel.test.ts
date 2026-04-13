@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import ItineraryModel from './ItineraryModel';
 import { TimeSpan } from '../TimeSpan';
 import type { Itinerary, Segment, Step } from './types';
