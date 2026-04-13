@@ -92,7 +92,7 @@ export class ItineraryNetModel {
         }
 
         const request: ItineraryPatchRequest = {
-            estimatedDeparture: estimatedDeparture.toISOString(),
+           departureTime: estimatedDeparture.toISOString(),
         };
 
         try {
