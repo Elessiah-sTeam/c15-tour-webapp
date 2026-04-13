@@ -101,7 +101,9 @@ class ItineraryModel {
             ))
         }));
 
-        await this.netModel.patchEstimatedDeparture(departureDateTime);
+        if (typeof this.netModel.patchEstimatedDeparture === "function") {
+            await this.netModel.patchEstimatedDeparture(departureDateTime);
+        }
     }
 
     /**

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Settings, Save } from 'lucide-react';
 import './SettingsModal.css';
 
 interface SettingsModalProps {
@@ -77,7 +78,7 @@ export function SettingsModal({ isOpen, onClose, onSave, initialSettings }: Sett
                 {/* Header */}
                 <div className="settings-modal-header">
                     <h2>
-                        <span>⚙️</span>
+                        <Settings size={18} />
                         Paramètres globaux
                     </h2>
                     <button className="settings-modal-close" onClick={onClose}>
@@ -221,7 +222,7 @@ export function SettingsModal({ isOpen, onClose, onSave, initialSettings }: Sett
                         Annuler
                     </button>
                     <button className="settings-btn settings-btn-save" onClick={handleSave}>
-                        💾 Enregistrer
+                        <Save size={15} style={{ marginRight: 6, verticalAlign: 'middle' }} />Enregistrer
                     </button>
                 </div>
             </div>

@@ -32,7 +32,7 @@ function authHeaders(): HeadersInit {
 export class ItineraryNetModel {
     // Attributs
     public readonly store: ItineraryStore;
-    public timeoutID: number = -1;
+    private isDragging: boolean = false;
 
     // Constructeur
     constructor(store: ItineraryStore, post: boolean = false) {
@@ -152,19 +152,28 @@ export class ItineraryNetModel {
     }
 
     /**
-     * Permet de lancer un put 2s après la dernière modification
-     *
-     * Evite trop de sauvegarde, et des problèmes lors d'une réorganisation
+     * Lance un put immédiatement.
+     * Ne fait rien pendant un drag (voir startDrag/endDrag).
      */
     public setupSave(): void {
-        if (this.timeoutID != -1) {
-            clearTimeout(this.timeoutID);
-            this.timeoutID = -1;
-        }
-        this.timeoutID = setTimeout(() => {
-            this.timeoutID = -1;
-            this.put().then();
-        }, 2000);
+        if (this.isDragging) return;
+        this.put().then();
+    }
+
+    /**
+     * Signale le début d'un drag : bloque les appels setupSave intermédiaires
+     */
+    public startDrag(): void {
+        this.isDragging = true;
+    }
+
+    /**
+     * Signale la fin d'un drag : relance immédiatement un put sans délai
+     */
+    public endDrag(): void {
+        if (!this.isDragging) return;
+        this.isDragging = false;
+        this.put().then();
     }
 
     // Méthodes Privées
