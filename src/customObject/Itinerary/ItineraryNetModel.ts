@@ -32,6 +32,7 @@ export class ItineraryNetModel {
     // Attributs
     public readonly store: ItineraryStore;
     public timeoutID: number = -1;
+    private isDragging: boolean = false;
 
     // Constructeur
     constructor(store: ItineraryStore, post: boolean = false) {
@@ -120,8 +121,10 @@ export class ItineraryNetModel {
      * Permet de lancer un put 2s après la dernière modification
      *
      * Evite trop de sauvegarde, et des problèmes lors d'une réorganisation
+     * Ne fait rien pendant un drag (voir startDrag/endDrag)
      */
     public setupSave(): void {
+        if (this.isDragging) return;
         if (this.timeoutID != -1) {
             clearTimeout(this.timeoutID);
             this.timeoutID = -1;
@@ -130,6 +133,27 @@ export class ItineraryNetModel {
                                             this.timeoutID = -1;
                                             this.put().then();
                                             }, 2000);
+    }
+
+    /**
+     * Signale le début d'un drag : bloque les appels setupSave intermédiaires
+     * et annule tout timeout en cours
+     */
+    public startDrag(): void {
+        if (this.timeoutID != -1) {
+            clearTimeout(this.timeoutID);
+            this.timeoutID = -1;
+        }
+        this.isDragging = true;
+    }
+
+    /**
+     * Signale la fin d'un drag : relance immédiatement un put sans délai
+     */
+    public endDrag(): void {
+        if (!this.isDragging) return;
+        this.isDragging = false;
+        this.put().then();
     }
 
     // Méthodes Privées
