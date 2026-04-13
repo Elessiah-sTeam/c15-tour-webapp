@@ -6,14 +6,14 @@ import type { Itinerary, Segment, Step } from './types';
 // Mock ItineraryStore pour casser la dépendance circulaire
 // (ItineraryStore.ts crée une instance d'ItineraryModel au niveau module)
 vi.mock('./ItineraryStore', () => {
-  function createItineraryStore(initial?: any) {
-    let itinerary: any = initial ?? {
+  function createItineraryStore(initial?: Itinerary) {
+    let itinerary: Itinerary = initial ?? ({
       id: -1,
       name: 'Nouveau Convoi',
       totalDuration: { _duration: 0 },
       totalDistance: 0,
       segments: [],
-    };
+    } as unknown as Itinerary);
     const listeners = new Set<() => void>();
     return {
       getSnapshot: () => itinerary,
@@ -21,7 +21,7 @@ vi.mock('./ItineraryStore', () => {
         listeners.add(l);
         return () => listeners.delete(l);
       },
-      set(updater: (prev: any) => any) {
+      set(updater: (prev: Itinerary) => Itinerary) {
         itinerary = updater(itinerary);
         listeners.forEach(l => l());
       },

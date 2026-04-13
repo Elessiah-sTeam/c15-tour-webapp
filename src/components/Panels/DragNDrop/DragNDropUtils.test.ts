@@ -24,6 +24,7 @@ vi.mock('../../../auth/useAuth', () => ({
 
 import { getActiveItem, getActiveCat, reorderSegment, reorderItems } from './DragNDropUtils';
 import { TimeSpan } from '../../../customObject/TimeSpan';
+import type ItineraryModel from '../../../customObject/Itinerary/ItineraryModel';
 import type { Segment, Step, Itinerary } from '../../../customObject/Itinerary/types';
 import type { Active, Over } from '@dnd-kit/core';
 
@@ -118,7 +119,7 @@ describe('reorderSegment()', () => {
   it('appelle itineraryModel.reorderSegment avec l\'index correct', () => {
     const segs = [makeSegment('start'), makeSegment('seg-a'), makeSegment('end')];
     const itinerary = makeItinerary(segs);
-    const model = { reorderSegment: vi.fn() } as any;
+    const model = { reorderSegment: vi.fn() } as unknown as ItineraryModel;
     const active = makeActive('seg-a');
     const over = makeOver('end');
     reorderSegment(itinerary, model, active, over);
@@ -128,7 +129,7 @@ describe('reorderSegment()', () => {
 
 describe('reorderItems()', () => {
   it('ne fait rien si srcCategory absent', () => {
-    const model = { reorderStep: vi.fn() } as any;
+    const model = { reorderStep: vi.fn() } as unknown as ItineraryModel;
     const active = makeActive('step-1', undefined); // pas de categoryId
     const over = makeOver('step-2', 'seg-1');
     reorderItems(makeItinerary([]), model, active, over);
@@ -140,7 +141,7 @@ describe('reorderItems()', () => {
     const startSeg = makeSegment('start', [step], true);
     const over = makeOver('step-1', 'start');
     const active = makeActive('step-1', 'start');
-    const model = { reorderStep: vi.fn() } as any;
+    const model = { reorderStep: vi.fn() } as unknown as ItineraryModel;
     reorderItems(makeItinerary([startSeg]), model, active, over);
     expect(model.reorderStep).not.toHaveBeenCalled();
   });
@@ -151,7 +152,7 @@ describe('reorderItems()', () => {
     const seg = makeSegment('seg-a', [defaultStep, step2]);
     const active = makeActive('default-step', 'seg-a');
     const over = makeOver('step-2', 'seg-a');
-    const model = { reorderStep: vi.fn() } as any;
+    const model = { reorderStep: vi.fn() } as unknown as ItineraryModel;
     reorderItems(makeItinerary([seg]), model, active, over);
     expect(model.reorderStep).not.toHaveBeenCalled();
   });
@@ -161,7 +162,7 @@ describe('reorderItems()', () => {
     const s2 = makeStep('step-2');
     const seg = makeSegment('seg-a', [s1, s2]);
     const itinerary = makeItinerary([seg]);
-    const model = { reorderStep: vi.fn() } as any;
+    const model = { reorderStep: vi.fn() } as unknown as ItineraryModel;
     const active = makeActive('step-1', 'seg-a');
     const over = makeOver('step-2', 'seg-a');
     reorderItems(itinerary, model, active, over);
@@ -174,7 +175,7 @@ describe('reorderItems()', () => {
     const segA = makeSegment('seg-a', [s1]);
     const segB = makeSegment('seg-b', [s2]);
     const itinerary = makeItinerary([segA, segB]);
-    const model = { reorderStep: vi.fn() } as any;
+    const model = { reorderStep: vi.fn() } as unknown as ItineraryModel;
     const active = makeActive('step-1', 'seg-a');
     const over = makeOver('step-2', 'seg-b');
     reorderItems(itinerary, model, active, over);
