@@ -81,7 +81,7 @@ class ItineraryModel {
      * Toutes les heures de segments sont recalculees à partir de cette valeur.
      * @param departureDateTime nouvelle date/heure de depart
      */
-    setDepartureDateTime(departureDateTime: Date): void {
+    async setDepartureDateTime(departureDateTime: Date): Promise<void> {
         if (Number.isNaN(departureDateTime.getTime())) {
             return;
         }
@@ -97,9 +97,11 @@ class ItineraryModel {
                             ...seg.content,
                             hour: new Date(departureDateTime.getTime())
                         }
-                    }
+                }
             ))
         }));
+
+        await this.netModel.patchEstimatedDeparture(departureDateTime);
     }
 
     /**

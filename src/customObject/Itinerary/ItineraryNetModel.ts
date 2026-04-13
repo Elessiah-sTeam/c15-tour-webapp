@@ -6,6 +6,7 @@ import type {
 } from "./types.ts";
 
 import type {
+    ItineraryPatchRequest,
     ItineraryRequest,
     ItineraryResponse,
     SegmentRequest,
@@ -78,6 +79,40 @@ export class ItineraryNetModel {
         }
         await this.applyItinerary((await response.json()) as ItineraryResponse);
         return true;
+    }
+
+    /**
+     * Met a jour l'heure de depart cote backend pour recalculer les ETA.
+     * @param estimatedDeparture nouvelle heure de depart
+     */
+    public async patchEstimatedDeparture(estimatedDeparture: Date): Promise<boolean> {
+        const itinerary: Itinerary = this.store.getSnapshot();
+        if (itinerary.id == -1 || Number.isNaN(estimatedDeparture.getTime())) {
+            return false;
+        }
+
+        const request: ItineraryPatchRequest = {
+            estimatedDeparture: estimatedDeparture.toISOString(),
+        };
+
+        try {
+            const response: Response = await fetch(BACKEND_URL + `/tours/${itinerary.id}`, {
+                method: "PATCH",
+                headers: authHeaders(),
+                body: JSON.stringify(request),
+            });
+
+            if (!response.ok) {
+                console.error(`Erreur API: ${response.status} ${response.statusText}`);
+                return false;
+            }
+
+            await this.applyItinerary((await response.json()) as ItineraryResponse);
+            return true;
+        } catch (error) {
+            console.error("Erreur API: impossible de mettre a jour l'heure de depart", error);
+            return false;
+        }
     }
 
     /**
@@ -162,6 +197,11 @@ export class ItineraryNetModel {
         return netResponse;
     }
 
+    private normalizeNetDate(date: string | undefined): Date {
+        const normalized: Date = new Date(date ?? Date.now());
+        return Number.isNaN(normalized.getTime()) ? new Date() : normalized;
+    }
+
     /**
      * Transforme des steps Net en steps utilisable pour le front
      * @param waypoints steps Net à normaliser
@@ -192,11 +232,12 @@ export class ItineraryNetModel {
      * @private
      */
     private addStartEndSegment(segments: Segment[]): Segment[] {
+        const startHour: Date = segments[0]?.content.hour ?? new Date();
         const start: Segment = {
             id: "start",
             content: {
                 title: " ",
-                hour: new Date(),
+                hour: new Date(startHour.getTime()),
                 duration: new TimeSpan(0),
                 distance: 0,
                 geometry: undefined
@@ -231,7 +272,7 @@ export class ItineraryNetModel {
                         duration: new TimeSpan(seg.duration * 1000),
                         distance: seg.distance,
                         geometry: this.normalizeNetGeometry(seg.geometry),
-                        hour: new Date()
+                        hour: this.normalizeNetDate(seg.estimatedDeparture)
                     },
                     steps: steps,
                 }

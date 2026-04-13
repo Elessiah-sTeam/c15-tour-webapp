@@ -23,11 +23,16 @@ export type ItineraryRequest = {
     segments: SegmentRequest[],
 }
 
+export type ItineraryPatchRequest = {
+    estimatedDeparture: string,
+}
+
 export type SegmentResponse = {
     name: string,
     distance: number,
     duration: number,
     geometry: string,
+    estimatedDeparture: string,
     waypoints: Waypoint[],
 }
 
