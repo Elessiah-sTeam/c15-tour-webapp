@@ -24,7 +24,7 @@ export type ItineraryRequest = {
 }
 
 export type ItineraryPatchRequest = {
-    estimatedDeparture: string,
+    departureTime: string,
 }
 
 export type SegmentResponse = {
