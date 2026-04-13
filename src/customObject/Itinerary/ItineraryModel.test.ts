@@ -36,6 +36,7 @@ vi.mock('./ItineraryNetModel', () => ({
     timeoutID = -1;
     store = null;
     setupSave() {}
+    async patchEstimatedDeparture() { return true; }
     async put() { return true; }
     async post() { return true; }
     async get() { return undefined; }

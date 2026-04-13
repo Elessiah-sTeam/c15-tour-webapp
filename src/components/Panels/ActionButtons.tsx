@@ -90,7 +90,7 @@ export default function ActionButtons() {
         setShowSettings(true);
     };
 
-    const handleSaveSettings = (settings: GlobalSettings) => {
+    const handleSaveSettings = async(settings: GlobalSettings) => {
         // Sauvegarder avec l'ID du convoi
         const storageKey = `globalSettings_${itinerary.id}`;
         localStorage.setItem(storageKey, JSON.stringify(settings));
@@ -102,7 +102,7 @@ export default function ActionButtons() {
 
         const departureDateTime = buildDepartureDateTime(settings.departureDate, settings.departureTime);
         if (departureDateTime) {
-            itineraryModel.setDepartureDateTime(departureDateTime);
+            await itineraryModel.setDepartureDateTime(departureDateTime);
         }
     };
 
