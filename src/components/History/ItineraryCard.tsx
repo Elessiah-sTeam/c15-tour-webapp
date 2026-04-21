@@ -1,7 +1,7 @@
-import { Trash2, Share2, Download } from 'lucide-react';
-import { ConvoyThumbnail } from './ConvoyThumbnail';
-import type { ItineraryResponse, SegmentResponse } from '../../customObject/Itinerary/netTypes';
-import { downloadGpx, hasGpxGeometry } from '../../customObject/Itinerary/gpx.ts';
+import { Trash2, Share2, Download } from "lucide-react";
+import { ConvoyThumbnail } from "./ConvoyThumbnail";
+import type { ItineraryResponse, SegmentResponse } from "../../customObject/Itinerary/netTypes";
+import { downloadGpx, hasGpxGeometry } from "../../customObject/Itinerary/gpx.ts";
 
 interface ItineraryCardProps {
     itinerary: ItineraryResponse;
@@ -10,14 +10,14 @@ interface ItineraryCardProps {
     onShare: (shareCode: string) => void;
 }
 
-function getStatus(itinerary: ItineraryResponse): 'draft' | 'finalized' {
-    return itinerary.segments.every(s => s.waypoints.length >= 2) ? 'finalized' : 'draft';
+function getStatus(itinerary: ItineraryResponse): "draft" | "finalized" {
+    return itinerary.segments.every(s => s.waypoints.length >= 2) ? "finalized" : "draft";
 }
 
 function formatDuration(seconds: number): string {
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
-    return h > 0 ? `${h}h${m.toString().padStart(2, '0')}` : `${m}min`;
+    return h > 0 ? `${h}h${m.toString().padStart(2, "0")}` : `${m}min`;
 }
 
 function formatDistance(meters: number): string {
@@ -29,12 +29,12 @@ function countPoints(segments: SegmentResponse[]): number {
 }
 
 function getStartCity(segments: SegmentResponse[]): string {
-    return segments[0]?.waypoints[0]?.name || 'D\u00e9part';
+    return segments[0]?.waypoints[0]?.name || "D\u00e9part";
 }
 
 function getEndCity(segments: SegmentResponse[]): string {
     const last = segments[segments.length - 1];
-    return last?.waypoints[last.waypoints.length - 1]?.name || 'Arriv\u00e9e';
+    return last?.waypoints[last.waypoints.length - 1]?.name || "Arriv\u00e9e";
 }
 
 export function ItineraryCard({ itinerary, onOpen, onDelete, onShare }: ItineraryCardProps) {
@@ -42,6 +42,13 @@ export function ItineraryCard({ itinerary, onOpen, onDelete, onShare }: Itinerar
     const canDownloadGpx = hasGpxGeometry(itinerary.segments.map((segment) => ({
         geometry: segment.geometry,
     })));
+    const downloadLabel = canDownloadGpx
+        ? "T\u00e9l\u00e9charger le GPX"
+        : "T\u00e9l\u00e9chargement GPX indisponible";
+    const shareLabel = itinerary.shareCode
+        ? "Partager"
+        : "Partage indisponible";
+    const deleteLabel = "Supprimer";
 
     return (
         <div className="ch-card">
@@ -53,7 +60,7 @@ export function ItineraryCard({ itinerary, onOpen, onDelete, onShare }: Itinerar
                 <div className="ch-title-row">
                     <h3 className="ch-title">{itinerary.name}</h3>
                     <span className={`ch-badge ${status}`}>
-                        {status === 'draft' ? 'Brouillon' : 'Finalis\u00e9'}
+                        {status === "draft" ? "Brouillon" : "Finalis\u00e9"}
                     </span>
                 </div>
 
@@ -80,7 +87,8 @@ export function ItineraryCard({ itinerary, onOpen, onDelete, onShare }: Itinerar
                         onClick={() => downloadGpx(itinerary.name, itinerary.segments.map((segment) => ({
                             geometry: segment.geometry,
                         })))}
-                        title="T\u00e9l\u00e9charger le GPX"
+                        aria-label={downloadLabel}
+                        title={downloadLabel}
                         disabled={!canDownloadGpx}
                     >
                         <Download size={16} color={canDownloadGpx ? "#BB487C" : "#ccc"} />
@@ -88,7 +96,8 @@ export function ItineraryCard({ itinerary, onOpen, onDelete, onShare }: Itinerar
                     <button
                         className="ch-btn-icon"
                         onClick={() => itinerary.shareCode && onShare(itinerary.shareCode)}
-                        title="Partager"
+                        aria-label={shareLabel}
+                        title={shareLabel}
                         disabled={!itinerary.shareCode}
                     >
                         <Share2 size={16} color={itinerary.shareCode ? "#BB487C" : "#ccc"} />
@@ -96,7 +105,8 @@ export function ItineraryCard({ itinerary, onOpen, onDelete, onShare }: Itinerar
                     <button
                         className="ch-btn-icon"
                         onClick={() => onDelete(itinerary.id)}
-                        title="Supprimer"
+                        aria-label={deleteLabel}
+                        title={deleteLabel}
                     >
                         <Trash2 size={16} />
                     </button>
