@@ -427,6 +427,10 @@ h3, .stepTitle {
     align-items: center;
 }
 
+.action-buttons button:disabled {
+    cursor: default;
+}
+
 .click-input-wrapper {
     position: relative;
 }

@@ -1,6 +1,7 @@
-import { Trash2, Share2 } from 'lucide-react';
+import { Trash2, Share2, Download } from 'lucide-react';
 import { ConvoyThumbnail } from './ConvoyThumbnail';
 import type { ItineraryResponse, SegmentResponse } from '../../customObject/Itinerary/netTypes';
+import { downloadGpx, hasGpxGeometry } from '../../customObject/Itinerary/gpx.ts';
 
 interface ItineraryCardProps {
     itinerary: ItineraryResponse;
@@ -28,16 +29,19 @@ function countPoints(segments: SegmentResponse[]): number {
 }
 
 function getStartCity(segments: SegmentResponse[]): string {
-    return segments[0]?.waypoints[0]?.name || 'Départ';
+    return segments[0]?.waypoints[0]?.name || 'D\u00e9part';
 }
 
 function getEndCity(segments: SegmentResponse[]): string {
     const last = segments[segments.length - 1];
-    return last?.waypoints[last.waypoints.length - 1]?.name || 'Arrivée';
+    return last?.waypoints[last.waypoints.length - 1]?.name || 'Arriv\u00e9e';
 }
 
 export function ItineraryCard({ itinerary, onOpen, onDelete, onShare }: ItineraryCardProps) {
     const status = getStatus(itinerary);
+    const canDownloadGpx = hasGpxGeometry(itinerary.segments.map((segment) => ({
+        geometry: segment.geometry,
+    })));
 
     return (
         <div className="ch-card">
@@ -49,42 +53,54 @@ export function ItineraryCard({ itinerary, onOpen, onDelete, onShare }: Itinerar
                 <div className="ch-title-row">
                     <h3 className="ch-title">{itinerary.name}</h3>
                     <span className={`ch-badge ${status}`}>
-                        {status === 'draft' ? 'Brouillon' : 'Finalisé'}
+                        {status === 'draft' ? 'Brouillon' : 'Finalis\u00e9'}
                     </span>
                 </div>
 
                 <div className="ch-route">
-                    {getStartCity(itinerary.segments)} → {getEndCity(itinerary.segments)}
+                    {getStartCity(itinerary.segments)} {"\u2192"} {getEndCity(itinerary.segments)}
                 </div>
 
                 <div className="ch-stats">
                     <span>{countPoints(itinerary.segments)} points</span>
-                    <span className="ch-dot">•</span>
+                    <span className="ch-dot">{"\u2022"}</span>
                     <span>{formatDistance(itinerary.totalDistance)}</span>
-                    <span className="ch-dot">•</span>
+                    <span className="ch-dot">{"\u2022"}</span>
                     <span>{formatDuration(itinerary.totalDuration)}</span>
                 </div>
             </div>
 
             <div className="ch-actions">
                 <button className="ch-btn-open" onClick={() => onOpen(itinerary.id)}>
-                    Ouvrir ›
+                    {"Ouvrir \u203a"}
                 </button>
-                <button
-                    className="ch-btn-icon"
-                    onClick={() => itinerary.shareCode && onShare(itinerary.shareCode)}
-                    title="Partager"
-                    disabled={!itinerary.shareCode}
-                >
-                    <Share2 size={16} color={itinerary.shareCode ? "#BB487C" : "#ccc"} />
-                </button>
-                <button
-                    className="ch-btn-icon"
-                    onClick={() => onDelete(itinerary.id)}
-                    title="Supprimer"
-                >
-                    <Trash2 size={16} />
-                </button>
+                <div className="ch-actions-row">
+                    <button
+                        className="ch-btn-icon"
+                        onClick={() => downloadGpx(itinerary.name, itinerary.segments.map((segment) => ({
+                            geometry: segment.geometry,
+                        })))}
+                        title="T\u00e9l\u00e9charger le GPX"
+                        disabled={!canDownloadGpx}
+                    >
+                        <Download size={16} color={canDownloadGpx ? "#BB487C" : "#ccc"} />
+                    </button>
+                    <button
+                        className="ch-btn-icon"
+                        onClick={() => itinerary.shareCode && onShare(itinerary.shareCode)}
+                        title="Partager"
+                        disabled={!itinerary.shareCode}
+                    >
+                        <Share2 size={16} color={itinerary.shareCode ? "#BB487C" : "#ccc"} />
+                    </button>
+                    <button
+                        className="ch-btn-icon"
+                        onClick={() => onDelete(itinerary.id)}
+                        title="Supprimer"
+                    >
+                        <Trash2 size={16} />
+                    </button>
+                </div>
             </div>
         </div>
     );

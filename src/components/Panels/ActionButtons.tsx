@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Trash, Pencil, Settings, Upload, Share2 } from "lucide-react";
+import { Trash, Pencil, Settings, Share2, Download } from "lucide-react";
 import './Panels.css';
 import { deleteModStore } from "../../customObject/DeleteMod/DeleteModStore.ts";
 import { useDeleteMod } from "../../customObject/DeleteMod/useDeleteMod.ts";
@@ -9,6 +9,7 @@ import { SettingsModal } from "../SettingsModal/SettingsModal";
 import { loadGlobalSettings, persistGlobalSettings } from "../SettingsModal/settingsStorage.ts";
 import type { GlobalSettings } from "../SettingsModal/settingsTypes.ts";
 import ShareModal from "./ShareModal.tsx";
+import { downloadGpx, hasGpxGeometry } from "../../customObject/Itinerary/gpx.ts";
 
 function buildDepartureDateTime(departureDate: string, departureTime: string): Date | null {
     if (!departureDate || !departureTime) {
@@ -31,6 +32,9 @@ export default function ActionButtons() {
     const [showSettings, setShowSettings] = useState(false);
     const [showShare, setShowShare] = useState(false);
     const [currentSettings, setCurrentSettings] = useState<GlobalSettings | undefined>(undefined);
+    const canDownloadGpx = hasGpxGeometry(itinerary.segments.map((segment) => ({
+        geometry: segment.content.geometry,
+    })));
 
     const handleOpenSettings = () => {
         setCurrentSettings(loadGlobalSettings(itinerary));
@@ -81,11 +85,15 @@ export default function ActionButtons() {
                     <Share2 color={itinerary.shareCode ? "#BB487C" : "#ccc"}/>
                 </button>
                 <button
-                    className={"export-btn"}
-                    aria-label={"Export"}
-                    onClick={async() => {await itineraryModel.netModel.put()}}
+                    className={"download-gpx-btn"}
+                    aria-label={"Telecharger le GPX"}
+                    title={"Telecharger le GPX"}
+                    onClick={() => downloadGpx(itinerary.name, itinerary.segments.map((segment) => ({
+                        geometry: segment.content.geometry,
+                    })))}
+                    disabled={!canDownloadGpx}
                 >
-                    <Upload color={"#BB487C"}/>
+                    <Download color={canDownloadGpx ? "#BB487C" : "#ccc"}/>
                 </button>
             </div>
 
