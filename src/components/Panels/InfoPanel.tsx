@@ -17,7 +17,7 @@ export default function InfoPanel() {
 
     return (
         <div className={"info-panel"}>
-            <h1>Total</h1>
+            <h1 className={"info-panel-title"}>Total</h1>
             <div className={"total-info"}>
                 <h2>{itinerary.totalDistance.toFixed(2) + " KM"}</h2>
                 <h2>{itinerary.totalDuration.toFStr(TimespanOffset.MINUTES, units)}</h2>
