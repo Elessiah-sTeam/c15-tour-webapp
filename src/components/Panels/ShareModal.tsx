@@ -1,6 +1,7 @@
 import { X, Copy, Check } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import './ShareModal.css';
 
 type ShareModalProps = {
@@ -11,13 +12,24 @@ type ShareModalProps = {
 export default function ShareModal({ shareCode, onClose }: ShareModalProps) {
     const [copied, setCopied] = useState(false);
 
+    useEffect(() => {
+        const handleEscape = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                onClose();
+            }
+        };
+
+        window.addEventListener("keydown", handleEscape);
+        return () => window.removeEventListener("keydown", handleEscape);
+    }, [onClose]);
+
     const handleCopy = async () => {
         await navigator.clipboard.writeText(shareCode);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
 
-    return (
+    const modalContent = (
         <div className="share-overlay" onClick={onClose}>
             <div className="share-modal" onClick={(e) => e.stopPropagation()}>
                 <button className="share-close-btn" onClick={onClose} aria-label="Fermer">
@@ -46,4 +58,6 @@ export default function ShareModal({ shareCode, onClose }: ShareModalProps) {
             </div>
         </div>
     );
+
+    return createPortal(modalContent, document.body);
 }
