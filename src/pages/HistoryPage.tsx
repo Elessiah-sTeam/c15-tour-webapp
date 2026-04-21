@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, Search, Inbox } from 'lucide-react';
 import { ItineraryCard } from '../components/History/ItineraryCard';
+import ShareModal from '../components/Panels/ShareModal';
 import type { ItineraryResponse } from '../customObject/Itinerary/netTypes';
 import { itineraryModel } from '../customObject/Itinerary/ItineraryStore';
 import { getAuthToken, useAuth } from '../auth/useAuth';
@@ -27,6 +28,7 @@ export default function HistoryPage() {
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [totalElements, setTotalElements] = useState(0);
+    const [shareCode, setShareCode] = useState<string | null>(null);
 
     const loadItineraries = useCallback(async () => {
         try {
@@ -95,6 +97,7 @@ export default function HistoryPage() {
     };
 
     return (
+        <>
         <div className="convoy-history-page">
             <div className="map-background" />
 
@@ -164,6 +167,7 @@ export default function HistoryPage() {
                                 itinerary={itinerary}
                                 onOpen={handleOpenConvoy}
                                 onDelete={handleDelete}
+                                onShare={setShareCode}
                             />
                         ))}
                     </div>
@@ -193,5 +197,10 @@ export default function HistoryPage() {
                 )}
             </main>
         </div>
+
+        {shareCode && (
+            <ShareModal shareCode={shareCode} onClose={() => setShareCode(null)} />
+        )}
+        </>
     );
 }

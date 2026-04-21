@@ -15,6 +15,7 @@ function makeItinerary(): Itinerary {
     return {
         id: 42,
         name: "Convoi test",
+        shareCode: "",
         totalDuration: new TimeSpan(),
         totalDistance: 0,
         segments: [
@@ -132,7 +133,12 @@ describe("settingsStorage", () => {
         upsertSegmentPauseConfig(itinerary, "seg-1", "Segment 1", 40);
         removeSegmentPauseConfig(itinerary, "seg-1");
 
-        expect(loadGlobalSettings(itinerary).pauseConfigs).toEqual([
+        const itineraryWithoutSeg1 = {
+            ...itinerary,
+            segments: itinerary.segments.filter(s => s.id !== "seg-1")
+        };
+
+        expect(loadGlobalSettings(itineraryWithoutSeg1).pauseConfigs).toEqual([
             { segmentId: "seg-2", segmentName: "Segment 2", duration: 30 }
         ]);
     });

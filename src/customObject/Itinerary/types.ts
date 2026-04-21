@@ -43,6 +43,7 @@ export type Segment = {
 export type Itinerary = {
     id: number;
     name: string;
+    shareCode: string;
     totalDuration: TimeSpan;
     totalDistance: number;
     segments: Segment[];

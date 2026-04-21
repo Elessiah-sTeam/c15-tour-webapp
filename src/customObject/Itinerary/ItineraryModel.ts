@@ -57,6 +57,7 @@ class ItineraryModel {
             return this.formatItinerary({
                 id: -1,
                 name: "Nouveau Convoi",
+                shareCode: "",
                 totalDuration: new TimeSpan(),
                 totalDistance: 0,
                 segments: []
