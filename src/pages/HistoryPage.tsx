@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Search, Inbox } from 'lucide-react';
+import { House, LogOut, Search, Inbox } from 'lucide-react';
 import { ItineraryCard } from '../components/History/ItineraryCard';
 import ShareModal from '../components/Panels/ShareModal';
 import type { ItineraryResponse } from '../customObject/Itinerary/netTypes';
@@ -91,6 +91,10 @@ export default function HistoryPage() {
         navigate('/planner');
     };
 
+    const handleGoHome = () => {
+        navigate('/');
+    };
+
     const handleOpenConvoy = async (id: number) => {
         await itineraryModel.netModel.get(id);
         navigate('/planner?id=' + id);
@@ -106,6 +110,10 @@ export default function HistoryPage() {
                     <h1 className="ch-brand-title">C15 FIESTA TOUR</h1>
                 </div>
                 <div className="ch-header-actions">
+                    <button className="ch-btn-home" onClick={handleGoHome}>
+                        <House size={17} strokeWidth={2.3} />
+                        Accueil
+                    </button>
                     <button className="ch-btn-new" onClick={handleCreateNew}>
                         <span className="ch-plus">+</span>
                         Nouveau convoi

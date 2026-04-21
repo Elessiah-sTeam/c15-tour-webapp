@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Trash, Pencil, Settings, Share2, Download } from "lucide-react";
-import './Panels.css';
+import "./Panels.css";
 import { deleteModStore } from "../../customObject/DeleteMod/DeleteModStore.ts";
 import { useDeleteMod } from "../../customObject/DeleteMod/useDeleteMod.ts";
 import { itineraryModel } from "../../customObject/Itinerary/ItineraryStore.ts";
@@ -35,6 +35,16 @@ export default function ActionButtons() {
     const canDownloadGpx = hasGpxGeometry(itinerary.segments.map((segment) => ({
         geometry: segment.content.geometry,
     })));
+    const settingsLabel = "Param\u00e8tres globaux";
+    const deleteModeLabel = delMod
+        ? "Quitter le mode suppression"
+        : "Activer le mode suppression";
+    const shareLabel = itinerary.shareCode
+        ? "Partager"
+        : "Partage indisponible";
+    const downloadLabel = canDownloadGpx
+        ? "T\u00e9l\u00e9charger le GPX"
+        : "T\u00e9l\u00e9chargement GPX indisponible";
 
     const handleOpenSettings = () => {
         setCurrentSettings(loadGlobalSettings(itinerary));
@@ -59,41 +69,42 @@ export default function ActionButtons() {
             <div className={"action-buttons"}>
                 <button
                     className={"global-settings-btn"}
-                    aria-label={"Paramètres globaux"}
+                    aria-label={settingsLabel}
+                    title={settingsLabel}
                     onClick={handleOpenSettings}
                 >
-                    <Settings color={"#BB487C"}/>
+                    <Settings color={"#BB487C"} />
                 </button>
                 <button
                     className={"delete-btn"}
-                    aria-label={"Supprimer"}
-                    onClick={() => {deleteModStore.set(prev => !prev)}}
+                    aria-label={deleteModeLabel}
+                    title={deleteModeLabel}
+                    onClick={() => { deleteModStore.set(prev => !prev); }}
                 >
-                    { delMod
-                        ?
-                        <Pencil color={"#BB487C"}/>
-                        :
-                        <Trash color={"#BB487C"}/>
+                    {delMod
+                        ? <Pencil color={"#BB487C"} />
+                        : <Trash color={"#BB487C"} />
                     }
                 </button>
                 <button
                     className={"share-btn"}
-                    aria-label={"Partager"}
+                    aria-label={shareLabel}
+                    title={shareLabel}
                     onClick={() => setShowShare(true)}
                     disabled={!itinerary.shareCode}
                 >
-                    <Share2 color={itinerary.shareCode ? "#BB487C" : "#ccc"}/>
+                    <Share2 color={itinerary.shareCode ? "#BB487C" : "#ccc"} />
                 </button>
                 <button
                     className={"download-gpx-btn"}
-                    aria-label={"Telecharger le GPX"}
-                    title={"Telecharger le GPX"}
+                    aria-label={downloadLabel}
+                    title={downloadLabel}
                     onClick={() => downloadGpx(itinerary.name, itinerary.segments.map((segment) => ({
                         geometry: segment.content.geometry,
                     })))}
                     disabled={!canDownloadGpx}
                 >
-                    <Download color={canDownloadGpx ? "#BB487C" : "#ccc"}/>
+                    <Download color={canDownloadGpx ? "#BB487C" : "#ccc"} />
                 </button>
             </div>
 
