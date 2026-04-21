@@ -5,14 +5,9 @@ import { deleteModStore } from "../../customObject/DeleteMod/DeleteModStore.ts";
 import { useDeleteMod } from "../../customObject/DeleteMod/useDeleteMod.ts";
 import { itineraryModel } from "../../customObject/Itinerary/ItineraryStore.ts";
 import { useItinerary } from "../../customObject/Itinerary/UseItinerary.ts";
-import {
-    DEFAULT_ROUTE_SETTINGS,
-    formatLocalDate,
-    formatLocalTime,
-    getStoredSettings,
-    saveStoredSettings
-} from "../../customObject/Itinerary/routeSettings.ts";
-import { SettingsModal, type GlobalSettings, type PauseConfig } from "../SettingsModal/SettingsModal";
+import { SettingsModal } from "../SettingsModal/SettingsModal";
+import { loadGlobalSettings, persistGlobalSettings } from "../SettingsModal/settingsStorage.ts";
+import type { GlobalSettings } from "../SettingsModal/settingsTypes.ts";
 
 function buildDepartureDateTime(departureDate: string, departureTime: string): Date | null {
     if (!departureDate || !departureTime) {
@@ -36,52 +31,13 @@ export default function ActionButtons() {
     const [currentSettings, setCurrentSettings] = useState<GlobalSettings | undefined>(undefined);
 
     const handleOpenSettings = () => {
-
-        const isNewEmptyConvoy = itinerary.id === -1 &&
-            itinerary.segments.filter(s => !s.isStartEnd).length === 0;
-
-        const currentDeparture = itinerary.segments[0]?.content.hour ?? new Date();
-        const storedSettings = isNewEmptyConvoy ? {} : getStoredSettings(itinerary.id);
-        const baseSettings: GlobalSettings = {
-            convoyName: itinerary.name || storedSettings.convoyName || 'Mon convoi',
-            departureDate: storedSettings.departureDate || formatLocalDate(currentDeparture),
-            departureTime: storedSettings.departureTime || formatLocalTime(currentDeparture),
-            speedPercentage: storedSettings.speedPercentage ?? DEFAULT_ROUTE_SETTINGS.speedPercentage,
-            minSegmentDuration: storedSettings.minSegmentDuration ?? DEFAULT_ROUTE_SETTINGS.minSegmentDuration,
-            maxSegmentDuration: storedSettings.maxSegmentDuration ?? DEFAULT_ROUTE_SETTINGS.maxSegmentDuration,
-            pauseConfigs: (storedSettings.pauseConfigs ?? []).map((pause) => ({
-                segmentId: pause.segmentId ?? '',
-                segmentName: pause.segmentName ?? '',
-                duration: pause.duration ?? 30
-            }))
-        };
-
-        const pauseConfigs: PauseConfig[] = itinerary.segments
-            .filter(seg => !seg.isStartEnd && seg.id !== 'start' && seg.id !== 'end')
-            .map(seg => {
-                const existingPause = baseSettings.pauseConfigs.find((pause) =>
-                    pause.segmentId === seg.id || pause.segmentName === seg.content.title
-                );
-                return {
-                    segmentId: seg.id,
-                    segmentName: seg.content.title || 'Segment sans nom',
-                    duration: existingPause?.duration || 30
-                };
-            });
-
-        setCurrentSettings({
-            ...baseSettings,
-            convoyName: itinerary.name || baseSettings.convoyName || 'Mon convoi',
-            pauseConfigs
-        });
-
+        setCurrentSettings(loadGlobalSettings(itinerary));
         setShowSettings(true);
     };
 
     const handleSaveSettings = async(settings: GlobalSettings) => {
-        saveStoredSettings(itinerary.id, settings);
+        persistGlobalSettings(itinerary.id, settings);
 
-        // Synchroniser le nom du convoi avec itineraryModel
         if (settings.convoyName && settings.convoyName !== itinerary.name) {
             itineraryModel.renameItinerary(settings.convoyName);
         }

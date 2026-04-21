@@ -41,6 +41,7 @@ export default function SortablePDP({visible, item, categoryId, isStartEnd, hour
               itemId={item.id}
               categoryId={categoryId}
               isDefault={item.isDefaultSegStart}
+              title={item.content.title}
           >
               <SubTitleWHour
                   tag={isStartEnd ? "h2" : "h3"}

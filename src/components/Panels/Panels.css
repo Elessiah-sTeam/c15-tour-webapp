@@ -18,17 +18,18 @@
 
 .config-panel {
     flex: 1 1 auto;
-    min-height: clamp(190px, 42vh, 320px);
+    min-height: clamp(170px, 36vh, 290px);
 }
 
 .info-panel {
     flex: 0 0 auto;
     margin-top: 0;
-    height: clamp(58px, 7.4vh, 90px);
-    padding: clamp(8px, 1.2vh, 12px) clamp(12px, 1.6vw, 16px);
-    justify-content: center;
+    min-height: clamp(108px, 15vh, 148px);
+    padding: clamp(12px, 1.6vh, 16px) clamp(12px, 1.6vw, 16px) clamp(10px, 1.2vh, 12px) clamp(12px, 1.6vw, 16px);
+    justify-content: flex-start;
     align-items: stretch;
     gap: clamp(4px, 0.8vh, 8px);
+    overflow: hidden;
 }
 
 .route {
@@ -70,6 +71,7 @@ h1, .title {
     letter-spacing: 0.3px;
     text-align: center;
     text-transform: uppercase;
+    margin: 0;
 }
 
 .title-row {
@@ -197,6 +199,140 @@ h3, .stepTitle {
     flex: 0 0 auto;
 }
 
+.item-action-trigger {
+    border: none;
+    background: transparent;
+    border-radius: 0;
+    width: auto;
+    height: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    cursor: pointer;
+    padding: 0;
+    box-shadow: none;
+    transition: transform 120ms ease, opacity 120ms ease;
+}
+
+.item-action-trigger:hover {
+    transform: translateY(-1px);
+    background: transparent;
+    opacity: 0.8;
+}
+
+.item-action-trigger-delete {
+    border: none;
+}
+
+.item-action-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 25000;
+    background: rgba(100, 34, 65, 0.14);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+.item-action-modal {
+    width: min(320px, 100%);
+    border: 2px solid #BB487C;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 20px 40px rgba(95, 23, 58, 0.24);
+    color: #BB487C;
+    padding: 14px;
+}
+
+.item-action-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.item-action-modal-header h3 {
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.item-action-close {
+    border: none;
+    background: transparent;
+    color: #BB487C;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.item-action-modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.item-action-label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.item-action-input {
+    border: 1.5px solid rgba(187, 72, 124, 0.35);
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.7);
+    color: #BB487C;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+}
+
+.item-action-modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.item-action-btn {
+    border: none;
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.item-action-btn-delete {
+    background: rgba(187, 72, 124, 0.12);
+    color: #BB487C;
+}
+
+.item-action-btn-save {
+    background: #BB487C;
+    color: #fff;
+}
+
 .hour {
     font-family: 'Montserrat', sans-serif;
     font-weight: 800;
@@ -227,9 +363,15 @@ h3, .stepTitle {
     text-align: right;
 }
 
+.info-panel-title,
 .info-panel .title {
     text-align: center;
     width: 100%;
+}
+
+.info-panel-title {
+    flex: 0 0 auto;
+    padding-top: 4px;
 }
 
 .add-step-btn, .add-seg-btn {
@@ -329,7 +471,7 @@ h3, .stepTitle {
     }
 
     .config-panel {
-        min-height: clamp(170px, 48vh, 280px);
+        min-height: clamp(160px, 42vh, 250px);
         gap: clamp(6px, 1vh, 10px);
     }
 
@@ -346,7 +488,11 @@ h3, .stepTitle {
 @media (max-width: 780px) {
     .config-panel {
         padding: clamp(9px, 1.2vh, 12px) clamp(10px, 2.4vw, 14px);
-        min-height: clamp(150px, 52vh, 260px);
+        min-height: clamp(145px, 44vh, 235px);
+    }
+
+    .info-panel {
+        min-height: clamp(118px, 17vh, 156px);
     }
 
     .route {
@@ -384,7 +530,7 @@ h3, .stepTitle {
 
     .info-panel {
         padding: 10px 12px;
-        height: clamp(52px, 10vh, 80px);
+        min-height: clamp(124px, 20vh, 164px);
     }
 
     .item {
@@ -420,7 +566,11 @@ h3, .stepTitle {
 
     .config-panel {
         max-height: calc(100vh - 110px);
-        min-height: clamp(160px, 44vh, 260px);
+        min-height: clamp(145px, 36vh, 230px);
+    }
+
+    .info-panel {
+        min-height: clamp(108px, 16vh, 145px);
     }
 
     .route {

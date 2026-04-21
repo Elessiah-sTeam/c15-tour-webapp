@@ -1,28 +1,14 @@
-import { useState, useEffect } from 'react';
+import { type MouseEvent, useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Settings, Save } from 'lucide-react';
 import './SettingsModal.css';
+import type { GlobalSettings } from './settingsTypes.ts';
 
 interface SettingsModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSave: (settings: GlobalSettings) => void;
     initialSettings?: GlobalSettings;
-}
-
-export interface PauseConfig {
-    segmentId: string;
-    segmentName: string;
-    duration: number;
-}
-
-export interface GlobalSettings {
-    convoyName: string;
-    departureDate: string;
-    departureTime: string;
-    speedPercentage: number;
-    minSegmentDuration: number;
-    maxSegmentDuration: number;
-    pauseConfigs: PauseConfig[];
 }
 
 const defaultSettings: GlobalSettings = {
@@ -57,7 +43,7 @@ export function SettingsModal({ isOpen, onClose, onSave, initialSettings }: Sett
         onClose();
     };
 
-    const handleOverlayClick = (e: React.MouseEvent) => {
+    const handleOverlayClick = (e: MouseEvent<HTMLDivElement>) => {
         if (e.target === e.currentTarget) {
             onClose();
         }
@@ -72,7 +58,7 @@ export function SettingsModal({ isOpen, onClose, onSave, initialSettings }: Sett
         }));
     };
 
-    return (
+    return createPortal(
         <div className="settings-modal-overlay" onClick={handleOverlayClick}>
             <div className="settings-modal" onClick={e => e.stopPropagation()}>
                 {/* Header */}
@@ -226,6 +212,7 @@ export function SettingsModal({ isOpen, onClose, onSave, initialSettings }: Sett
                     </button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }
