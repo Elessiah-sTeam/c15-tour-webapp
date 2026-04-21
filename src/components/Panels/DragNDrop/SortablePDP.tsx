@@ -37,7 +37,7 @@ export default function SortablePDP({visible, item, categoryId, isStartEnd, hour
           <Item
               isStartEnd={isStartEnd}
               duration={item.content.duration}
-              hour={hour}
+              hour={isStartEnd ? hour : undefined}
               itemId={item.id}
               categoryId={categoryId}
               isDefault={item.isDefaultSegStart}
@@ -45,7 +45,7 @@ export default function SortablePDP({visible, item, categoryId, isStartEnd, hour
           >
               <SubTitleWHour
                   tag={isStartEnd ? "h2" : "h3"}
-                  imgPath={(isStartEnd || item.isDefaultSegStart) ? '/icons/depart-icon.png' : '/icons/pdp-icon.png'}
+                  imgPath={isStartEnd ? '/icons/depart-icon.png' : '/icons/pdp-icon.png'}
                   segmentId={categoryId}
                   stepId={item.id}
                   subtitle={item.content.title}

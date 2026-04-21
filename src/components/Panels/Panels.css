@@ -199,6 +199,15 @@ h3, .stepTitle {
     flex: 0 0 auto;
 }
 
+.item-trailing {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: clamp(6px, 0.9vw, 10px);
+    flex: 0 0 auto;
+    min-width: clamp(44px, 7vw, 64px);
+}
+
 .item-action-trigger {
     border: none;
     background: transparent;
@@ -223,6 +232,12 @@ h3, .stepTitle {
 
 .item-action-trigger-delete {
     border: none;
+}
+
+.item-action-placeholder {
+    width: clamp(12px, 1.8vw, 16px);
+    height: clamp(12px, 1.8vw, 16px);
+    flex: 0 0 auto;
 }
 
 .item-action-modal-overlay {
@@ -340,9 +355,9 @@ h3, .stepTitle {
     font-size: clamp(10px, 1.9vw, 13px);
     line-height: 1;
     text-align: right;
-    margin-left: auto;
     white-space: nowrap;
     flex: 0 0 auto;
+    min-width: 4ch;
 }
 
 .total-info {
@@ -375,10 +390,12 @@ h3, .stepTitle {
 }
 
 .add-step-btn, .add-seg-btn {
-    text-decoration: underline;
+    text-decoration: none;
     font-size: clamp(10px, 1.8vw, 12px);
+    font-weight: 700;
     padding: 0;
     cursor: pointer;
+    line-height: 1.2;
 }
 
 .add-step-btn {
@@ -390,7 +407,7 @@ h3, .stepTitle {
 }
 
 .add-step-btn:hover, .add-seg-btn:hover {
-    font-weight: bold;
+    opacity: 0.85;
 }
 
 .action-buttons {
