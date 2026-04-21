@@ -7,6 +7,7 @@ function makeDefaultItinerary(): Itinerary {
   return {
     id: -1,
     name: 'Test',
+    shareCode: '',
     totalDuration: new TimeSpan(),
     totalDistance: 0,
     segments: [],

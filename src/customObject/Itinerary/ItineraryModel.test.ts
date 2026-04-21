@@ -82,6 +82,7 @@ function createModel(initial?: Partial<Itinerary>): ItineraryModel {
   const base: Itinerary = {
     id: -1,
     name: 'Test',
+    shareCode: '',
     totalDuration: new TimeSpan(),
     totalDistance: 0,
     segments: [],
@@ -122,6 +123,7 @@ describe('ItineraryModel', () => {
         initial: {
           id: -1,
           name: 'X',
+          shareCode: '',
           totalDuration: new TimeSpan(),
           totalDistance: 0,
           segments: [
@@ -139,6 +141,7 @@ describe('ItineraryModel', () => {
         initial: {
           id: -1,
           name: 'X',
+          shareCode: '',
           totalDuration: new TimeSpan(),
           totalDistance: 0,
           segments: [

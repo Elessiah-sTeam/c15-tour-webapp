@@ -15,6 +15,7 @@ function makeItinerary(): Itinerary {
     return {
         id: 42,
         name: "Convoi test",
+        shareCode: "",
         totalDuration: new TimeSpan(),
         totalDistance: 0,
         segments: [
