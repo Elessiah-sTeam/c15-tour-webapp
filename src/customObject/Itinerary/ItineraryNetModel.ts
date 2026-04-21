@@ -17,6 +17,13 @@ import {TimeSpan} from "../TimeSpan.ts";
 import type {Feature, LineString} from "geojson";
 import {updateStarts} from "./utils.ts";
 import {getAuthToken} from "../../auth/useAuth";
+import {
+    DEFAULT_ROUTE_SETTINGS,
+    getStoredSettings,
+    syncStoredSettingsFromResponse,
+    type StoredGlobalSettings,
+    type StoredPauseConfig
+} from "./routeSettings.ts";
 
 
 const BACKEND_URL: string = "http://localhost:8080"
@@ -50,7 +57,7 @@ export class ItineraryNetModel {
      */
     public async get(id: number): Promise<void> {
         const response: ItineraryResponse = await this.retrieveItinerary(id);
-        await this.applyItinerary(response);
+        await this.applyItinerary(response, this.store.getSnapshot().id);
     }
 
     /**
@@ -77,7 +84,7 @@ export class ItineraryNetModel {
             console.error(`Erreur API: ${response.status} ${response.statusText}`);
             return false;
         }
-        await this.applyItinerary((await response.json()) as ItineraryResponse);
+        await this.applyItinerary((await response.json()) as ItineraryResponse, itinerary.id);
         return true;
     }
 
@@ -107,7 +114,7 @@ export class ItineraryNetModel {
                 return false;
             }
 
-            await this.applyItinerary((await response.json()) as ItineraryResponse);
+            await this.applyItinerary((await response.json()) as ItineraryResponse, itinerary.id);
             return true;
         } catch (error) {
             console.error("Erreur API: impossible de mettre a jour l'heure de depart", error);
@@ -146,7 +153,7 @@ export class ItineraryNetModel {
             return false;
         }
 
-        await this.applyItinerary(itinerary);
+        await this.applyItinerary(itinerary, this.store.getSnapshot().id);
 
         return true;
     }
@@ -294,7 +301,8 @@ export class ItineraryNetModel {
      * @param response Itinéraire reçu à appliquer
      * @private
      */
-    private async applyItinerary(response: ItineraryResponse): Promise<void> {
+    private async applyItinerary(response: ItineraryResponse, previousItineraryId: number): Promise<void> {
+        syncStoredSettingsFromResponse(previousItineraryId, response);
         this.store.set(() => {
             // Une ref pour incrémenter au sein des fonctions et pas perdre le fil
             const refId: {id: number} = {id: 0};
@@ -360,12 +368,31 @@ export class ItineraryNetModel {
         return copy;
     }
 
+    private buildDepartureTime(settings: StoredGlobalSettings): string | undefined {
+        if (!settings.departureDate || !settings.departureTime) {
+            return undefined;
+        }
+
+        const departure: Date = new Date(`${settings.departureDate}T${settings.departureTime}`);
+        return Number.isNaN(departure.getTime()) ? undefined : departure.toISOString();
+    }
+
+    private getPauseDuration(segment: Segment,
+                             settings: StoredGlobalSettings): number | undefined {
+        const pause: StoredPauseConfig | undefined = settings.pauseConfigs?.find((config: StoredPauseConfig) =>
+            config.segmentId === segment.id || config.segmentName === segment.content.title
+        );
+
+        return typeof pause?.duration === "number" ? pause.duration : undefined;
+    }
+
     /**
      * Transforme le tableau de segments en segments expédiable au backend
      * @param segments Segments à transformer
      * @private
      */
-    private buildNetSegments(segments: Segment[]): SegmentRequest[] | null {
+    private buildNetSegments(segments: Segment[],
+                             settings: StoredGlobalSettings): SegmentRequest[] | null {
         if (!this.checkSegmentsValidity(segments))
             return null;
         const copy: Segment[] = this.segmentsDeepCopy(segments);
@@ -376,6 +403,7 @@ export class ItineraryNetModel {
         return copy.map((seg: Segment) => {
             return {
                 name: seg.content.title.length > 1 ? seg.content.title : "No Name",
+                pauseDuration: this.getPauseDuration(seg, settings),
                 waypoints: this.buildNetWaypoints(seg.steps)
             }
         })
@@ -387,12 +415,17 @@ export class ItineraryNetModel {
      */
     private buildNetObject(): ItineraryRequest | null {
         const itinerary: Itinerary = this.store.getSnapshot();
-        const netSegments: SegmentRequest[] | null = this.buildNetSegments(itinerary.segments);
+        const settings: StoredGlobalSettings = getStoredSettings(itinerary.id);
+        const netSegments: SegmentRequest[] | null = this.buildNetSegments(itinerary.segments, settings);
         if (!netSegments)
             return null;
 
         return {
             name: itinerary.name.length > 1 ? itinerary.name : "No Name",
+            departureTime: this.buildDepartureTime(settings),
+            speedPercentage: settings.speedPercentage ?? DEFAULT_ROUTE_SETTINGS.speedPercentage,
+            minSegmentDuration: settings.minSegmentDuration ?? DEFAULT_ROUTE_SETTINGS.minSegmentDuration,
+            maxSegmentDuration: settings.maxSegmentDuration ?? DEFAULT_ROUTE_SETTINGS.maxSegmentDuration,
             segments: netSegments,
         }
     }

@@ -15,11 +15,16 @@ export type Waypoint = {
 
 export type SegmentRequest = {
     name: string,
+    pauseDuration?: number,
     waypoints: Waypoint[],
 }
 
 export type ItineraryRequest = {
     name: string,
+    departureTime?: string,
+    speedPercentage: number,
+    minSegmentDuration: number,
+    maxSegmentDuration: number,
     segments: SegmentRequest[],
 }
 
@@ -29,6 +34,7 @@ export type ItineraryPatchRequest = {
 
 export type SegmentResponse = {
     name: string,
+    pauseDuration?: number,
     distance: number,
     duration: number,
     geometry: string,
@@ -40,6 +46,10 @@ export type ItineraryResponse = {
     id: number,
     name: string,
     shareCode: string,
+    departureTime?: string,
+    speedPercentage?: number,
+    minSegmentDuration?: number,
+    maxSegmentDuration?: number,
     totalDistance: number,
     totalDuration: number,
     segments: SegmentResponse[]
