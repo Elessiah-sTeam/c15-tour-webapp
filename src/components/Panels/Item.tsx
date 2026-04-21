@@ -103,37 +103,39 @@ export default function Item({
                 <div className={"left-part-item"}>
                     {children}
                 </div>
-                {isStartEnd
-                    ? <b className={"hour"}>{hour?.getHours()}:{hour?.getMinutes().toString().padStart(2, "0")}</b>
-                    : <b className={"hour"}>{formatPanelDuration(duration)}</b>}
-                {isDefault
-                    ? <></>
-                    : delMod
-                        ? (
-                            <button
-                                type="button"
-                                className={"item-action-trigger item-action-trigger-delete"}
-                                aria-label={"Supprimer"}
-                                onPointerDown={(event) => event.stopPropagation()}
-                                onClick={(event) => {
-                                    event.stopPropagation();
-                                    handleDelete();
-                                }}
-                            >
-                                <Trash className={"reorder-icon"} color={"#BB487C"} />
-                            </button>
-                        )
-                        : (
-                            <button
-                                type="button"
-                                className={"item-action-trigger"}
-                                aria-label={"Modifier"}
-                                onPointerDown={(event) => event.stopPropagation()}
-                                onClick={handleOpenActions}
-                            >
-                                <Pencil className={"reorder-icon"} color={"#BB487C"} />
-                            </button>
-                        )}
+                <div className={"item-trailing"}>
+                    {isStartEnd
+                        ? <b className={"hour"}>{hour?.getHours()}:{hour?.getMinutes().toString().padStart(2, "0")}</b>
+                        : <b className={"hour"}>{formatPanelDuration(duration)}</b>}
+                    {isDefault
+                        ? <span className={"item-action-placeholder"} aria-hidden={true}></span>
+                        : delMod
+                            ? (
+                                <button
+                                    type="button"
+                                    className={"item-action-trigger item-action-trigger-delete"}
+                                    aria-label={"Supprimer"}
+                                    onPointerDown={(event) => event.stopPropagation()}
+                                    onClick={(event) => {
+                                        event.stopPropagation();
+                                        handleDelete();
+                                    }}
+                                >
+                                    <Trash className={"reorder-icon"} color={"#BB487C"} />
+                                </button>
+                            )
+                            : (
+                                <button
+                                    type="button"
+                                    className={"item-action-trigger"}
+                                    aria-label={"Modifier"}
+                                    onPointerDown={(event) => event.stopPropagation()}
+                                    onClick={handleOpenActions}
+                                >
+                                    <Pencil className={"reorder-icon"} color={"#BB487C"} />
+                                </button>
+                            )}
+                </div>
             </div>
             <ItemActionModal
                 isOpen={showActionModal}
