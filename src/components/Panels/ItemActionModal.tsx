@@ -14,43 +14,30 @@ type ItemActionModalProps = {
     onDelete: () => void;
 };
 
-export default function ItemActionModal({
-    isOpen,
+export default function ItemActionModal({ isOpen, ...props }: ItemActionModalProps) {
+    if (!isOpen) return null;
+    return <ItemActionModalContent {...props} />;
+}
+
+function ItemActionModalContent({
     mode,
     initialName,
     initialPauseDuration,
     onClose,
     onSave,
     onDelete
-}: ItemActionModalProps) {
+}: Omit<ItemActionModalProps, 'isOpen'>) {
     const [name, setName] = useState(initialName);
     const [pauseDuration, setPauseDuration] = useState(initialPauseDuration ?? DEFAULT_PAUSE_DURATION);
 
     useEffect(() => {
-        if (!isOpen) {
-            return;
-        }
-
-        setName(initialName);
-        setPauseDuration(initialPauseDuration ?? DEFAULT_PAUSE_DURATION);
-    }, [initialName, initialPauseDuration, isOpen]);
-
-    useEffect(() => {
-        if (!isOpen) {
-            return undefined;
-        }
-
         const previousOverflow = document.body.style.overflow;
         document.body.style.overflow = "hidden";
 
         return () => {
             document.body.style.overflow = previousOverflow;
         };
-    }, [isOpen]);
-
-    if (!isOpen) {
-        return null;
-    }
+    }, []);
 
     const handleOverlayClick = (event: MouseEvent<HTMLDivElement>) => {
         if (event.target === event.currentTarget) {
