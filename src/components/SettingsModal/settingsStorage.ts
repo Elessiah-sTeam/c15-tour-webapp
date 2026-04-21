@@ -2,6 +2,10 @@ import type { Itinerary, Segment } from "../../customObject/Itinerary/types.ts";
 import type { GlobalSettings, PauseConfig } from "./settingsTypes.ts";
 import { DEFAULT_PAUSE_DURATION } from "./settingsTypes.ts";
 
+type StoredGlobalSettings = Partial<GlobalSettings> & {
+    removedPauseSegmentIds?: string[];
+};
+
 function formatLocalDate(date: Date): string {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -37,11 +41,17 @@ export function createDefaultGlobalSettings(itinerary: Itinerary): GlobalSetting
     };
 }
 
-export function buildPauseConfigs(itinerary: Itinerary, baseSettings: GlobalSettings): PauseConfig[] {
+export function buildPauseConfigs(itinerary: Itinerary, baseSettings: StoredGlobalSettings): PauseConfig[] {
+    const removedPauseSegmentIds = new Set(baseSettings.removedPauseSegmentIds ?? []);
+    const existingPauseConfigs = baseSettings.pauseConfigs ?? [];
+
     return itinerary.segments
         .filter(isRegularSegment)
+        .filter((segment) => !removedPauseSegmentIds.has(segment.id))
         .map((segment) => {
-            const existingPause = baseSettings.pauseConfigs.find((pause) => pause.segmentId === segment.id);
+            const existingPause = existingPauseConfigs.find((pause) =>
+                pause.segmentId === segment.id || pause.segmentName === segment.content.title
+            );
 
             return {
                 segmentId: segment.id,
@@ -60,22 +70,31 @@ export function loadGlobalSettings(itinerary: Itinerary): GlobalSettings {
     const isNewEmptyConvoy = itinerary.id === -1 &&
         itinerary.segments.filter(isRegularSegment).length === 0;
 
-    let baseSettings: GlobalSettings | null = null;
+    let baseSettings: StoredGlobalSettings | null = null;
     const saved = localStorage.getItem(storageKey);
 
     if (saved && !isNewEmptyConvoy) {
         try {
-            baseSettings = JSON.parse(saved) as GlobalSettings;
+            baseSettings = JSON.parse(saved) as StoredGlobalSettings;
         } catch {
             baseSettings = null;
         }
     }
 
-    const safeSettings = baseSettings ?? createDefaultGlobalSettings(itinerary);
+    const defaultSettings = createDefaultGlobalSettings(itinerary);
+    const safeSettings: StoredGlobalSettings = {
+        ...defaultSettings,
+        ...baseSettings
+    };
 
     return {
         ...safeSettings,
-        convoyName: itinerary.name || safeSettings.convoyName || "Mon convoi",
+        convoyName: itinerary.name || safeSettings.convoyName || defaultSettings.convoyName,
+        departureDate: safeSettings.departureDate || defaultSettings.departureDate,
+        departureTime: safeSettings.departureTime || defaultSettings.departureTime,
+        speedPercentage: safeSettings.speedPercentage ?? defaultSettings.speedPercentage,
+        minSegmentDuration: safeSettings.minSegmentDuration ?? defaultSettings.minSegmentDuration,
+        maxSegmentDuration: safeSettings.maxSegmentDuration ?? defaultSettings.maxSegmentDuration,
         pauseConfigs: buildPauseConfigs(itinerary, safeSettings)
     };
 }
@@ -92,6 +111,7 @@ export function upsertSegmentPauseConfig(
     duration: number
 ): GlobalSettings {
     const currentSettings = loadGlobalSettings(itinerary);
+    const storedSettings = getStoredSettings(itinerary.id);
     const normalizedDuration = Math.max(0, Math.min(120, Number.isFinite(duration) ? duration : DEFAULT_PAUSE_DURATION));
     const nextPauseConfigs = currentSettings.pauseConfigs.some((pause) => pause.segmentId === segmentId)
         ? currentSettings.pauseConfigs.map((pause) =>
@@ -106,8 +126,10 @@ export function upsertSegmentPauseConfig(
 
     const nextSettings = {
         ...currentSettings,
+        removedPauseSegmentIds: (storedSettings.removedPauseSegmentIds ?? []).filter((id) => id !== segmentId),
         pauseConfigs: buildPauseConfigs(itinerary, {
             ...currentSettings,
+            removedPauseSegmentIds: (storedSettings.removedPauseSegmentIds ?? []).filter((id) => id !== segmentId),
             pauseConfigs: nextPauseConfigs
         })
     };
@@ -118,11 +140,26 @@ export function upsertSegmentPauseConfig(
 
 export function removeSegmentPauseConfig(itinerary: Itinerary, segmentId: string): GlobalSettings {
     const currentSettings = loadGlobalSettings(itinerary);
+    const storedSettings = getStoredSettings(itinerary.id);
     const nextSettings = {
         ...currentSettings,
+        removedPauseSegmentIds: [...new Set([...(storedSettings.removedPauseSegmentIds ?? []), segmentId])],
         pauseConfigs: currentSettings.pauseConfigs.filter((pause) => pause.segmentId !== segmentId)
     };
 
     persistGlobalSettings(itinerary.id, nextSettings);
     return nextSettings;
+}
+
+function getStoredSettings(itineraryId: number): StoredGlobalSettings {
+    const saved = localStorage.getItem(getGlobalSettingsStorageKey(itineraryId));
+    if (!saved) {
+        return { removedPauseSegmentIds: [], pauseConfigs: [] } as StoredGlobalSettings;
+    }
+
+    try {
+        return JSON.parse(saved) as StoredGlobalSettings;
+    } catch {
+        return { removedPauseSegmentIds: [], pauseConfigs: [] } as StoredGlobalSettings;
+    }
 }
