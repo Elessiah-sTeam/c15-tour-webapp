@@ -1,6 +1,7 @@
 import { MapContainer, TileLayer, Polyline, CircleMarker } from 'react-leaflet';
 import type { SegmentResponse } from '../../customObject/Itinerary/netTypes';
 import 'leaflet/dist/leaflet.css';
+import { extractLineStringCoordinates } from '../../customObject/Itinerary/gpx.ts';
 
 interface ConvoyThumbnailProps {
     segments: SegmentResponse[];
@@ -41,9 +42,9 @@ export function ConvoyThumbnail({ segments }: ConvoyThumbnailProps) {
     segments.forEach(seg => {
         if (seg.geometry) {
             try {
-                const geojson = JSON.parse(seg.geometry);
-                if (geojson.coordinates) {
-                    const latlngs = geojson.coordinates.map((coord: number[]) =>
+                const coordinates = extractLineStringCoordinates(seg.geometry);
+                if (coordinates.length > 0) {
+                    const latlngs = coordinates.map((coord) =>
                         [coord[1], coord[0]] as [number, number]
                     );
                     routes.push(latlngs);
