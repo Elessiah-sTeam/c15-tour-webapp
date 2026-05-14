@@ -8,7 +8,8 @@ import {
 } from "../../components/SettingsModal/settingsStorage.ts";
 
 /**
- * Fonction donnant l'accès du store au composant qui l'appel
+ * Retourne l'itineraire courant en tenant compte des parametres globaux,
+ * notamment du coefficient de vitesse de conduite.
  * @param store le store de l'itinéraire
  */
 export function useItinerary(store: ItineraryStore) {

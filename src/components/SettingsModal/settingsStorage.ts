@@ -62,10 +62,19 @@ export function persistGlobalSettings(itineraryId: number, settings: GlobalSetti
     }
 }
 
+/**
+ * Retourne la valeur brute stockee pour les parametres globaux d'un itineraire.
+ * @param itineraryId identifiant de l'itineraire
+ */
 export function getGlobalSettingsStorageValue(itineraryId: number): string | null {
     return localStorage.getItem(getGlobalSettingsStorageKey(itineraryId));
 }
 
+/**
+ * Ecoute les changements des parametres globaux, y compris ceux emis depuis
+ * un autre contexte de navigation.
+ * @param onChange rappel declenche quand les parametres evoluent
+ */
 export function subscribeToGlobalSettingsChanges(onChange: () => void): () => void {
     if (typeof window === "undefined") {
         return () => undefined;
@@ -153,6 +162,11 @@ export function removeSegmentPauseConfig(itinerary: Itinerary, segmentId: string
     return nextSettings;
 }
 
+/**
+ * Convertit le pourcentage de vitesse en coefficient d'allongement des durees.
+ * Exemple: 80% -> 1.25, donc +25% sur les durees.
+ * @param speedPercentage pourcentage de vitesse de conduite
+ */
 export function getSpeedMultiplier(speedPercentage: number): number {
     const normalizedSpeed = Number.isFinite(speedPercentage) && speedPercentage > 0
         ? speedPercentage
@@ -183,6 +197,11 @@ function scaleSegment(segment: Segment, multiplier: number): Segment {
     };
 }
 
+/**
+ * Applique le coefficient de vitesse aux durees du trajet, des segments et des etapes.
+ * @param itinerary itineraire source
+ * @param speedPercentage pourcentage de vitesse a appliquer
+ */
 export function applySpeedSettings(itinerary: Itinerary, speedPercentage: number): Itinerary {
     const multiplier = getSpeedMultiplier(speedPercentage);
     const scaledSegments = updateStarts(itinerary.segments.map((segment) => scaleSegment(segment, multiplier)));
