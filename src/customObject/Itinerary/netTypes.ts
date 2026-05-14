@@ -42,5 +42,6 @@ export type ItineraryResponse = {
     shareCode: string,
     totalDistance: number,
     totalDuration: number,
+    createdAt?: string,
     segments: SegmentResponse[]
 }
