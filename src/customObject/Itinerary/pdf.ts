@@ -504,6 +504,14 @@ function collectRoutePoints(segment: Segment): RoutePoint[] {
     return geometryPoints.length > 0 ? geometryPoints : stepPoints;
 }
 
+/**
+ * Extrait les tronçons exportables d'un itinéraire pour préparer les pages du PDF.
+ * Les segments techniques de début et de fin sont ignorés afin de ne garder que
+ * les trajets réellement illustrés dans le document.
+ *
+ * @param itinerary Itinéraire source à analyser
+ * @returns Liste des tronçons à transformer en pages PDF
+ */
 export function collectPdfSections(itinerary: Itinerary): ExportSection[] {
     return itinerary.segments
         .filter((segment) => !segment.isStartEnd)
@@ -1005,6 +1013,13 @@ function buildPdfBytes(pageImages: Array<{ bytes: Uint8Array; width: number; hei
     return writer.build();
 }
 
+/**
+ * Génère puis télécharge un PDF illustré de l'itinéraire courant.
+ * Le document est construit côté client à partir d'une couverture, d'un aperçu
+ * global et d'une page détaillée par segment.
+ *
+ * @param itinerary Itinéraire à exporter au format PDF
+ */
 export async function downloadItineraryPdf(itinerary: Itinerary): Promise<void> {
     const pages = await buildPdfPages(itinerary);
     const pageImages = pages.map((page) => ({

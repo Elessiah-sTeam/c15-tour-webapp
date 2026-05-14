@@ -70,6 +70,9 @@ export default function ActionButtons() {
         }
     };
 
+    /**
+     * Lance l'export PDF en empêchant les doubles clics pendant la génération.
+     */
     const handleExportPdf = async () => {
         try {
             setIsExportingPdf(true);
