@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Trash, Pencil, Settings, Share2, Download } from "lucide-react";
+import { Trash, Pencil, Settings, Share2, Download, FileDown } from "lucide-react";
 import "./Panels.css";
 import { deleteModStore } from "../../customObject/DeleteMod/DeleteModStore.ts";
 import { useDeleteMod } from "../../customObject/DeleteMod/useDeleteMod.ts";
@@ -10,6 +10,7 @@ import { loadGlobalSettings, persistGlobalSettings } from "../SettingsModal/sett
 import type { GlobalSettings } from "../SettingsModal/settingsTypes.ts";
 import ShareModal from "./ShareModal.tsx";
 import { downloadGpx, hasGpxGeometry } from "../../customObject/Itinerary/gpx.ts";
+import { downloadItineraryPdf, collectPdfSections } from "../../customObject/Itinerary/pdf.ts";
 
 function buildDepartureDateTime(departureDate: string, departureTime: string): Date | null {
     if (!departureDate || !departureTime) {
@@ -32,9 +33,11 @@ export default function ActionButtons() {
     const [showSettings, setShowSettings] = useState(false);
     const [showShare, setShowShare] = useState(false);
     const [currentSettings, setCurrentSettings] = useState<GlobalSettings | undefined>(undefined);
+    const [isExportingPdf, setIsExportingPdf] = useState(false);
     const canDownloadGpx = hasGpxGeometry(itinerary.segments.map((segment) => ({
         geometry: segment.content.geometry,
     })));
+    const canExportPdf = collectPdfSections(itinerary).length > 0 || itinerary.segments.length > 0;
     const settingsLabel = "Param\u00e8tres globaux";
     const deleteModeLabel = delMod
         ? "Quitter le mode suppression"
@@ -45,6 +48,9 @@ export default function ActionButtons() {
     const downloadLabel = canDownloadGpx
         ? "T\u00e9l\u00e9charger le GPX"
         : "T\u00e9l\u00e9chargement GPX indisponible";
+    const pdfLabel = isExportingPdf
+        ? "G\u00e9n\u00e9ration du PDF..."
+        : "Exporter en PDF";
 
     const handleOpenSettings = () => {
         setCurrentSettings(loadGlobalSettings(itinerary));
@@ -61,6 +67,17 @@ export default function ActionButtons() {
         const departureDateTime = buildDepartureDateTime(settings.departureDate, settings.departureTime);
         if (departureDateTime) {
             await itineraryModel.setDepartureDateTime(departureDateTime);
+        }
+    };
+
+    const handleExportPdf = async () => {
+        try {
+            setIsExportingPdf(true);
+            await downloadItineraryPdf(itinerary);
+        } catch (error) {
+            console.error("Erreur export PDF:", error);
+        } finally {
+            setIsExportingPdf(false);
         }
     };
 
@@ -105,6 +122,15 @@ export default function ActionButtons() {
                     disabled={!canDownloadGpx}
                 >
                     <Download color={canDownloadGpx ? "#BB487C" : "#ccc"} />
+                </button>
+                <button
+                    className={"download-pdf-btn"}
+                    aria-label={pdfLabel}
+                    title={pdfLabel}
+                    onClick={handleExportPdf}
+                    disabled={isExportingPdf || !canExportPdf}
+                >
+                    <FileDown color={isExportingPdf ? "#ccc" : "#BB487C"} />
                 </button>
             </div>
 

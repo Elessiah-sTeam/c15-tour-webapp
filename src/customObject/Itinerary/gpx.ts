@@ -1,4 +1,5 @@
 import type { Feature, LineString } from "geojson";
+import { sanitizeFileName } from "./fileName.ts";
 
 type LineStringGeometry = {
     type?: string;
@@ -63,24 +64,6 @@ function escapeXml(value: string): string {
         .replaceAll(">", "&gt;")
         .replaceAll("\"", "&quot;")
         .replaceAll("'", "&apos;");
-}
-
-function sanitizeFileName(name: string): string {
-    const baseName = name
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[<>:"/\\|?*]/g, "-")
-        .split("")
-        .filter((character) => {
-            const code = character.charCodeAt(0);
-            return code >= 32;
-        })
-        .join("")
-        .replace(/\s+/g, "-")
-        .replace(/-+/g, "-")
-        .replace(/^-|-$/g, "");
-
-    return baseName.length > 0 ? baseName : "itinerary";
 }
 
 function buildTrackSegmentXml(coordinates: [number, number][]): string {
