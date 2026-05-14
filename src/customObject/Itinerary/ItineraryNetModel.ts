@@ -332,20 +332,28 @@ export class ItineraryNetModel {
     }
 
     /**
+     * Étapes réelles à exporter (hors copies `isDefaultSegStart` injectées par {@link updateStarts}).
+     * Les points dupliqués en tête de segment faussaient la route côté API / OSRM.
+     */
+    private netExportSteps(seg: Segment): Step[] {
+        return seg.steps.filter((s: Step) => !s.isDefaultSegStart);
+    }
+
+    /**
      * Transforme le tableau de steps en waypoints expédiable au backend
      * @param steps Steps à transformer
      * @private
      */
     private buildNetWaypoints(steps: Step[]): Waypoint[] {
-        return steps.map((step: Step) => {
-            return {
+        return steps
+            .filter((step: Step) => !step.isDefaultSegStart)
+            .map((step: Step) => ({
                 name: step.content.title,
                 coordinates: {
                     latitude: step.content.location?.lat ?? 0,
                     longitude: step.content.location?.lon ?? 0,
-                }
-            }
-        })
+                },
+            }));
     }
 
     /**
@@ -362,7 +370,7 @@ export class ItineraryNetModel {
         }
         let i;
         for (i = 1; i < segments.length - 1; i++) {
-            if (segments[i].steps.length < 2) {
+            if (this.netExportSteps(segments[i]).length < 2) {
                 return false;
             }
         }
@@ -395,16 +403,11 @@ export class ItineraryNetModel {
         // On retire le départ et l'arrivée qui ne sont qu'esthétique
         copy.splice(0, 1);
         copy.pop();
-        return copy.map((seg: Segment) => {
-            const payload: SegmentRequest = {
-                name: seg.content.title.length > 1 ? seg.content.title : "No Name",
-                waypoints: this.buildNetWaypoints(seg.steps),
-            };
-            if (seg.content.breakDuration !== undefined && seg.content.breakDuration !== null) {
-                payload.breakDuration = seg.content.breakDuration;
-            }
-            return payload;
-        })
+        return copy.map((seg: Segment) => ({
+            name: seg.content.title.length > 1 ? seg.content.title : "No Name",
+            waypoints: this.buildNetWaypoints(seg.steps),
+            breakDuration: seg.content.breakDuration ?? 0,
+        }))
     }
 
     /**
