@@ -206,9 +206,23 @@ export class ItineraryNetModel {
         return netResponse;
     }
 
+    /**
+     * Parse une date ISO renvoyée par l'API. Chaîne absente ou invalide → Date invalide (pas « maintenant »).
+     */
     private normalizeNetDate(date: string | undefined): Date {
-        const normalized: Date = new Date(date ?? Date.now());
-        return Number.isNaN(normalized.getTime()) ? new Date() : normalized;
+        if (date === undefined || date === null || date === "") {
+            return new Date(NaN);
+        }
+        const normalized: Date = new Date(date);
+        return Number.isNaN(normalized.getTime()) ? new Date(NaN) : normalized;
+    }
+
+    private parseOptionalIsoDate(iso: string | undefined): Date | undefined {
+        if (iso === undefined || iso === null || iso === "") {
+            return undefined;
+        }
+        const d = new Date(iso);
+        return Number.isNaN(d.getTime()) ? undefined : d;
     }
 
     /**
@@ -223,12 +237,14 @@ export class ItineraryNetModel {
                                isFirstSeg: boolean): Step[] {
         const startId: number = refId.id;
         return waypoints.map((waypoint: Waypoint) => {
+            const estimatedArrival = this.parseOptionalIsoDate(waypoint.estimatedArrival);
             return {
                 id: `${refId.id++}`,
                 content: {
                     title: waypoint.name,
                     duration: new TimeSpan(),
                     location: {lat: waypoint.coordinates.latitude, lon: waypoint.coordinates.longitude},
+                    ...(estimatedArrival !== undefined ? {estimatedArrival} : {}),
                 },
                 isDefaultSegStart: !isFirstSeg && startId == refId.id,
             }
@@ -281,7 +297,10 @@ export class ItineraryNetModel {
                         duration: new TimeSpan(seg.duration * 1000),
                         distance: seg.distance,
                         geometry: this.normalizeNetGeometry(seg.geometry),
-                        hour: this.normalizeNetDate(seg.estimatedDeparture)
+                        hour: this.normalizeNetDate(seg.estimatedDeparture),
+                        ...(seg.breakDuration !== undefined && seg.breakDuration !== null
+                            ? {breakDuration: seg.breakDuration}
+                            : {}),
                     },
                     steps: steps,
                 }
@@ -298,13 +317,15 @@ export class ItineraryNetModel {
         this.store.set(() => {
             // Une ref pour incrémenter au sein des fonctions et pas perdre le fil
             const refId: {id: number} = {id: 0};
-            const segments: Segment[] = this.normalizeSegments(response.segments, refId);
+            const segments: Segment[] = this.normalizeSegments(response.segments ?? [], refId);
+            const totalDurationSec = response.totalDuration ?? 0;
+            const totalDistanceM = response.totalDistance ?? 0;
             return {
                 id: response.id,
                 name: response.name,
-                shareCode: response.shareCode,
-                totalDuration: new TimeSpan(response.totalDuration * 1000),
-                totalDistance: response.totalDistance * 0.001,
+                shareCode: response.shareCode ?? "",
+                totalDuration: new TimeSpan(totalDurationSec * 1000),
+                totalDistance: totalDistanceM * 0.001,
                 segments: updateStarts(segments),
             };
         });
@@ -375,10 +396,14 @@ export class ItineraryNetModel {
         copy.splice(0, 1);
         copy.pop();
         return copy.map((seg: Segment) => {
-            return {
+            const payload: SegmentRequest = {
                 name: seg.content.title.length > 1 ? seg.content.title : "No Name",
-                waypoints: this.buildNetWaypoints(seg.steps)
+                waypoints: this.buildNetWaypoints(seg.steps),
+            };
+            if (seg.content.breakDuration !== undefined && seg.content.breakDuration !== null) {
+                payload.breakDuration = seg.content.breakDuration;
             }
+            return payload;
         })
     }
 
@@ -392,9 +417,17 @@ export class ItineraryNetModel {
         if (!netSegments)
             return null;
 
+        const startSeg = itinerary.segments[0];
+        const startHour = startSeg?.content.hour;
+        const departureTime =
+            startHour !== undefined && !Number.isNaN(startHour.getTime())
+                ? startHour.toISOString()
+                : undefined;
+
         return {
             name: itinerary.name.length > 1 ? itinerary.name : "No Name",
             segments: netSegments,
+            ...(departureTime !== undefined ? {departureTime} : {}),
         }
     }
 }

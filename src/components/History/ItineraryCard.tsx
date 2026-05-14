@@ -10,8 +10,13 @@ interface ItineraryCardProps {
     onShare: (shareCode: string) => void;
 }
 
+function segmentsList(itinerary: ItineraryResponse): SegmentResponse[] {
+    return itinerary.segments ?? [];
+}
+
 function getStatus(itinerary: ItineraryResponse): "draft" | "finalized" {
-    return itinerary.segments.every(s => s.waypoints.length >= 2) ? "finalized" : "draft";
+    const segs = segmentsList(itinerary);
+    return segs.length > 0 && segs.every(s => s.waypoints.length >= 2) ? "finalized" : "draft";
 }
 
 function formatDuration(seconds: number): string {
@@ -38,8 +43,9 @@ function getEndCity(segments: SegmentResponse[]): string {
 }
 
 export function ItineraryCard({ itinerary, onOpen, onDelete, onShare }: ItineraryCardProps) {
+    const segs = segmentsList(itinerary);
     const status = getStatus(itinerary);
-    const canDownloadGpx = hasGpxGeometry(itinerary.segments.map((segment) => ({
+    const canDownloadGpx = hasGpxGeometry(segs.map((segment) => ({
         geometry: segment.geometry,
     })));
     const downloadLabel = canDownloadGpx
@@ -53,7 +59,7 @@ export function ItineraryCard({ itinerary, onOpen, onDelete, onShare }: Itinerar
     return (
         <div className="ch-card">
             <div className="ch-thumb">
-                <ConvoyThumbnail segments={itinerary.segments} />
+                <ConvoyThumbnail segments={segs} />
             </div>
 
             <div className="ch-info">
@@ -65,15 +71,15 @@ export function ItineraryCard({ itinerary, onOpen, onDelete, onShare }: Itinerar
                 </div>
 
                 <div className="ch-route">
-                    {getStartCity(itinerary.segments)} {"\u2192"} {getEndCity(itinerary.segments)}
+                    {getStartCity(segs)} {"\u2192"} {getEndCity(segs)}
                 </div>
 
                 <div className="ch-stats">
-                    <span>{countPoints(itinerary.segments)} points</span>
+                    <span>{countPoints(segs)} points</span>
                     <span className="ch-dot">{"\u2022"}</span>
-                    <span>{formatDistance(itinerary.totalDistance)}</span>
+                    <span>{formatDistance(itinerary.totalDistance ?? 0)}</span>
                     <span className="ch-dot">{"\u2022"}</span>
-                    <span>{formatDuration(itinerary.totalDuration)}</span>
+                    <span>{formatDuration(itinerary.totalDuration ?? 0)}</span>
                 </div>
             </div>
 
@@ -84,7 +90,7 @@ export function ItineraryCard({ itinerary, onOpen, onDelete, onShare }: Itinerar
                 <div className="ch-actions-row">
                     <button
                         className="ch-btn-icon"
-                        onClick={() => downloadGpx(itinerary.name, itinerary.segments.map((segment) => ({
+                        onClick={() => downloadGpx(itinerary.name, segs.map((segment) => ({
                             geometry: segment.geometry,
                         })))}
                         aria-label={downloadLabel}
