@@ -364,6 +364,18 @@ describe('ItineraryModel', () => {
       expect(nonAuto[0].id).toBe('s3');
     });
 
+    it('déplace une étape vers le bas dans le même segment (index source < cible)', () => {
+      const model = createModel();
+      model.addSegment(makeSegment('seg-a', [makeStep('s1'), makeStep('s2'), makeStep('s3')]));
+      const seg = model.route.segments.find(s => s.id === 'seg-a')!;
+      const i1 = seg.steps.findIndex(s => s.id === 's1');
+      const i3 = seg.steps.findIndex(s => s.id === 's3');
+      model.reorderStep('seg-a', i1, 'seg-a', i3);
+      const updated = model.route.segments.find(s => s.id === 'seg-a')!;
+      const nonAuto = updated.steps.filter(s => !s.isDefaultSegStart).map(s => s.id);
+      expect(nonAuto).toEqual(['s2', 's1', 's3']);
+    });
+
     it('déplace une étape vers un autre segment', () => {
       const model = createModel();
       model.addSegment(makeSegment('seg-a', [makeStep('s1'), makeStep('s2')]));
