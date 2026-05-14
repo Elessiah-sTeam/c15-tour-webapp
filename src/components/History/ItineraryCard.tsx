@@ -82,7 +82,7 @@ export function ItineraryCard({ itinerary, onOpen, onDelete, onShare }: Itinerar
                     <span>{formatDuration(itinerary.totalDuration)}</span>
                 </div>
                 {itinerary.createdAt && (
-                    <div className="ch-date">Cr\u00e9\u00e9 le {formatCreatedAt(itinerary.createdAt)}</div>
+                    <div className="ch-date">{"Cr\u00e9\u00e9 le "}{formatCreatedAt(itinerary.createdAt)}</div>
                 )}
             </div>
 
