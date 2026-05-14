@@ -1,6 +1,10 @@
 import type { Itinerary, Segment } from "../../customObject/Itinerary/types.ts";
 import type { GlobalSettings, PauseConfig } from "./settingsTypes.ts";
 import { DEFAULT_PAUSE_DURATION } from "./settingsTypes.ts";
+import { TimeSpan } from "../../customObject/TimeSpan.ts";
+import { updateStarts } from "../../customObject/Itinerary/utils.ts";
+
+const GLOBAL_SETTINGS_CHANGE_EVENT = "global-settings-changed";
 
 function formatLocalDate(date: Date): string {
     const year = date.getFullYear();
@@ -53,6 +57,28 @@ export function buildPauseConfigs(itinerary: Itinerary, baseSettings: GlobalSett
 
 export function persistGlobalSettings(itineraryId: number, settings: GlobalSettings): void {
     localStorage.setItem(getGlobalSettingsStorageKey(itineraryId), JSON.stringify(settings));
+    if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event(GLOBAL_SETTINGS_CHANGE_EVENT));
+    }
+}
+
+export function getGlobalSettingsStorageValue(itineraryId: number): string | null {
+    return localStorage.getItem(getGlobalSettingsStorageKey(itineraryId));
+}
+
+export function subscribeToGlobalSettingsChanges(onChange: () => void): () => void {
+    if (typeof window === "undefined") {
+        return () => undefined;
+    }
+
+    const handleChange = () => onChange();
+    window.addEventListener(GLOBAL_SETTINGS_CHANGE_EVENT, handleChange);
+    window.addEventListener("storage", handleChange);
+
+    return () => {
+        window.removeEventListener(GLOBAL_SETTINGS_CHANGE_EVENT, handleChange);
+        window.removeEventListener("storage", handleChange);
+    };
 }
 
 export function loadGlobalSettings(itinerary: Itinerary): GlobalSettings {
@@ -125,4 +151,45 @@ export function removeSegmentPauseConfig(itinerary: Itinerary, segmentId: string
 
     persistGlobalSettings(itinerary.id, nextSettings);
     return nextSettings;
+}
+
+export function getSpeedMultiplier(speedPercentage: number): number {
+    const normalizedSpeed = Number.isFinite(speedPercentage) && speedPercentage > 0
+        ? speedPercentage
+        : 100;
+
+    return 100 / normalizedSpeed;
+}
+
+function scaleTimeSpan(duration: TimeSpan | undefined, multiplier: number): TimeSpan {
+    const normalizedDuration = Object.assign(new TimeSpan(), duration);
+    return new TimeSpan(Math.round(normalizedDuration.duration * multiplier));
+}
+
+function scaleSegment(segment: Segment, multiplier: number): Segment {
+    return {
+        ...segment,
+        content: {
+            ...segment.content,
+            duration: scaleTimeSpan(segment.content.duration, multiplier)
+        },
+        steps: segment.steps.map((step) => ({
+            ...step,
+            content: {
+                ...step.content,
+                duration: scaleTimeSpan(step.content.duration, multiplier)
+            }
+        }))
+    };
+}
+
+export function applySpeedSettings(itinerary: Itinerary, speedPercentage: number): Itinerary {
+    const multiplier = getSpeedMultiplier(speedPercentage);
+    const scaledSegments = updateStarts(itinerary.segments.map((segment) => scaleSegment(segment, multiplier)));
+
+    return {
+        ...itinerary,
+        totalDuration: scaleTimeSpan(itinerary.totalDuration, multiplier),
+        segments: scaledSegments
+    };
 }

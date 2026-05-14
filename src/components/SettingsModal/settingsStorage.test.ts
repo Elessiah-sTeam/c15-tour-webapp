@@ -2,10 +2,12 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { TimeSpan } from "../../customObject/TimeSpan.ts";
 import type { Itinerary } from "../../customObject/Itinerary/types.ts";
 import {
+    applySpeedSettings,
     buildPauseConfigs,
     createDefaultGlobalSettings,
     getGlobalSettingsStorageKey,
     getSegmentPauseDuration,
+    getSpeedMultiplier,
     loadGlobalSettings,
     removeSegmentPauseConfig,
     upsertSegmentPauseConfig
@@ -141,5 +143,73 @@ describe("settingsStorage", () => {
         expect(loadGlobalSettings(itineraryWithoutSeg1).pauseConfigs).toEqual([
             { segmentId: "seg-2", segmentName: "Segment 2", duration: 30 }
         ]);
+    });
+
+    it("calcule un multiplicateur de durée à partir du pourcentage de vitesse", () => {
+        expect(getSpeedMultiplier(100)).toBe(1);
+        expect(getSpeedMultiplier(80)).toBe(1.25);
+    });
+
+    it("applique le pourcentage de vitesse aux durées et aux heures", () => {
+        const itinerary = makeItinerary();
+        const oneHour = 3_600_000;
+        const quarterHour = 15 * 60_000;
+
+        const route = {
+            ...itinerary,
+            totalDuration: new TimeSpan(oneHour + quarterHour),
+            segments: itinerary.segments.map((segment) => {
+                if (segment.id === "start") {
+                    return {
+                        ...segment,
+                        content: {
+                            ...segment.content,
+                            duration: new TimeSpan(oneHour),
+                        }
+                    };
+                }
+
+                if (segment.id === "seg-1") {
+                    return {
+                        ...segment,
+                        content: {
+                            ...segment.content,
+                            duration: new TimeSpan(oneHour),
+                        },
+                        steps: [
+                            {
+                                id: "step-1",
+                                isDefaultSegStart: false,
+                                content: {
+                                    title: "Step 1",
+                                    duration: new TimeSpan(quarterHour),
+                                }
+                            }
+                        ]
+                    };
+                }
+
+                if (segment.id === "seg-2") {
+                    return {
+                        ...segment,
+                        content: {
+                            ...segment.content,
+                            duration: new TimeSpan(quarterHour),
+                        }
+                    };
+                }
+
+                return segment;
+            })
+        };
+
+        const scaled = applySpeedSettings(route, 80);
+
+        expect(scaled.totalDuration.duration).toBe(Math.round((oneHour + quarterHour) * 1.25));
+        expect(scaled.segments[1].content.duration.duration).toBe(Math.round(oneHour * 1.25));
+        expect(scaled.segments[1].steps[0].content.duration.duration).toBe(Math.round(quarterHour * 1.25));
+        expect(scaled.segments[2].content.hour.getTime()).toBe(
+            new Date("2026-04-21T10:30:00").getTime()
+        );
     });
 });
