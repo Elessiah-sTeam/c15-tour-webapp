@@ -370,7 +370,8 @@ export class ItineraryNetModel {
         }
         let i;
         for (i = 1; i < segments.length - 1; i++) {
-            if (this.netExportSteps(segments[i]).length < 2) {
+            const minExportSteps = i === 1 ? 2 : 1;
+            if (this.netExportSteps(segments[i]).length < minExportSteps) {
                 return false;
             }
         }
