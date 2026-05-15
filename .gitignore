@@ -34,6 +34,9 @@ coverage/
 
 #IA
 .claude/
+/.claude/
+*claude*
+*codex*
 
 #other
 *~
