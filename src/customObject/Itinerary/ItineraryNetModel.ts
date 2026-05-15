@@ -332,28 +332,18 @@ export class ItineraryNetModel {
     }
 
     /**
-     * Étapes réelles à exporter (hors copies `isDefaultSegStart` injectées par {@link updateStarts}).
-     * Les points dupliqués en tête de segment faussaient la route côté API / OSRM.
-     */
-    private netExportSteps(seg: Segment): Step[] {
-        return seg.steps.filter((s: Step) => !s.isDefaultSegStart);
-    }
-
-    /**
      * Transforme le tableau de steps en waypoints expédiable au backend
      * @param steps Steps à transformer
      * @private
      */
     private buildNetWaypoints(steps: Step[]): Waypoint[] {
-        return steps
-            .filter((step: Step) => !step.isDefaultSegStart)
-            .map((step: Step) => ({
-                name: step.content.title,
-                coordinates: {
-                    latitude: step.content.location?.lat ?? 0,
-                    longitude: step.content.location?.lon ?? 0,
-                },
-            }));
+        return steps.map((step: Step) => ({
+            name: step.content.title,
+            coordinates: {
+                latitude: step.content.location?.lat ?? 0,
+                longitude: step.content.location?.lon ?? 0,
+            },
+        }));
     }
 
     /**
@@ -370,8 +360,7 @@ export class ItineraryNetModel {
         }
         let i;
         for (i = 1; i < segments.length - 1; i++) {
-            const minExportSteps = i === 1 ? 2 : 1;
-            if (this.netExportSteps(segments[i]).length < minExportSteps) {
+            if (segments[i].steps.length < 2) {
                 return false;
             }
         }
