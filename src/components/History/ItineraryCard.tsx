@@ -33,6 +33,12 @@ function countPoints(segments: SegmentResponse[]): number {
     return segments.reduce((sum, s) => sum + s.waypoints.length, 0);
 }
 
+function formatCreatedAt(createdAt?: string): string {
+    if (!createdAt) return '';
+    const d = new Date(createdAt);
+    return d.toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
 function getStartCity(segments: SegmentResponse[]): string {
     return segments[0]?.waypoints[0]?.name || "D\u00e9part";
 }
@@ -81,6 +87,9 @@ export function ItineraryCard({ itinerary, onOpen, onDelete, onShare }: Itinerar
                     <span className="ch-dot">{"\u2022"}</span>
                     <span>{formatDuration(itinerary.totalDuration ?? 0)}</span>
                 </div>
+                {itinerary.createdAt && (
+                    <div className="ch-date">{"Cr\u00e9\u00e9 le "}{formatCreatedAt(itinerary.createdAt)}</div>
+                )}
             </div>
 
             <div className="ch-actions">

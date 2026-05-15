@@ -1,48 +1,60 @@
 import { useState, type FormEvent } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Map } from "lucide-react";
 import { useAuth } from "../auth/useAuth";
 import "./LoginPage.css";
 
 const BACKEND_URL = "http://localhost:8080";
 
-type LoginLocationState = {
-    message?: string;
+type RegisterResponse = {
+    token?: string;
 };
 
-export default function LoginPage() {
+export default function RegisterPage() {
     const { login } = useAuth();
     const navigate = useNavigate();
-    const location = useLocation();
-    const state = location.state as LoginLocationState | null;
 
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
-    const [notice, setNotice] = useState<string | null>(state?.message ?? null);
     const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        setNotice(null);
         setError(null);
+
+        if (password !== confirmPassword) {
+            setError("Les mots de passe ne correspondent pas.");
+            return;
+        }
+
         setLoading(true);
 
         try {
-            const res = await fetch(`${BACKEND_URL}/auth/login`, {
+            const res = await fetch(`${BACKEND_URL}/auth/register`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username, password }),
             });
 
             if (!res.ok) {
-                setError("Identifiants incorrects. Veuillez réessayer.");
+                setError("Impossible de créer le compte. Vérifiez vos informations.");
                 return;
             }
 
-            const data = await res.json();
-            login(data.token);
-            navigate("/", { replace: true });
+            const data: RegisterResponse = await res.json().catch(() => ({}));
+
+            if (data.token) {
+                login(data.token);
+                navigate("/", { replace: true });
+                return;
+            }
+
+            navigate("/login", {
+                replace: true,
+                state: { message: "Compte créé avec succès. Vous pouvez vous connecter." },
+            });
         } catch {
             setError("Impossible de joindre le serveur. Vérifiez votre connexion.");
         } finally {
@@ -61,20 +73,20 @@ export default function LoginPage() {
                 </div>
 
                 <div className="login-card__heading">
-                    <h1 className="login-card__title">Connexion</h1>
-                    <p className="login-card__subtitle">Accédez à votre espace de planification</p>
+                    <h1 className="login-card__title">Inscription</h1>
+                    <p className="login-card__subtitle">Créez votre accès à l’espace de planification</p>
                 </div>
 
                 <form className="login-form" onSubmit={handleSubmit}>
                     <div className="login-form__field">
-                        <label className="login-form__label" htmlFor="username">
+                        <label className="login-form__label" htmlFor="register-username">
                             Identifiant
                         </label>
                         <input
-                            id="username"
+                            id="register-username"
                             type="text"
                             className={`login-form__input${error ? " login-form__input--error" : ""}`}
-                            placeholder="Votre identifiant"
+                            placeholder="Choisissez un identifiant"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                             autoComplete="username"
@@ -83,33 +95,48 @@ export default function LoginPage() {
                     </div>
 
                     <div className="login-form__field">
-                        <label className="login-form__label" htmlFor="password">
+                        <label className="login-form__label" htmlFor="register-password">
                             Mot de passe
                         </label>
                         <input
-                            id="password"
+                            id="register-password"
                             type="password"
                             className={`login-form__input${error ? " login-form__input--error" : ""}`}
-                            placeholder="Votre mot de passe"
+                            placeholder="Créez un mot de passe"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            autoComplete="current-password"
+                            autoComplete="new-password"
                             required
                         />
                     </div>
 
-                    {notice && <p className="login-form__notice">{notice}</p>}
+                    <div className="login-form__field">
+                        <label className="login-form__label" htmlFor="confirm-password">
+                            Confirmer le mot de passe
+                        </label>
+                        <input
+                            id="confirm-password"
+                            type="password"
+                            className={`login-form__input${error ? " login-form__input--error" : ""}`}
+                            placeholder="Retapez votre mot de passe"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            autoComplete="new-password"
+                            required
+                        />
+                    </div>
+
                     {error && <p className="login-form__error">{error}</p>}
 
                     <button type="submit" className="login-form__submit" disabled={loading}>
-                        {loading ? "Connexion en cours…" : "Se connecter"}
+                        {loading ? "Création du compte…" : "Créer mon compte"}
                     </button>
                 </form>
 
                 <p className="login-form__footer">
-                    Pas encore de compte ?
-                    <Link className="login-form__link" to="/register">
-                        Créer un compte
+                    Déjà inscrit ?
+                    <Link className="login-form__link" to="/login">
+                        Se connecter
                     </Link>
                 </p>
             </div>
