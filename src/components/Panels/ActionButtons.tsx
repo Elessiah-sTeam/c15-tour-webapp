@@ -11,6 +11,7 @@ import type { GlobalSettings } from "../SettingsModal/settingsTypes.ts";
 import ShareModal from "./ShareModal.tsx";
 import { downloadGpx, hasGpxGeometry } from "../../customObject/Itinerary/gpx.ts";
 import { downloadItineraryPdf, collectPdfSections } from "../../customObject/Itinerary/pdf.ts";
+import { pushErrorToast } from "../../customObject/Toast/ToastStore.ts";
 
 function buildDepartureDateTime(departureDate: string, departureTime: string): Date | null {
     if (!departureDate || !departureTime) {
@@ -78,7 +79,8 @@ export default function ActionButtons() {
             setIsExportingPdf(true);
             await downloadItineraryPdf(itinerary);
         } catch (error) {
-            console.error("Erreur export PDF:", error);
+            const detail = error instanceof Error ? error.message : String(error);
+            pushErrorToast(`Erreur lors de l'export PDF : ${detail}`);
         } finally {
             setIsExportingPdf(false);
         }
