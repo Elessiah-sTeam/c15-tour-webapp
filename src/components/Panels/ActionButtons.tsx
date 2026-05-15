@@ -80,7 +80,7 @@ export default function ActionButtons() {
             await downloadItineraryPdf(itinerary);
         } catch (error) {
             const detail = error instanceof Error ? error.message : String(error);
-            pushErrorToast(`Erreur lors de l'export PDF : ${detail}`);
+            pushErrorToast(`Erreur lors de l'export PDF : ${detail}`);
         } finally {
             setIsExportingPdf(false);
         }
