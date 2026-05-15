@@ -31,3 +31,6 @@ Thumbs.db
 
 # Optional: testing
 coverage/
+
+#IA
+.claude/
