@@ -396,6 +396,10 @@ h3, .stepTitle {
     padding: 0;
     cursor: pointer;
     line-height: 1.2;
+    background: none;
+    border: none;
+    font-family: inherit;
+    color: inherit;
 }
 
 .add-step-btn {
