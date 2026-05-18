@@ -112,6 +112,15 @@ export default function ClickInput({ currentStr, setter, Tag, className, isDesac
         setIsInput(!isDesactivated);
     }
 
+    function handleKeyActivate(e: KeyboardEvent<HTMLElement>) {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setText(currentStr);
+            setShowTooltip(false);
+            setIsInput(!isDesactivated);
+        }
+    }
+
     return (
         <div
             ref={ref}
@@ -137,6 +146,9 @@ export default function ClickInput({ currentStr, setter, Tag, className, isDesac
             ) : (
                 <Tag
                     onClick={handleClick}
+                    onKeyDown={handleKeyActivate}
+                    tabIndex={isDesactivated ? undefined : 0}
+                    role={isDesactivated ? undefined : "button"}
                     className={className}
                     style={{
                         width: "100%",

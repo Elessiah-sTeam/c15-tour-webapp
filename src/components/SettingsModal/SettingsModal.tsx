@@ -59,8 +59,15 @@ export function SettingsModal({ isOpen, onClose, onSave, initialSettings }: Sett
     };
 
     return createPortal(
-        <div className="settings-modal-overlay" onClick={handleOverlayClick}>
-            <div className="settings-modal" onClick={e => e.stopPropagation()}>
+        <div
+            className="settings-modal-overlay"
+            role="button"
+            aria-label="Fermer"
+            tabIndex={0}
+            onClick={handleOverlayClick}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') { e.preventDefault(); onClose(); } }}
+        >
+            <div className="settings-modal" role="dialog" aria-modal="true">
                 {/* Header */}
                 <div className="settings-modal-header">
                     <h2>

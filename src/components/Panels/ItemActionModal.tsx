@@ -62,8 +62,15 @@ function ItemActionModalContent({
     };
 
     return createPortal(
-        <div className="item-action-modal-overlay" onClick={handleOverlayClick}>
-            <div className="item-action-modal" onClick={(event) => event.stopPropagation()}>
+        <div
+            className="item-action-modal-overlay"
+            role="button"
+            aria-label="Fermer"
+            tabIndex={0}
+            onClick={handleOverlayClick}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') { e.preventDefault(); onClose(); } }}
+        >
+            <div className="item-action-modal" role="dialog" aria-modal="true">
                 <div className="item-action-modal-header">
                     <h3>
                         <Pencil size={16} />

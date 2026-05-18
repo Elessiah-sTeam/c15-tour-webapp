@@ -30,8 +30,15 @@ export default function ShareModal({ shareCode, onClose }: ShareModalProps) {
     };
 
     const modalContent = (
-        <div className="share-overlay" onClick={onClose}>
-            <div className="share-modal" onClick={(e) => e.stopPropagation()}>
+        <div
+            className="share-overlay"
+            role="button"
+            aria-label="Fermer"
+            tabIndex={0}
+            onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') { e.preventDefault(); onClose(); } }}
+        >
+            <div className="share-modal" role="dialog" aria-modal="true">
                 <button className="share-close-btn" onClick={onClose} aria-label="Fermer">
                     <X size={18} color="#BB487C" />
                 </button>
