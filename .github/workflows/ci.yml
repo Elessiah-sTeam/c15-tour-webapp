@@ -9,6 +9,7 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout code
@@ -20,11 +21,14 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: dependences
+      - name: dependencies
         run: npm ci
 
       - name: ESLint
         run: npm run lint
 
-      - name: Build 
+      - name: Build
         run: npm run build
+
+      - name : Run tests
+        run: npm run test
