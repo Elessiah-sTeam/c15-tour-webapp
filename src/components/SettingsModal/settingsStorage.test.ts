@@ -63,7 +63,8 @@ function makeItinerary(): Itinerary {
                 },
                 steps: []
             }
-        ]
+        ],
+        draft: true,
     };
 }
 

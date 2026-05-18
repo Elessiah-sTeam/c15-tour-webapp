@@ -87,6 +87,7 @@ function createModel(initial?: Partial<Itinerary>): ItineraryModel {
     totalDistance: 0,
     segments: [],
     ...initial,
+    draft: initial?.draft ?? true,
   };
   return new ItineraryModel({ initial: base });
 }
@@ -131,6 +132,7 @@ describe('ItineraryModel', () => {
             makeSegment('start'),
             makeSegment('end'),
           ],
+          draft: true,
         },
       });
       expect(model.route.segments[0].id).toBe('start');
@@ -149,6 +151,7 @@ describe('ItineraryModel', () => {
             makeSegment('end'),
             makeSegment('mid'),
           ],
+          draft: true,
         },
       });
       const segs = model.route.segments;

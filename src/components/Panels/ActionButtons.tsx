@@ -12,6 +12,7 @@ import ShareModal from "./ShareModal.tsx";
 import { downloadGpx, hasGpxGeometry } from "../../customObject/Itinerary/gpx.ts";
 import { downloadItineraryPdf, collectPdfSections } from "../../customObject/Itinerary/pdf.ts";
 import { pushErrorToast } from "../../customObject/Toast/ToastStore.ts";
+import { useIsDirty } from "../../customObject/SaveState/useIsDirty.ts";
 
 function buildDepartureDateTime(departureDate: string, departureTime: string): Date | null {
     if (!departureDate || !departureTime) {
@@ -31,10 +32,12 @@ function buildDepartureDateTime(departureDate: string, departureTime: string): D
 export default function ActionButtons() {
     const delMod = useDeleteMod(deleteModStore);
     const itinerary = useItinerary(itineraryModel.store);
+    const isDirty = useIsDirty();
     const [showSettings, setShowSettings] = useState(false);
     const [showShare, setShowShare] = useState(false);
     const [currentSettings, setCurrentSettings] = useState<GlobalSettings | undefined>(undefined);
     const [isExportingPdf, setIsExportingPdf] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
     const canDownloadGpx = hasGpxGeometry(itinerary.segments.map((segment) => ({
         geometry: segment.content.geometry,
     })));
@@ -69,6 +72,18 @@ export default function ActionButtons() {
         if (departureDateTime) {
             await itineraryModel.setDepartureDateTime(departureDateTime);
         }
+    };
+
+    const handleSaveAsDraft = async () => {
+        setIsSaving(true);
+        await itineraryModel.netModel.saveAsDraft();
+        setIsSaving(false);
+    };
+
+    const handleSaveAsFinalized = async () => {
+        setIsSaving(true);
+        await itineraryModel.netModel.saveAsFinalized();
+        setIsSaving(false);
     };
 
     /**
@@ -136,6 +151,25 @@ export default function ActionButtons() {
                     disabled={isExportingPdf || !canExportPdf}
                 >
                     <FileDown color={isExportingPdf ? "#ccc" : "#BB487C"} />
+                </button>
+            </div>
+
+            <div className="save-buttons">
+                <button
+                    className={`save-btn save-btn-draft${isDirty ? " dirty" : ""}`}
+                    onClick={handleSaveAsDraft}
+                    disabled={isSaving}
+                    title="Enregistrer en brouillon"
+                >
+                    Brouillon
+                </button>
+                <button
+                    className={`save-btn save-btn-finalize${isDirty ? " dirty" : ""}`}
+                    onClick={handleSaveAsFinalized}
+                    disabled={isSaving}
+                    title="Enregistrer le convoi"
+                >
+                    Enregistrer
                 </button>
             </div>
 

@@ -35,6 +35,8 @@ export type ItineraryRequest = {
     segments: SegmentRequest[];
     /** ISO 8601 — optionnel ; requis côté API pour le calcul des ETA */
     departureTime?: string;
+    /** true = brouillon, false = finalisé */
+    draft?: boolean;
 }
 
 /** OpenAPI `PatchDepartureTimeRequest` */
@@ -67,4 +69,5 @@ export type ItineraryResponse = {
     departureTime?: string;
     segments?: SegmentResponse[];
     role?: "PARTICIPANT" | "ORGANISER";
+    draft?: boolean;
 }

@@ -15,8 +15,7 @@ function segmentsList(itinerary: ItineraryResponse): SegmentResponse[] {
 }
 
 function getStatus(itinerary: ItineraryResponse): "draft" | "finalized" {
-    const segs = segmentsList(itinerary);
-    return segs.length > 0 && segs.every(s => s.waypoints.length >= 2) ? "finalized" : "draft";
+    return itinerary.draft === false ? "finalized" : "draft";
 }
 
 function formatDuration(seconds: number): string {

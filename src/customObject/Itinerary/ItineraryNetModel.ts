@@ -17,6 +17,8 @@ import {TimeSpan} from "../TimeSpan.ts";
 import type {Feature, LineString} from "geojson";
 import {updateStarts} from "./utils.ts";
 import {getAuthToken} from "../../auth/useAuth";
+import {saveStateStore} from "../SaveState/SaveStateStore.ts";
+import {pushErrorToast, pushSuccessToast} from "../Toast/ToastStore.ts";
 
 
 const BACKEND_URL: string = "http://localhost:8080"
@@ -51,6 +53,7 @@ export class ItineraryNetModel {
     public async get(id: number): Promise<void> {
         const response: ItineraryResponse = await this.retrieveItinerary(id);
         await this.applyItinerary(response);
+        saveStateStore.set(() => false);
     }
 
     /**
@@ -157,7 +160,40 @@ export class ItineraryNetModel {
      */
     public setupSave(): void {
         if (this.isDragging) return;
+        saveStateStore.set(() => true);
         this.put().then();
+    }
+
+    /**
+     * Enregistre le convoi en tant que brouillon (draft = true).
+     * Marque l'état comme sauvegardé si le backend répond OK.
+     */
+    public async saveAsDraft(): Promise<boolean> {
+        this.store.set(it => ({ ...it, draft: true }));
+        const ok = await this.put();
+        if (ok) {
+            saveStateStore.set(() => false);
+            pushSuccessToast("Convoi enregistré en brouillon.");
+        } else {
+            pushErrorToast("Impossible d'enregistrer le convoi en brouillon.");
+        }
+        return ok;
+    }
+
+    /**
+     * Finalise le convoi (draft = false).
+     * Marque l'état comme sauvegardé si le backend répond OK.
+     */
+    public async saveAsFinalized(): Promise<boolean> {
+        this.store.set(it => ({ ...it, draft: false }));
+        const ok = await this.put();
+        if (ok) {
+            saveStateStore.set(() => false);
+            pushSuccessToast("Convoi finalisé et enregistré.");
+        } else {
+            pushErrorToast("Impossible de finaliser le convoi.");
+        }
+        return ok;
     }
 
     /**
@@ -327,6 +363,7 @@ export class ItineraryNetModel {
                 totalDuration: new TimeSpan(totalDurationSec * 1000),
                 totalDistance: totalDistanceM * 0.001,
                 segments: updateStarts(segments),
+                draft: response.draft ?? true,
             };
         });
     }
@@ -421,6 +458,7 @@ export class ItineraryNetModel {
             name: itinerary.name.length > 1 ? itinerary.name : "No Name",
             segments: netSegments,
             ...(departureTime !== undefined ? {departureTime} : {}),
+            draft: itinerary.draft,
         }
     }
 }
