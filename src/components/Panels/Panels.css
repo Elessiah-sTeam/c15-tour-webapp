@@ -348,6 +348,7 @@ h3, .stepTitle {
     color: #fff;
 }
 
+
 .hour {
     font-family: 'Montserrat', sans-serif;
     font-weight: 800;
@@ -395,6 +396,10 @@ h3, .stepTitle {
     font-weight: 700;
     padding: 0;
     cursor: pointer;
+    background: none;
+    border: none;
+    font-family: inherit;
+    color: inherit;
     line-height: 1.2;
 }
 
