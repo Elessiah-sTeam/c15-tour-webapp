@@ -33,13 +33,13 @@ jobs:
           cache: 'npm'
 
       - name: dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: ESLint
         run: npm run lint
 
       - name: TypeScript check
-        run: npx tsc --noEmit
+        run: npx tsc --noEmit --ignore-scripts
 
       - name: Tests unitaires
         run: npm run test
