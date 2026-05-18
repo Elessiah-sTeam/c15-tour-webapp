@@ -35,11 +35,13 @@ export function useDragNDrop(): DndProps {
             const item: Step | undefined = getActiveItem(active, itinerary.segments);
             if (item && !item.isDefaultSegStart) {
                 setActiveItem(item);
+                itineraryModel.netModel.startDrag();
             }
         } else if (type === "category") {
             const category: Segment | undefined = getActiveCat(active, itinerary.segments);
             if (category && !category.isStartEnd) {
                 setActiveCat(category);
+                itineraryModel.netModel.startDrag();
             }
         }
     }
@@ -75,6 +77,7 @@ export function useDragNDrop(): DndProps {
         setActiveItem(null);
         setActiveCat(null);
         handleDragMove(event);
+        itineraryModel.netModel.endDrag();
     }
 
     return ({

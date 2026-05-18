@@ -139,3 +139,116 @@ html, body {
         padding: clamp(6px, 1vh, 8px) clamp(10px, 3vw, 12px);
     }
 }
+
+/* Guard dialog */
+.guard-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50000;
+    background: rgba(100, 34, 65, 0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    backdrop-filter: blur(2px);
+}
+
+.guard-modal {
+    width: min(360px, 100%);
+    border: 2px solid #BB487C;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 24px 48px rgba(95, 23, 58, 0.28);
+    padding: 20px 18px 18px;
+    color: #BB487C;
+}
+
+.guard-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.guard-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.guard-close {
+    border: none;
+    background: transparent;
+    color: #BB487C;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 6px;
+    transition: background 120ms;
+}
+
+.guard-close:hover:not(:disabled) {
+    background: rgba(187, 72, 124, 0.1);
+}
+
+.guard-body {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: #7a3558;
+    margin: 0 0 18px;
+    line-height: 1.45;
+}
+
+.guard-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.guard-btn {
+    width: 100%;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 120ms ease, transform 120ms ease;
+    text-align: center;
+}
+
+.guard-btn:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.guard-btn:not(:disabled):hover {
+    transform: translateY(-1px);
+}
+
+.guard-btn-draft {
+    border: 1.5px dashed #BB487C;
+    background: transparent;
+    color: #BB487C;
+}
+
+.guard-btn-save {
+    border: none;
+    background: #BB487C;
+    color: #fff;
+}
+
+.guard-btn-save:not(:disabled):hover {
+    background: #a33b6a;
+}
+
+.guard-btn-delete {
+    border: 1.5px solid rgba(187, 72, 124, 0.3);
+    background: rgba(187, 72, 124, 0.07);
+    color: #BB487C;
+    font-weight: 600;
+}

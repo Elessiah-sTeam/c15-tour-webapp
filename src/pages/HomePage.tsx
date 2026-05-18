@@ -1,9 +1,16 @@
 import { useNavigate } from "react-router-dom";
 import HomeLanding from "../components/Home/HomeLanding.tsx";
 import {itineraryModel} from "../customObject/Itinerary/ItineraryStore.ts";
+import { useAuth } from "../auth/useAuth";
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login", { replace: true });
+  };
 
   return (
     <HomeLanding
@@ -12,6 +19,7 @@ export default function HomePage() {
         navigate("/planner")
       }}
       onOpenHistory={() => navigate("/history")}
+      onLogout={handleLogout}
     />
   );
 }

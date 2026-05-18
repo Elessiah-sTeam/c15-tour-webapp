@@ -25,6 +25,7 @@ export default function SortableStepHeader({category, model} : {category: Segmen
                 isStartEnd={false}
                 categoryId={category.id}
                 isDefault={false}
+                title={category.content.title}
             >
                 <SubTitleWHour
                     tag={"h2"}

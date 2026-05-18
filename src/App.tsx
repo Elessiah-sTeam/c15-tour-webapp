@@ -1,18 +1,28 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { AuthProvider } from "./auth/AuthContext";
+import ProtectedRoute from "./auth/ProtectedRoute";
 import HomePage from "./pages/HomePage.tsx";
 import PlannerPage from "./pages/PlannerPage.tsx";
 import HistoryPage from "./pages/HistoryPage.tsx";
+import LoginPage from "./pages/LoginPage.tsx";
+import RegisterPage from "./pages/RegisterPage.tsx";
+import ToastContainer from "./components/Toast/ToastContainer.tsx";
 import "./App.css";
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/planner" element={<PlannerPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-          <Route path="/history" element={<HistoryPage />} />
-      </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+      <ToastContainer />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+          <Route path="/planner" element={<ProtectedRoute><PlannerPage /></ProtectedRoute>} />
+          <Route path="/history" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }

@@ -30,11 +30,11 @@ jobs:
       - name: TypeScript check
         run: npx tsc --noEmit
 
+      - name: Tests unitaires
+        run: npm run test
+
       - name: Build
         run: npm run build
-
-      - name : Run tests
-        run: npm run test
 
       - name: SonarCloud Scan
         env:
