@@ -1,4 +1,5 @@
 import {createItineraryStore} from "./ItineraryStore.ts";
+import {dirtyStore} from "./DirtyStore.ts";
 import type {
     Step,
     Segment,
@@ -50,9 +51,10 @@ class ItineraryModel {
     }
 
     /**
-     * Réinitialise l'itinéraire
+     * Réinitialise l'itinéraire et efface l'état non sauvegardé
      */
     reset() {
+        dirtyStore.set(false);
         return this.store.set(() => {
             return this.formatItinerary({
                 id: -1,
@@ -63,6 +65,13 @@ class ItineraryModel {
                 segments: []
             });
         });
+    }
+
+    /**
+     * Sauvegarde explicite de l'itinéraire (POST si nouveau, PUT si existant)
+     */
+    async save(): Promise<boolean> {
+        return this.netModel.save();
     }
 
     /**

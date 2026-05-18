@@ -431,6 +431,30 @@ h3, .stepTitle {
     cursor: default;
 }
 
+.save-btn {
+    position: relative;
+}
+
+.save-btn--dirty {
+    animation: save-pulse 2s ease-in-out infinite;
+}
+
+@keyframes save-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.65; }
+}
+
+.save-btn__dot {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
+    background-color: #BB487C;
+    border-radius: 50%;
+    border: 2px solid white;
+}
+
 .click-input-wrapper {
     position: relative;
 }

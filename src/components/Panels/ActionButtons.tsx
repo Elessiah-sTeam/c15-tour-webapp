@@ -1,10 +1,11 @@
-import { useState } from "react";
-import { Trash, Pencil, Settings, Share2, Download } from "lucide-react";
+import { useState, useSyncExternalStore } from "react";
+import { Trash, Pencil, Settings, Share2, Download, Save } from "lucide-react";
 import "./Panels.css";
 import { deleteModStore } from "../../customObject/DeleteMod/DeleteModStore.ts";
 import { useDeleteMod } from "../../customObject/DeleteMod/useDeleteMod.ts";
 import { itineraryModel } from "../../customObject/Itinerary/ItineraryStore.ts";
 import { useItinerary } from "../../customObject/Itinerary/UseItinerary.ts";
+import { dirtyStore } from "../../customObject/Itinerary/DirtyStore.ts";
 import { SettingsModal } from "../SettingsModal/SettingsModal";
 import { loadGlobalSettings, persistGlobalSettings } from "../SettingsModal/settingsStorage.ts";
 import type { GlobalSettings } from "../SettingsModal/settingsTypes.ts";
@@ -29,13 +30,15 @@ function buildDepartureDateTime(departureDate: string, departureTime: string): D
 export default function ActionButtons() {
     const delMod = useDeleteMod(deleteModStore);
     const itinerary = useItinerary(itineraryModel.store);
+    const isDirty = useSyncExternalStore(dirtyStore.subscribe, dirtyStore.getSnapshot);
     const [showSettings, setShowSettings] = useState(false);
     const [showShare, setShowShare] = useState(false);
     const [currentSettings, setCurrentSettings] = useState<GlobalSettings | undefined>(undefined);
+    const [isSaving, setIsSaving] = useState(false);
     const canDownloadGpx = hasGpxGeometry(itinerary.segments.map((segment) => ({
         geometry: segment.content.geometry,
     })));
-    const settingsLabel = "Param\u00e8tres globaux";
+    const settingsLabel = "Paramètres globaux";
     const deleteModeLabel = delMod
         ? "Quitter le mode suppression"
         : "Activer le mode suppression";
@@ -43,8 +46,13 @@ export default function ActionButtons() {
         ? "Partager"
         : "Partage indisponible";
     const downloadLabel = canDownloadGpx
-        ? "T\u00e9l\u00e9charger le GPX"
-        : "T\u00e9l\u00e9chargement GPX indisponible";
+        ? "Télécharger le GPX"
+        : "Téléchargement GPX indisponible";
+    const saveLabel = isSaving
+        ? "Enregistrement..."
+        : isDirty
+            ? "Enregistrer (modifications non sauvegardées)"
+            : "Enregistré";
 
     const handleOpenSettings = () => {
         setCurrentSettings(loadGlobalSettings(itinerary));
@@ -64,9 +72,28 @@ export default function ActionButtons() {
         }
     };
 
+    const handleSave = async () => {
+        try {
+            setIsSaving(true);
+            await itineraryModel.save();
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     return (
         <>
             <div className={"action-buttons"}>
+                <button
+                    className={`save-btn${isDirty ? " save-btn--dirty" : ""}`}
+                    aria-label={saveLabel}
+                    title={saveLabel}
+                    onClick={handleSave}
+                    disabled={isSaving || !isDirty}
+                >
+                    <Save color={isDirty ? "#BB487C" : "#ccc"} />
+                    {isDirty && <span className="save-btn__dot" />}
+                </button>
                 <button
                     className={"global-settings-btn"}
                     aria-label={settingsLabel}

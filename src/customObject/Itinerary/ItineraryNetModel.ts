@@ -17,6 +17,7 @@ import {TimeSpan} from "../TimeSpan.ts";
 import type {Feature, LineString} from "geojson";
 import {updateStarts} from "./utils.ts";
 import {getAuthToken} from "../../auth/useAuth";
+import {dirtyStore} from "./DirtyStore.ts";
 
 
 const BACKEND_URL: string = "http://localhost:8080"
@@ -152,12 +153,28 @@ export class ItineraryNetModel {
     }
 
     /**
-     * Lance un put immédiatement.
+     * Lance un put pour les convois existants (id != -1).
+     * Pour les nouveaux convois, marque l'état comme non sauvegardé sans créer d'entrée backend.
      * Ne fait rien pendant un drag (voir startDrag/endDrag).
      */
     public setupSave(): void {
         if (this.isDragging) return;
+        const itinerary = this.store.getSnapshot();
+        if (itinerary.id === -1) {
+            dirtyStore.set(true);
+            return;
+        }
         this.put().then();
+    }
+
+    /**
+     * Sauvegarde explicite : POST si nouveau convoi, PUT sinon.
+     * Réinitialise l'état non sauvegardé après succès.
+     */
+    public async save(): Promise<boolean> {
+        const result = await this.put();
+        if (result) dirtyStore.set(false);
+        return result;
     }
 
     /**
@@ -173,6 +190,11 @@ export class ItineraryNetModel {
     public endDrag(): void {
         if (!this.isDragging) return;
         this.isDragging = false;
+        const itinerary = this.store.getSnapshot();
+        if (itinerary.id === -1) {
+            dirtyStore.set(true);
+            return;
+        }
         this.put().then();
     }
 
@@ -290,11 +312,12 @@ export class ItineraryNetModel {
     }
 
     /**
-     * Applique l'itinéraire reçu au store
+     * Applique l'itinéraire reçu au store et réinitialise l'état non sauvegardé.
      * @param response Itinéraire reçu à appliquer
      * @private
      */
     private async applyItinerary(response: ItineraryResponse): Promise<void> {
+        dirtyStore.set(false);
         this.store.set(() => {
             // Une ref pour incrémenter au sein des fonctions et pas perdre le fil
             const refId: {id: number} = {id: 0};
