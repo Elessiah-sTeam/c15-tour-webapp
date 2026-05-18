@@ -60,7 +60,9 @@ export default function Item({
                 <> </>
                 : delMod
                     ?
-                    <Trash className={"reorder-icon"} color={"#BB487C"} onClick={() => {handleDelete();}}/>
+                    <button type="button" className={"reorder-icon-btn"} aria-label="Supprimer" onClick={handleDelete}>
+                        <Trash className={"reorder-icon"} color={"#BB487C"} />
+                    </button>
                     :
                     <img className={"reorder-icon"} src="/icons/dragdrop-icon.png" alt={""}/>
             }

@@ -62,12 +62,13 @@ export default function SortableCategory({ category, visible, idActiveItem}: Pro
         >
             { !category.isStartEnd ? <SortableStepHeader category={category} model={itineraryModel} /> : <></> }
             { category.id == "end" ?
-                <p
+                <button
+                    type="button"
                     className={"add-seg-btn"}
                     onClick={handleNewSegment}
                 >
                     Ajouter un segment
-                </p>
+                </button>
             :
             <></>
             }
@@ -89,12 +90,13 @@ export default function SortableCategory({ category, visible, idActiveItem}: Pro
                 <EmptyDropZone categoryId={category.id}/>}
             </SortableContext>
             { !category.isStartEnd ?
-                <p
+                <button
+                    type="button"
                     className={"add-step-btn"}
                     onClick={handleNewStep}
                 >
                     Ajouter une étape
-                </p>
+                </button>
                     :
                 <></>
             }
