@@ -88,8 +88,9 @@ export function SettingsModal({ isOpen, onClose, onSave, initialSettings }: Sett
                         </div>
 
                         <div className="settings-form-group">
-                            <label className="settings-label">Nom du convoi</label>
+                            <label className="settings-label" htmlFor="settings-convoy-name">Nom du convoi</label>
                             <input
+                                id="settings-convoy-name"
                                 type="text"
                                 className="settings-input"
                                 placeholder="Ex: Tour C15 Été 2026"
@@ -100,8 +101,9 @@ export function SettingsModal({ isOpen, onClose, onSave, initialSettings }: Sett
 
                         <div className="settings-form-row">
                             <div className="settings-form-group">
-                                <label className="settings-label">Date de départ</label>
+                                <label className="settings-label" htmlFor="settings-departure-date">Date de départ</label>
                                 <input
+                                    id="settings-departure-date"
                                     type="date"
                                     className="settings-input"
                                     value={settings.departureDate}
@@ -109,8 +111,9 @@ export function SettingsModal({ isOpen, onClose, onSave, initialSettings }: Sett
                                 />
                             </div>
                             <div className="settings-form-group">
-                                <label className="settings-label">Heure de départ</label>
+                                <label className="settings-label" htmlFor="settings-departure-time">Heure de départ</label>
                                 <input
+                                    id="settings-departure-time"
                                     type="time"
                                     className="settings-input"
                                     value={settings.departureTime}
@@ -127,10 +130,11 @@ export function SettingsModal({ isOpen, onClose, onSave, initialSettings }: Sett
                         </div>
 
                         <div className="settings-form-group">
-                            <label className="settings-label">
+                            <label className="settings-label" htmlFor="settings-speed-percentage">
                                 Pourcentage sur les limites de vitesse : {settings.speedPercentage}%
                             </label>
                             <input
+                                id="settings-speed-percentage"
                                 type="range"
                                 min="20"
                                 max="130"
@@ -149,8 +153,9 @@ export function SettingsModal({ isOpen, onClose, onSave, initialSettings }: Sett
 
                         <div className="settings-form-row">
                             <div className="settings-form-group">
-                                <label className="settings-label">Durée minimale (heures)</label>
+                                <label className="settings-label" htmlFor="settings-min-duration">Durée minimale (heures)</label>
                                 <input
+                                    id="settings-min-duration"
                                     type="number"
                                     className="settings-input"
                                     value={settings.minSegmentDuration}
@@ -161,8 +166,9 @@ export function SettingsModal({ isOpen, onClose, onSave, initialSettings }: Sett
                                 />
                             </div>
                             <div className="settings-form-group">
-                                <label className="settings-label">Durée maximale (heures)</label>
+                                <label className="settings-label" htmlFor="settings-max-duration">Durée maximale (heures)</label>
                                 <input
+                                    id="settings-max-duration"
                                     type="number"
                                     className="settings-input"
                                     value={settings.maxSegmentDuration}
@@ -191,10 +197,11 @@ export function SettingsModal({ isOpen, onClose, onSave, initialSettings }: Sett
                         ) : (
                             settings.pauseConfigs.map((pause) => (
                                 <div key={pause.segmentId} className="settings-form-group">
-                                    <label className="settings-label">
+                                    <label className="settings-label" htmlFor={`settings-pause-${pause.segmentId}`}>
                                         Pause  "{pause.segmentName}"
                                     </label>
                                     <input
+                                        id={`settings-pause-${pause.segmentId}`}
                                         type="number"
                                         className="settings-input"
                                         value={pause.duration}
