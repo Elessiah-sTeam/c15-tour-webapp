@@ -68,6 +68,7 @@ function makeValidItinerary(overrides: Partial<Itinerary> = {}): Itinerary {
     totalDistance: 10,
     segments,
     ...overrides,
+    draft: overrides.draft ?? true,
   };
 }
 
@@ -288,6 +289,7 @@ describe('ItineraryNetModel', () => {
         totalDuration: new TimeSpan(),
         totalDistance: 0,
         segments: [],
+        draft: true,
       };
       const store = createStore(invalid);
       const net = new ItineraryNetModel(store, false);

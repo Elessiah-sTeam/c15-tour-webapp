@@ -12,7 +12,8 @@ export function createItineraryStore(initial?: Itinerary): ItineraryStore
             shareCode: "",
             totalDuration: new TimeSpan(),
             totalDistance: 0,
-            segments: new Array<Segment>()
+            segments: new Array<Segment>(),
+            draft: true,
         }
     } else {
         itinerary = initial;

@@ -11,6 +11,7 @@ function makeDefaultItinerary(): Itinerary {
     totalDuration: new TimeSpan(),
     totalDistance: 0,
     segments: [],
+    draft: true,
   };
 }
 
