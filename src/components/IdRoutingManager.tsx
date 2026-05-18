@@ -14,9 +14,8 @@ export default function IdRoutingManager() {
         if (itinerary.id != -1 && (id == null || Number(id) != itinerary.id)) {
             navigate("/planner?id=" + itinerary.id);
         }
-        if (id) {
-            const nbID: number = Number(id);
-            itineraryModel.netModel.get(nbID).then();
+        if (id && Number(id) !== itinerary.id) {
+            itineraryModel.netModel.get(Number(id)).then();
         }
     }, [id, itinerary.id, navigate]);
 
