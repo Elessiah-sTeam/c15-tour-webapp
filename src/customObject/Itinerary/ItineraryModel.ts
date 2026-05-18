@@ -11,6 +11,7 @@ import type {
 import {TimeSpan} from "../TimeSpan.ts";
 import {ItineraryNetModel} from "./ItineraryNetModel.ts";
 import {updateStarts} from "./utils.ts";
+import {saveStateStore} from "../SaveState/SaveStateStore.ts";
 
 /**
  * Modèle de l'itinéraire, regroupant toutes les fonctions métiers pour le manipuler
@@ -53,6 +54,7 @@ class ItineraryModel {
      * Réinitialise l'itinéraire
      */
     reset() {
+        saveStateStore.set(() => false);
         return this.store.set(() => {
             return this.formatItinerary({
                 id: -1,
@@ -60,7 +62,8 @@ class ItineraryModel {
                 shareCode: "",
                 totalDuration: new TimeSpan(),
                 totalDistance: 0,
-                segments: []
+                segments: [],
+                draft: true,
             });
         });
     }

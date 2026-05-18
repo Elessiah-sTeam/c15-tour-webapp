@@ -51,6 +51,7 @@ export type Itinerary = {
     totalDuration: TimeSpan;
     totalDistance: number;
     segments: Segment[];
+    draft: boolean;
 }
 
 export type ItineraryArgs = {

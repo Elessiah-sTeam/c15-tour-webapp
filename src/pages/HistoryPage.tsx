@@ -55,12 +55,9 @@ export default function HistoryPage() {
         }
 
         if (filter === 'draft') {
-            result = result.filter(i => (i.segments ?? []).every(s => s.waypoints.length < 2));
+            result = result.filter(i => i.draft !== false);
         } else if (filter === 'finalized') {
-            result = result.filter(i => {
-                const segs = i.segments ?? [];
-                return segs.length > 0 && segs.every(s => s.waypoints.length >= 2);
-            });
+            result = result.filter(i => i.draft === false);
         }
 
         setFiltered(result);
