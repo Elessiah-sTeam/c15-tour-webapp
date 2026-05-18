@@ -112,7 +112,7 @@ export default function ClickInput({ currentStr, setter, Tag, className, isDesac
         setIsInput(!isDesactivated);
     }
 
-    function handleKeyActivate(e: KeyboardEvent<HTMLElement>) {
+    function handleKeyActivate(e: KeyboardEvent<Element>) {
         if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             setText(currentStr);
