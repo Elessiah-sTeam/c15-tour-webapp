@@ -31,3 +31,12 @@ Thumbs.db
 
 # Optional: testing
 coverage/
+
+#IA
+.claude/
+/.claude/
+*claude*
+*codex*
+
+#other
+*~
