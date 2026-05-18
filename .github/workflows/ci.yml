@@ -27,8 +27,17 @@ jobs:
       - name: ESLint
         run: npm run lint
 
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
       - name: Build
         run: npm run build
 
       - name : Run tests
         run: npm run test
+
+      - name: SonarCloud Scan
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          npx sonar-scanner
