@@ -34,6 +34,7 @@ function buildItinerary(segments: Segment[]): Itinerary {
         totalDuration: new TimeSpan(7_200_000),
         totalDistance: 84,
         segments,
+        draft: true,
     };
 }
 

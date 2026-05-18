@@ -73,6 +73,7 @@ function makeItinerary(segments: Segment[]): Itinerary {
     totalDuration: new TimeSpan(),
     totalDistance: 0,
     segments,
+    draft: true,
   };
 }
 
