@@ -40,4 +40,8 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          npx sonar-scanner
+          npx sonar-scanner \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.organization=TON_ORG \
+            -Dsonar.projectKey=TON_PROJECT_KEY \
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }}
