@@ -35,13 +35,3 @@ jobs:
 
       - name: Build
         run: npm run build
-
-      - name: SonarCloud Scan
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          npx sonar-scanner \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.organization=elessiah-steam \
-            -Dsonar.projectKey=Elessiah-sTeam_c15-tour-webapp \
-            -Dsonar.token=${{ secrets.SONAR_TOKEN }}
