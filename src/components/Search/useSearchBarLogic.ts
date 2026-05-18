@@ -189,8 +189,8 @@ export const useSearchBarLogic = ({
   const selectResult = useCallback(
     (item: NominatimResult) => {
       const coords: LatLngExpression = [
-        parseFloat(item.lat),
-        parseFloat(item.lon),
+        Number.parseFloat(item.lat),
+        Number.parseFloat(item.lon),
       ];
       map.flyTo(coords, 15, { duration: 1.25 });
       const fullLabel = (item.display_name || query).trim();
