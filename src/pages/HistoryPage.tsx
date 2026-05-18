@@ -26,25 +26,54 @@ export default function HistoryPage() {
     const [filter, setFilter] = useState<'all' | 'draft' | 'finalized' | 'recent'>('all');
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(0);
+    const [clientPage, setClientPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [totalElements, setTotalElements] = useState(0);
     const [shareCode, setShareCode] = useState<string | null>(null);
 
+    const isFiltered = filter !== 'all';
+
     const loadItineraries = useCallback(async () => {
+        const filterActive = filter !== 'all';
         try {
             setLoading(true);
-            const res = await fetch(`${BACKEND_URL}/tours?page=${page}&size=${PAGE_SIZE}`, { headers: authHeaders() });
-            if (!res.ok) throw new Error('Backend error');
-            const data = await res.json();
-            setItineraries(data.content);
-            setTotalPages(data.totalPages);
-            setTotalElements(data.totalElements);
+            if (!filterActive) {
+                const res = await fetch(`${BACKEND_URL}/tours?page=${page}&size=${PAGE_SIZE}`, { headers: authHeaders() });
+                if (!res.ok) throw new Error('Backend error');
+                const data = await res.json();
+                setItineraries(data.content);
+                setTotalPages(data.totalPages);
+                setTotalElements(data.totalElements);
+            } else {
+                // Fetch first page to know total page count
+                const firstRes = await fetch(`${BACKEND_URL}/tours?page=0&size=${PAGE_SIZE}`, { headers: authHeaders() });
+                if (!firstRes.ok) throw new Error('Backend error');
+                const firstData = await firstRes.json();
+                setTotalPages(firstData.totalPages);
+                setTotalElements(firstData.totalElements);
+
+                if (firstData.totalPages <= 1) {
+                    setItineraries(firstData.content);
+                } else {
+                    // Fetch all remaining pages in parallel
+                    const pagePromises: Promise<ItineraryResponse[]>[] = [];
+                    for (let p = 1; p < firstData.totalPages; p++) {
+                        pagePromises.push(
+                            fetch(`${BACKEND_URL}/tours?page=${p}&size=${PAGE_SIZE}`, { headers: authHeaders() })
+                                .then(r => r.json())
+                                .then((d: { content: ItineraryResponse[] }) => d.content)
+                        );
+                    }
+                    const remainingPages = await Promise.all(pagePromises);
+                    setItineraries([...firstData.content, ...remainingPages.flat()]);
+                }
+            }
         } catch (err) {
             console.error('Erreur chargement:', err);
         } finally {
             setLoading(false);
         }
-    }, [page]);
+    }, [page, filter]);
 
     const applyFilters = useCallback(() => {
         let result = [...itineraries];
@@ -70,6 +99,10 @@ export default function HistoryPage() {
     useEffect(() => {
         applyFilters();
     }, [applyFilters]);
+
+    useEffect(() => {
+        setClientPage(0);
+    }, [filter, search]);
 
     const handleDelete = async (id: number) => {
         if (!confirm('Supprimer ce convoi ?')) return;
@@ -99,6 +132,26 @@ export default function HistoryPage() {
         await itineraryModel.netModel.get(id);
         navigate('/planner?id=' + id);
     };
+
+    const filteredTotalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+    const effectivePage = isFiltered ? clientPage : page;
+    const effectiveTotalPages = isFiltered ? filteredTotalPages : totalPages;
+    const effectiveTotalElements = isFiltered ? filtered.length : totalElements;
+    const displayedItems = isFiltered
+        ? filtered.slice(clientPage * PAGE_SIZE, (clientPage + 1) * PAGE_SIZE)
+        : filtered;
+
+    const handlePrevPage = () => {
+        if (isFiltered) setClientPage(p => p - 1);
+        else setPage(p => p - 1);
+    };
+
+    const handleNextPage = () => {
+        if (isFiltered) setClientPage(p => p + 1);
+        else setPage(p => p + 1);
+    };
+
+    const showPagination = !loading && (isFiltered ? filtered.length > 0 : totalPages > 1);
 
     return (
         <>
@@ -165,11 +218,11 @@ export default function HistoryPage() {
 
                 {loading ? (
                     <div className="ch-empty">Chargement...</div>
-                ) : filtered.length === 0 ? (
+                ) : displayedItems.length === 0 ? (
                     <div className="ch-empty"><Inbox size={20} style={{ marginRight: 8, verticalAlign: 'middle' }} />Aucun convoi trouvé</div>
                 ) : (
                     <div className="ch-list">
-                        {filtered.map(itinerary => (
+                        {displayedItems.map(itinerary => (
                             <ItineraryCard
                                 key={itinerary.id}
                                 itinerary={itinerary}
@@ -181,23 +234,23 @@ export default function HistoryPage() {
                     </div>
                 )}
 
-                {totalPages > 1 && (
+                {showPagination && (
                     <div className="ch-pagination">
                         <button
                             className="ch-page-btn"
-                            onClick={() => setPage(p => p - 1)}
-                            disabled={page === 0}
+                            onClick={handlePrevPage}
+                            disabled={effectivePage === 0}
                         >
                             ‹
                         </button>
                         <span className="ch-page-info">
-                            {page + 1} / {totalPages}
-                            <span className="ch-page-total"> ({totalElements} convois)</span>
+                            {effectivePage + 1} / {effectiveTotalPages}
+                            <span className="ch-page-total"> ({effectiveTotalElements} convoi{effectiveTotalElements !== 1 ? 's' : ''})</span>
                         </span>
                         <button
                             className="ch-page-btn"
-                            onClick={() => setPage(p => p + 1)}
-                            disabled={page >= totalPages - 1}
+                            onClick={handleNextPage}
+                            disabled={effectivePage >= effectiveTotalPages - 1}
                         >
                             ›
                         </button>
