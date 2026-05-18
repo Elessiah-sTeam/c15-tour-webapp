@@ -2,7 +2,7 @@ name: Webapp Release
 
 on:
   push:
-    branches: ["dev"]
+    branches: ["main"]
   workflow_dispatch:
 
 permissions:
