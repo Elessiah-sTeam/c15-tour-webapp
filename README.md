@@ -6,6 +6,25 @@
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
+## Semantic Versioning
+
+Le dépôt est configuré pour générer des releases sémantiques via GitHub Actions sur la branche `dev`.
+
+- `fix:` déclenche un bump `PATCH`
+- `feat:` déclenche un bump `MINOR`
+- `BREAKING CHANGE:` ou `type!:` déclenche un bump `MAJOR`
+- les tags publiés suivent le format `vX.Y.Z`
+
+Exemples de commits attendus :
+
+```text
+fix: corrige le calcul du temps de trajet
+feat: ajoute le partage par QR code
+feat!: remplace le format des données d'itinéraire
+```
+
+Le workflow de release s'appuie sur `release-please`, `Conventional Commits` et met à jour `CHANGELOG.md` automatiquement.
+
 Currently, two official plugins are available:
 
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
