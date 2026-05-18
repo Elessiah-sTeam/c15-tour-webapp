@@ -431,28 +431,37 @@ h3, .stepTitle {
     cursor: default;
 }
 
-.save-btn {
-    position: relative;
+.save-actions {
+    display: flex;
+    gap: 6px;
+    padding: 0 6px 4px 6px;
 }
 
-.save-btn--dirty {
-    animation: save-pulse 2s ease-in-out infinite;
+.save-actions__btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: filter 0.15s;
+}
+.save-actions__btn:hover:not(:disabled) { filter: brightness(0.92); }
+.save-actions__btn:disabled { opacity: 0.6; cursor: default; }
+
+.save-actions__btn--draft {
+    background: #f0e8f4;
+    color: #BB487C;
 }
 
-@keyframes save-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.65; }
-}
-
-.save-btn__dot {
-    position: absolute;
-    top: -2px;
-    right: -2px;
-    width: 8px;
-    height: 8px;
-    background-color: #BB487C;
-    border-radius: 50%;
-    border: 2px solid white;
+.save-actions__btn--save {
+    background: #BB487C;
+    color: #fff;
 }
 
 .click-input-wrapper {

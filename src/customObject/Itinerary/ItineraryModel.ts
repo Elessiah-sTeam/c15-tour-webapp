@@ -68,10 +68,19 @@ class ItineraryModel {
     }
 
     /**
-     * Sauvegarde explicite de l'itinéraire (POST si nouveau, PUT si existant)
+     * Sauvegarde explicite : marque le convoi comme confirmé dans l'historique
      */
     async save(): Promise<boolean> {
         return this.netModel.save();
+    }
+
+    /**
+     * Supprime le convoi courant du backend puis réinitialise l'état local
+     */
+    async deleteCurrent(): Promise<boolean> {
+        const ok = await this.netModel.delete();
+        this.reset();
+        return ok;
     }
 
     /**

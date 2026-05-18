@@ -52,6 +52,7 @@ export class ItineraryNetModel {
     public async get(id: number): Promise<void> {
         const response: ItineraryResponse = await this.retrieveItinerary(id);
         await this.applyItinerary(response);
+        dirtyStore.set(false); // convoi existant = déjà sauvegardé
     }
 
     /**
@@ -148,33 +149,40 @@ export class ItineraryNetModel {
         }
 
         await this.applyItinerary(itinerary);
+        dirtyStore.set(true); // auto-save créé, pas encore confirmé par l'utilisateur
 
         return true;
     }
 
     /**
-     * Lance un put pour les convois existants (id != -1).
-     * Pour les nouveaux convois, marque l'état comme non sauvegardé sans créer d'entrée backend.
+     * Lance un put immédiatement (calcul de route inclus).
      * Ne fait rien pendant un drag (voir startDrag/endDrag).
      */
     public setupSave(): void {
         if (this.isDragging) return;
-        const itinerary = this.store.getSnapshot();
-        if (itinerary.id === -1) {
-            dirtyStore.set(true);
-            return;
-        }
         this.put().then();
     }
 
     /**
-     * Sauvegarde explicite : POST si nouveau convoi, PUT sinon.
-     * Réinitialise l'état non sauvegardé après succès.
+     * Sauvegarde explicite : marque le convoi comme confirmé par l'utilisateur.
      */
     public async save(): Promise<boolean> {
         const result = await this.put();
         if (result) dirtyStore.set(false);
         return result;
+    }
+
+    /**
+     * Supprime le convoi courant du backend.
+     */
+    public async delete(): Promise<boolean> {
+        const itinerary = this.store.getSnapshot();
+        if (itinerary.id === -1) return true;
+        const response = await fetch(`${BACKEND_URL}/tours/${itinerary.id}`, {
+            method: "DELETE",
+            headers: authHeaders(),
+        });
+        return response.ok || response.status === 404;
     }
 
     /**
@@ -190,11 +198,6 @@ export class ItineraryNetModel {
     public endDrag(): void {
         if (!this.isDragging) return;
         this.isDragging = false;
-        const itinerary = this.store.getSnapshot();
-        if (itinerary.id === -1) {
-            dirtyStore.set(true);
-            return;
-        }
         this.put().then();
     }
 
@@ -312,12 +315,11 @@ export class ItineraryNetModel {
     }
 
     /**
-     * Applique l'itinéraire reçu au store et réinitialise l'état non sauvegardé.
+     * Applique l'itinéraire reçu au store.
      * @param response Itinéraire reçu à appliquer
      * @private
      */
     private async applyItinerary(response: ItineraryResponse): Promise<void> {
-        dirtyStore.set(false);
         this.store.set(() => {
             // Une ref pour incrémenter au sein des fonctions et pas perdre le fil
             const refId: {id: number} = {id: 0};

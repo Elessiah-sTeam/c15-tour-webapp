@@ -1,0 +1,88 @@
+.save-dialog-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 9000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.save-dialog {
+    position: relative;
+    background: #fff;
+    border-radius: 16px;
+    padding: 28px 28px 24px;
+    max-width: 360px;
+    width: 90%;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.save-dialog__close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #999;
+    display: flex;
+    align-items: center;
+    padding: 4px;
+    border-radius: 6px;
+    transition: color 0.15s;
+}
+.save-dialog__close:hover { color: #555; }
+
+.save-dialog__title {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+    color: #222;
+}
+
+.save-dialog__subtitle {
+    margin: 0;
+    font-size: 13px;
+    color: #777;
+    line-height: 1.45;
+}
+
+.save-dialog__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.save-dialog__btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: opacity 0.15s, filter 0.15s;
+}
+.save-dialog__btn:hover { filter: brightness(0.93); }
+
+.save-dialog__btn--save {
+    background: #BB487C;
+    color: #fff;
+}
+
+.save-dialog__btn--draft {
+    background: #f0e8f4;
+    color: #BB487C;
+}
+
+.save-dialog__btn--discard {
+    background: #fdf0f0;
+    color: #c0392b;
+}

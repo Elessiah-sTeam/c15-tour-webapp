@@ -1,5 +1,5 @@
 import { useState, useSyncExternalStore } from "react";
-import { Trash, Pencil, Settings, Share2, Download, Save } from "lucide-react";
+import { Trash, Pencil, Settings, Share2, Download, Save, Archive } from "lucide-react";
 import "./Panels.css";
 import { deleteModStore } from "../../customObject/DeleteMod/DeleteModStore.ts";
 import { useDeleteMod } from "../../customObject/DeleteMod/useDeleteMod.ts";
@@ -48,11 +48,6 @@ export default function ActionButtons() {
     const downloadLabel = canDownloadGpx
         ? "Télécharger le GPX"
         : "Téléchargement GPX indisponible";
-    const saveLabel = isSaving
-        ? "Enregistrement..."
-        : isDirty
-            ? "Enregistrer (modifications non sauvegardées)"
-            : "Enregistré";
 
     const handleOpenSettings = () => {
         setCurrentSettings(loadGlobalSettings(itinerary));
@@ -81,19 +76,35 @@ export default function ActionButtons() {
         }
     };
 
+    const handleSaveDraft = () => {
+        dirtyStore.set(false);
+    };
+
     return (
         <>
+            {isDirty && (
+                <div className="save-actions">
+                    <button
+                        className="save-actions__btn save-actions__btn--draft"
+                        title="Enregistrer en tant que brouillon"
+                        onClick={handleSaveDraft}
+                        disabled={isSaving}
+                    >
+                        <Archive size={14} />
+                        Brouillon
+                    </button>
+                    <button
+                        className="save-actions__btn save-actions__btn--save"
+                        title="Enregistrer le convoi"
+                        onClick={handleSave}
+                        disabled={isSaving}
+                    >
+                        <Save size={14} />
+                        {isSaving ? "Enregistrement…" : "Enregistrer"}
+                    </button>
+                </div>
+            )}
             <div className={"action-buttons"}>
-                <button
-                    className={`save-btn${isDirty ? " save-btn--dirty" : ""}`}
-                    aria-label={saveLabel}
-                    title={saveLabel}
-                    onClick={handleSave}
-                    disabled={isSaving || !isDirty}
-                >
-                    <Save color={isDirty ? "#BB487C" : "#ccc"} />
-                    {isDirty && <span className="save-btn__dot" />}
-                </button>
                 <button
                     className={"global-settings-btn"}
                     aria-label={settingsLabel}
