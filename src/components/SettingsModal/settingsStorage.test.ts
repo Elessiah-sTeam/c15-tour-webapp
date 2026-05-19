@@ -147,7 +147,8 @@ describe("settingsStorage", () => {
 
     it("calcule un multiplicateur de durée à partir du pourcentage de vitesse", () => {
         expect(getSpeedMultiplier(100)).toBe(1);
-        expect(getSpeedMultiplier(80)).toBe(1.25);
+        expect(getSpeedMultiplier(80)).toBe(1.2);
+        expect(getSpeedMultiplier(75)).toBe(1.25);
     });
 
     it("applique le pourcentage de vitesse aux durées et aux heures", () => {
@@ -205,11 +206,11 @@ describe("settingsStorage", () => {
 
         const scaled = applySpeedSettings(route, 80);
 
-        expect(scaled.totalDuration.duration).toBe(Math.round((oneHour + quarterHour) * 1.25));
-        expect(scaled.segments[1].content.duration.duration).toBe(Math.round(oneHour * 1.25));
-        expect(scaled.segments[1].steps[0].content.duration.duration).toBe(Math.round(quarterHour * 1.25));
+        expect(scaled.totalDuration.duration).toBe(Math.round((oneHour + quarterHour) * 1.2));
+        expect(scaled.segments[1].content.duration.duration).toBe(Math.round(oneHour * 1.2));
+        expect(scaled.segments[1].steps[0].content.duration.duration).toBe(Math.round(quarterHour * 1.2));
         expect(scaled.segments[2].content.hour.getTime()).toBe(
-            new Date("2026-04-21T10:30:00").getTime()
+            new Date("2026-04-21T10:24:00").getTime()
         );
     });
 });

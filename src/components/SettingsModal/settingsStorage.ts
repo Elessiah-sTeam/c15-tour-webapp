@@ -164,7 +164,8 @@ export function removeSegmentPauseConfig(itinerary: Itinerary, segmentId: string
 
 /**
  * Convertit le pourcentage de vitesse en coefficient d'allongement des durees.
- * Exemple: 80% -> 1.25, donc +25% sur les durees.
+ * Exemple: 80% -> 1.20, donc +20% sur les durees. 75% -> 1.25, donc +25%.
+ * Formule : 2 - (speedPercentage / 100)
  * @param speedPercentage pourcentage de vitesse de conduite
  */
 export function getSpeedMultiplier(speedPercentage: number): number {
@@ -172,7 +173,7 @@ export function getSpeedMultiplier(speedPercentage: number): number {
         ? speedPercentage
         : 100;
 
-    return 100 / normalizedSpeed;
+    return 2 - normalizedSpeed / 100;
 }
 
 function scaleTimeSpan(duration: TimeSpan | undefined, multiplier: number): TimeSpan {
