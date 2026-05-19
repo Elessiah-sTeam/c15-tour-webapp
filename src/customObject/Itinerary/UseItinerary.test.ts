@@ -3,7 +3,7 @@ import { renderHook } from "@testing-library/react";
 import { TimeSpan } from "../TimeSpan.ts";
 import { createItineraryStore } from "./ItineraryStore.ts";
 import { useItinerary } from "./UseItinerary.ts";
-import { getGlobalSettingsStorageKey, persistGlobalSettings, createDefaultGlobalSettings } from "../../components/SettingsModal/settingsStorage.ts";
+import { getGlobalSettingsStorageKey } from "../../components/SettingsModal/settingsStorage.ts";
 
 beforeEach(() => {
     localStorage.clear();
