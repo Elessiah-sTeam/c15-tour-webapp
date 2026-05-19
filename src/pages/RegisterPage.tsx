@@ -15,6 +15,7 @@ export default function RegisterPage() {
     const navigate = useNavigate();
 
     const [username, setUsername] = useState("");
+    const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
@@ -35,7 +36,7 @@ export default function RegisterPage() {
             const res = await fetch(`${BACKEND_URL}/auth/register`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, password }),
+                body: JSON.stringify({ username, email, password }),
             });
 
             if (!res.ok) {
@@ -46,7 +47,7 @@ export default function RegisterPage() {
             const data: RegisterResponse = await res.json().catch(() => ({}));
 
             if (data.token) {
-                login(data.token);
+                login(data.token, email);
                 navigate("/", { replace: true });
                 return;
             }
@@ -90,6 +91,22 @@ export default function RegisterPage() {
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                             autoComplete="username"
+                            required
+                        />
+                    </div>
+
+                    <div className="login-form__field">
+                        <label className="login-form__label" htmlFor="register-email">
+                            Adresse email
+                        </label>
+                        <input
+                            id="register-email"
+                            type="email"
+                            className={`login-form__input${error ? " login-form__input--error" : ""}`}
+                            placeholder="votre@email.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            autoComplete="email"
                             required
                         />
                     </div>
