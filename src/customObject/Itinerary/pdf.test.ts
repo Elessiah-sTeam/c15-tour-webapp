@@ -111,4 +111,30 @@ describe("collectPdfSections", () => {
             { lat: 47.3, lon: -1.2, label: "Point B" },
         ]);
     });
+
+    it("formats segment distances with a French decimal comma", () => {
+        const itinerary = buildItinerary([
+            buildSegment({ id: "start", isStartEnd: true, content: { title: " ", geometry: undefined } }),
+            buildSegment({
+                id: "leg-3",
+                content: {
+                    title: "Distance décimale",
+                    hour: new Date("2026-05-14T09:30:00.000Z"),
+                    duration: new TimeSpan(1_200_000),
+                    distance: 12.5,
+                    geometry: undefined,
+                },
+                steps: [
+                    { id: "x", isDefaultSegStart: false, content: { title: "Point A", duration: new TimeSpan(), location: { lat: 47.2, lon: -1.4 } } },
+                    { id: "y", isDefaultSegStart: false, content: { title: "Point B", duration: new TimeSpan(), location: { lat: 47.3, lon: -1.2 } } },
+                ],
+            }),
+            buildSegment({ id: "end", isStartEnd: true, content: { title: " ", geometry: undefined } }),
+        ]);
+
+        const sections = collectPdfSections(itinerary);
+
+        expect(sections).toHaveLength(1);
+        expect(sections[0].distanceLabel).toBe("12,5 km");
+    });
 });

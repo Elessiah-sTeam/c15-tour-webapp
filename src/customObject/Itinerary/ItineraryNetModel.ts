@@ -331,7 +331,7 @@ export class ItineraryNetModel {
                     content: {
                         title: seg.name,
                         duration: new TimeSpan(seg.duration * 1000),
-                        distance: seg.distance,
+                        distance: seg.distance * 0.001,
                         geometry: this.normalizeNetGeometry(seg.geometry),
                         hour: this.normalizeNetDate(seg.estimatedDeparture),
                         ...(seg.breakDuration !== undefined && seg.breakDuration !== null

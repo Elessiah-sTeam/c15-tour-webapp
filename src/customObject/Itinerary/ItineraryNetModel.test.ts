@@ -167,7 +167,7 @@ describe('ItineraryNetModel', () => {
       expect(realSeg).toBeDefined();
       expect(realSeg!.content.title).toBe('Seg 1');
       expect(realSeg!.content.breakDuration).toBe(90);
-      expect(realSeg!.content.distance).toBe(5000);
+      expect(realSeg!.content.distance).toBe(5);
       const withEta = realSeg!.steps.find(s => s.content.title === 'WP1');
       expect(withEta?.content.estimatedArrival?.toISOString()).toBe('2024-06-01T10:00:00.000Z');
     });
