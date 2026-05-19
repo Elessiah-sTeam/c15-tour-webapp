@@ -9,7 +9,15 @@ import type {Segment, Step} from "./types.ts";
  */
 function applyStart(segment: Segment,
     start: Step): Segment {
-    const startCopy: Step = {...start, id: "start-" + segment.id, isDefaultSegStart: true};
+    const startCopy: Step = {
+        ...start,
+        id: "start-" + segment.id,
+        isDefaultSegStart: true,
+        content: {
+            ...start.content,
+            duration: new TimeSpan(),
+        },
+    };
     const steps: Step[] = segment.steps.length === 0
         ? [startCopy]
         : [startCopy, ...segment.steps];

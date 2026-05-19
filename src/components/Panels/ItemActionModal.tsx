@@ -32,10 +32,21 @@ function ItemActionModalContent({
 
     useEffect(() => {
         const previousOverflow = document.body.style.overflow;
+        const panelElement = document.querySelector(".panel") as HTMLElement | null;
+        const panelWasInert = panelElement?.hasAttribute("inert") ?? false;
+
+        document.body.classList.add("item-action-modal-open");
         document.body.style.overflow = "hidden";
+        if (panelElement && !panelWasInert) {
+            panelElement.setAttribute("inert", "");
+        }
 
         return () => {
+            document.body.classList.remove("item-action-modal-open");
             document.body.style.overflow = previousOverflow;
+            if (panelElement && !panelWasInert) {
+                panelElement.removeAttribute("inert");
+            }
         };
     }, []);
 

@@ -22,12 +22,20 @@ export function useDragNDrop(): DndProps {
     const [activeCat, setActiveCat] = useState<Segment | null>(null);
     const itinerary: Itinerary = useItinerary(itineraryModel.store);
 
+    function isItemActionModalOpen(): boolean {
+        return document.body.classList.contains("item-action-modal-open");
+    }
+
     /**
      * Gère le début du dragNDrop quand l'élément est agripé,
      * Mets à jour les variables activeItem, et activeCat qui représente les éléments saisis
      * @param event informations sur le début du Drag
      */
     function handleDragStart(event: DragStartEvent) {
+        if (isItemActionModalOpen()) {
+            return;
+        }
+
         const {active} = event;
         const type = active.data.current?.type;
 
@@ -52,6 +60,10 @@ export function useDragNDrop(): DndProps {
      * @param event
      */
     function handleDragMove(event: DragMoveEvent) {
+        if (isItemActionModalOpen()) {
+            return;
+        }
+
         const { active, over } = event;
 
         if (!over) {
@@ -74,6 +86,12 @@ export function useDragNDrop(): DndProps {
      * @param event
      */
     function handleDragEnd(event: DragEndEvent) {
+        if (isItemActionModalOpen()) {
+            setActiveItem(null);
+            setActiveCat(null);
+            return;
+        }
+
         setActiveItem(null);
         setActiveCat(null);
         handleDragMove(event);
