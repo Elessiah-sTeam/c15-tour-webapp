@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { CarFront } from "lucide-react";
+import { validatePassword } from "../auth/passwordValidation";
 import "./LoginPage.css";
 
 const BACKEND_URL = "http://localhost:8080";
@@ -21,6 +22,12 @@ export default function ResetPasswordPage() {
 
         if (newPassword !== confirmPassword) {
             setError("Les mots de passe ne correspondent pas.");
+            return;
+        }
+
+        const passwordError = validatePassword(newPassword);
+        if (passwordError) {
+            setError(passwordError);
             return;
         }
 

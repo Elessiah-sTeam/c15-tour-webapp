@@ -28,8 +28,8 @@ async function fillForm(
     const {
         username = 'johndoe',
         email = 'john@example.com',
-        password = 'password123',
-        confirmPassword = 'password123',
+        password = 'Password1',
+        confirmPassword = 'Password1',
     } = opts;
     if (username) await user.type(screen.getByLabelText('Identifiant'), username);
     if (email) await user.type(screen.getByLabelText('Adresse email'), email);
@@ -60,10 +60,20 @@ describe('RegisterPage', () => {
     it('affiche une erreur si les mots de passe ne correspondent pas', async () => {
         const user = userEvent.setup();
         renderRegisterPage();
-        await fillForm(user, { password: 'password123', confirmPassword: 'different' });
+        await fillForm(user, { password: 'Password1', confirmPassword: 'different' });
         await user.click(screen.getByRole('button', { name: /créer mon compte/i }));
 
         expect(screen.getByText('Les mots de passe ne correspondent pas.')).toBeInTheDocument();
+        expect(fetch).not.toHaveBeenCalled();
+    });
+
+    it('affiche une erreur si le mot de passe ne respecte pas les règles de complexité', async () => {
+        const user = userEvent.setup();
+        renderRegisterPage();
+        await fillForm(user, { password: 'password1', confirmPassword: 'password1' });
+        await user.click(screen.getByRole('button', { name: /créer mon compte/i }));
+
+        expect(screen.getByText(/majuscule/i)).toBeInTheDocument();
         expect(fetch).not.toHaveBeenCalled();
     });
 
@@ -148,14 +158,14 @@ describe('RegisterPage', () => {
         } as Response);
 
         renderRegisterPage();
-        await fillForm(user, { username: 'jdoe', email: 'jdoe@test.com', password: 'p', confirmPassword: 'p' });
+        await fillForm(user, { username: 'jdoe', email: 'jdoe@test.com', password: 'Password1', confirmPassword: 'Password1' });
         await user.click(screen.getByRole('button', { name: /créer mon compte/i }));
 
         await waitFor(() => {
             expect(fetch).toHaveBeenCalledWith(
                 'http://localhost:8080/auth/register',
                 expect.objectContaining({
-                    body: JSON.stringify({ username: 'jdoe', email: 'jdoe@test.com', password: 'p' }),
+                    body: JSON.stringify({ username: 'jdoe', email: 'jdoe@test.com', password: 'Password1' }),
                 })
             );
         });

@@ -1,7 +1,9 @@
-import { type MouseEvent, useState, useEffect, useContext } from 'react';
+import { type MouseEvent, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { User, Lock } from 'lucide-react';
-import { AuthContext } from '../../auth/authContextDef';
+import { useAuth } from '../../auth/useAuth';
+import { useAuthFetch } from '../../auth/useAuthFetch';
+import { validatePassword } from '../../auth/passwordValidation';
 import './AccountSettingsModal.css';
 
 interface AccountSettingsModalProps {
@@ -11,9 +13,8 @@ interface AccountSettingsModalProps {
 }
 
 export function AccountSettingsModal({ isOpen, onClose, onLogout }: AccountSettingsModalProps) {
-    const authContext = useContext(AuthContext);
-    const email = authContext?.email || '';
-    const token = authContext?.token || '';
+    const { email } = useAuth();
+    const authFetch = useAuthFetch();
 
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -62,23 +63,18 @@ export function AccountSettingsModal({ isOpen, onClose, onLogout }: AccountSetti
             return;
         }
 
-        if (newPassword.length < 8) {
-            setMessage({ type: 'error', text: 'Le nouveau mot de passe doit contenir au moins 8 caractères' });
+        const passwordError = validatePassword(newPassword);
+        if (passwordError) {
+            setMessage({ type: 'error', text: passwordError });
             return;
         }
 
         setLoading(true);
         try {
-            const response = await fetch('http://localhost:8080/auth/change-password', {
+            const response = await authFetch('http://localhost:8080/auth/change-password', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    currentPassword,
-                    newPassword
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ currentPassword, newPassword })
             });
 
             if (response.ok) {
@@ -143,7 +139,7 @@ export function AccountSettingsModal({ isOpen, onClose, onLogout }: AccountSetti
                                 id="account-settings-email"
                                 type="email"
                                 className="account-settings-input"
-                                value={email}
+                                value={email ?? ''}
                                 readOnly
                             />
                         </div>

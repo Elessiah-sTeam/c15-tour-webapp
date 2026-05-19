@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Map } from "lucide-react";
 import { useAuth } from "../auth/useAuth";
+import { validatePassword } from "../auth/passwordValidation";
 import "./LoginPage.css";
 
 const BACKEND_URL = "http://localhost:8080";
@@ -27,6 +28,12 @@ export default function RegisterPage() {
 
         if (password !== confirmPassword) {
             setError("Les mots de passe ne correspondent pas.");
+            return;
+        }
+
+        const passwordError = validatePassword(password);
+        if (passwordError) {
+            setError(passwordError);
             return;
         }
 

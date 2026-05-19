@@ -1,15 +1,24 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 import { AuthProvider } from '../../auth/AuthContext';
 import { AccountSettingsModal } from './AccountSettingsModal';
+
+const mockNavigate = vi.fn();
+vi.mock('react-router-dom', async () => {
+    const actual = await vi.importActual('react-router-dom');
+    return { ...actual, useNavigate: () => mockNavigate };
+});
 
 function renderModal(props: { isOpen?: boolean; onClose?: () => void; onLogout?: () => void } = {}) {
     const { isOpen = true, onClose = vi.fn(), onLogout = vi.fn() } = props;
     return render(
-        <AuthProvider>
-            <AccountSettingsModal isOpen={isOpen} onClose={onClose} onLogout={onLogout} />
-        </AuthProvider>
+        <MemoryRouter>
+            <AuthProvider>
+                <AccountSettingsModal isOpen={isOpen} onClose={onClose} onLogout={onLogout} />
+            </AuthProvider>
+        </MemoryRouter>
     );
 }
 
@@ -87,8 +96,8 @@ describe('AccountSettingsModal', () => {
         const user = userEvent.setup();
         renderModal();
         await user.type(screen.getByLabelText('Mot de passe actuel'), 'oldpass');
-        await user.type(screen.getByLabelText('Nouveau mot de passe'), 'newpass1');
-        await user.type(screen.getByLabelText('Confirmer le nouveau mot de passe'), 'newpass2');
+        await user.type(screen.getByLabelText('Nouveau mot de passe'), 'Newpass1');
+        await user.type(screen.getByLabelText('Confirmer le nouveau mot de passe'), 'Newpass2');
         await user.click(screen.getByRole('button', { name: /mettre à jour/i }));
         expect(screen.getByText('Les nouveaux mots de passe ne correspondent pas')).toBeInTheDocument();
     });
@@ -103,14 +112,25 @@ describe('AccountSettingsModal', () => {
         expect(screen.getByText(/au moins 8 caractères/i)).toBeInTheDocument();
     });
 
+    it('affiche une erreur si le nouveau mot de passe ne respecte pas la complexité', async () => {
+        const user = userEvent.setup();
+        renderModal();
+        await user.type(screen.getByLabelText('Mot de passe actuel'), 'oldpass');
+        await user.type(screen.getByLabelText('Nouveau mot de passe'), 'password1');
+        await user.type(screen.getByLabelText('Confirmer le nouveau mot de passe'), 'password1');
+        await user.click(screen.getByRole('button', { name: /mettre à jour/i }));
+        expect(screen.getByText(/majuscule/i)).toBeInTheDocument();
+        expect(fetch).not.toHaveBeenCalled();
+    });
+
     it('affiche un message de succès après changement de mot de passe réussi', async () => {
         const user = userEvent.setup();
         vi.mocked(fetch).mockResolvedValueOnce({ ok: true } as Response);
         renderModalWithEmail('user@example.com');
 
         await user.type(screen.getByLabelText('Mot de passe actuel'), 'oldpassword');
-        await user.type(screen.getByLabelText('Nouveau mot de passe'), 'newpassword');
-        await user.type(screen.getByLabelText('Confirmer le nouveau mot de passe'), 'newpassword');
+        await user.type(screen.getByLabelText('Nouveau mot de passe'), 'Newpass1');
+        await user.type(screen.getByLabelText('Confirmer le nouveau mot de passe'), 'Newpass1');
         await user.click(screen.getByRole('button', { name: /mettre à jour/i }));
 
         await waitFor(() => {
@@ -127,8 +147,8 @@ describe('AccountSettingsModal', () => {
         renderModalWithEmail('user@example.com');
 
         await user.type(screen.getByLabelText('Mot de passe actuel'), 'wrongpass');
-        await user.type(screen.getByLabelText('Nouveau mot de passe'), 'newpassword');
-        await user.type(screen.getByLabelText('Confirmer le nouveau mot de passe'), 'newpassword');
+        await user.type(screen.getByLabelText('Nouveau mot de passe'), 'Newpass1');
+        await user.type(screen.getByLabelText('Confirmer le nouveau mot de passe'), 'Newpass1');
         await user.click(screen.getByRole('button', { name: /mettre à jour/i }));
 
         await waitFor(() => {
@@ -145,8 +165,8 @@ describe('AccountSettingsModal', () => {
         renderModal();
 
         await user.type(screen.getByLabelText('Mot de passe actuel'), 'oldpassword');
-        await user.type(screen.getByLabelText('Nouveau mot de passe'), 'newpassword');
-        await user.type(screen.getByLabelText('Confirmer le nouveau mot de passe'), 'newpassword');
+        await user.type(screen.getByLabelText('Nouveau mot de passe'), 'Newpass1');
+        await user.type(screen.getByLabelText('Confirmer le nouveau mot de passe'), 'Newpass1');
         await user.click(screen.getByRole('button', { name: /mettre à jour/i }));
 
         await waitFor(() => {
@@ -160,8 +180,8 @@ describe('AccountSettingsModal', () => {
         renderModal();
 
         await user.type(screen.getByLabelText('Mot de passe actuel'), 'oldpassword');
-        await user.type(screen.getByLabelText('Nouveau mot de passe'), 'newpassword');
-        await user.type(screen.getByLabelText('Confirmer le nouveau mot de passe'), 'newpassword');
+        await user.type(screen.getByLabelText('Nouveau mot de passe'), 'Newpass1');
+        await user.type(screen.getByLabelText('Confirmer le nouveau mot de passe'), 'Newpass1');
         await user.click(screen.getByRole('button', { name: /mettre à jour/i }));
 
         await waitFor(() => {
@@ -175,8 +195,8 @@ describe('AccountSettingsModal', () => {
         renderModalWithEmail('user@example.com');
 
         await user.type(screen.getByLabelText('Mot de passe actuel'), 'oldpassword');
-        await user.type(screen.getByLabelText('Nouveau mot de passe'), 'newpassword');
-        await user.type(screen.getByLabelText('Confirmer le nouveau mot de passe'), 'newpassword');
+        await user.type(screen.getByLabelText('Nouveau mot de passe'), 'Newpass1');
+        await user.type(screen.getByLabelText('Confirmer le nouveau mot de passe'), 'Newpass1');
         await user.click(screen.getByRole('button', { name: /mettre à jour/i }));
 
         await waitFor(() => {
@@ -189,5 +209,21 @@ describe('AccountSettingsModal', () => {
                 })
             );
         });
+    });
+
+    it('déconnecte et redirige vers /login sur réponse 401', async () => {
+        const user = userEvent.setup();
+        vi.mocked(fetch).mockResolvedValueOnce({ status: 401, ok: false } as Response);
+        renderModalWithEmail('user@example.com');
+
+        await user.type(screen.getByLabelText('Mot de passe actuel'), 'oldpassword');
+        await user.type(screen.getByLabelText('Nouveau mot de passe'), 'Newpass1');
+        await user.type(screen.getByLabelText('Confirmer le nouveau mot de passe'), 'Newpass1');
+        await user.click(screen.getByRole('button', { name: /mettre à jour/i }));
+
+        await waitFor(() => {
+            expect(localStorage.getItem('auth_token')).toBeNull();
+        });
+        expect(mockNavigate).toHaveBeenCalledWith('/login');
     });
 });

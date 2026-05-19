@@ -36,11 +36,23 @@ describe('ResetPasswordPage', () => {
         const user = userEvent.setup();
         renderWithToken('abc123');
 
-        await user.type(screen.getByLabelText('Nouveau mot de passe'), 'password1');
-        await user.type(screen.getByLabelText('Confirmer le mot de passe'), 'password2');
+        await user.type(screen.getByLabelText('Nouveau mot de passe'), 'Password1');
+        await user.type(screen.getByLabelText('Confirmer le mot de passe'), 'Password2');
         await user.click(screen.getByRole('button', { name: /réinitialiser/i }));
 
         expect(screen.getByText('Les mots de passe ne correspondent pas.')).toBeInTheDocument();
+        expect(fetch).not.toHaveBeenCalled();
+    });
+
+    it('affiche une erreur si le mot de passe ne respecte pas les règles de complexité', async () => {
+        const user = userEvent.setup();
+        renderWithToken('abc123');
+
+        await user.type(screen.getByLabelText('Nouveau mot de passe'), 'password1');
+        await user.type(screen.getByLabelText('Confirmer le mot de passe'), 'password1');
+        await user.click(screen.getByRole('button', { name: /réinitialiser/i }));
+
+        expect(screen.getByText(/majuscule/i)).toBeInTheDocument();
         expect(fetch).not.toHaveBeenCalled();
     });
 
@@ -49,8 +61,8 @@ describe('ResetPasswordPage', () => {
         vi.mocked(fetch).mockResolvedValueOnce({ ok: true } as Response);
 
         renderWithToken('valid-token');
-        await user.type(screen.getByLabelText('Nouveau mot de passe'), 'newpass123');
-        await user.type(screen.getByLabelText('Confirmer le mot de passe'), 'newpass123');
+        await user.type(screen.getByLabelText('Nouveau mot de passe'), 'Newpass1');
+        await user.type(screen.getByLabelText('Confirmer le mot de passe'), 'Newpass1');
         await user.click(screen.getByRole('button', { name: /réinitialiser/i }));
 
         await waitFor(() => {
@@ -64,8 +76,8 @@ describe('ResetPasswordPage', () => {
         vi.mocked(fetch).mockResolvedValueOnce({ ok: false } as Response);
 
         renderWithToken('valid-token');
-        await user.type(screen.getByLabelText('Nouveau mot de passe'), 'newpass123');
-        await user.type(screen.getByLabelText('Confirmer le mot de passe'), 'newpass123');
+        await user.type(screen.getByLabelText('Nouveau mot de passe'), 'Newpass1');
+        await user.type(screen.getByLabelText('Confirmer le mot de passe'), 'Newpass1');
         await user.click(screen.getByRole('button', { name: /réinitialiser/i }));
 
         await waitFor(() => {
@@ -80,8 +92,8 @@ describe('ResetPasswordPage', () => {
         vi.mocked(fetch).mockRejectedValueOnce(new Error('Network error'));
 
         renderWithToken('valid-token');
-        await user.type(screen.getByLabelText('Nouveau mot de passe'), 'newpass123');
-        await user.type(screen.getByLabelText('Confirmer le mot de passe'), 'newpass123');
+        await user.type(screen.getByLabelText('Nouveau mot de passe'), 'Newpass1');
+        await user.type(screen.getByLabelText('Confirmer le mot de passe'), 'Newpass1');
         await user.click(screen.getByRole('button', { name: /réinitialiser/i }));
 
         await waitFor(() => {
@@ -96,8 +108,8 @@ describe('ResetPasswordPage', () => {
         vi.mocked(fetch).mockImplementation(() => new Promise(() => {}));
 
         renderWithToken('valid-token');
-        await user.type(screen.getByLabelText('Nouveau mot de passe'), 'newpass123');
-        await user.type(screen.getByLabelText('Confirmer le mot de passe'), 'newpass123');
+        await user.type(screen.getByLabelText('Nouveau mot de passe'), 'Newpass1');
+        await user.type(screen.getByLabelText('Confirmer le mot de passe'), 'Newpass1');
         await user.click(screen.getByRole('button', { name: /réinitialiser/i }));
 
         expect(screen.getByRole('button', { name: /traitement en cours/i })).toBeDisabled();
@@ -108,15 +120,15 @@ describe('ResetPasswordPage', () => {
         vi.mocked(fetch).mockResolvedValueOnce({ ok: true } as Response);
 
         renderWithToken('mytoken');
-        await user.type(screen.getByLabelText('Nouveau mot de passe'), 'secret');
-        await user.type(screen.getByLabelText('Confirmer le mot de passe'), 'secret');
+        await user.type(screen.getByLabelText('Nouveau mot de passe'), 'Secret12');
+        await user.type(screen.getByLabelText('Confirmer le mot de passe'), 'Secret12');
         await user.click(screen.getByRole('button', { name: /réinitialiser/i }));
 
         await waitFor(() => {
             expect(fetch).toHaveBeenCalledWith(
                 'http://localhost:8080/auth/reset-password',
                 expect.objectContaining({
-                    body: JSON.stringify({ token: 'mytoken', newPassword: 'secret' }),
+                    body: JSON.stringify({ token: 'mytoken', newPassword: 'Secret12' }),
                 })
             );
         });
