@@ -155,6 +155,26 @@ describe("settingsStorage", () => {
         expect(getSpeedMultiplier(75)).toBe(1.25);
     });
 
+    it("getSpeedMultiplier retombe sur 100% si l'entrée est invalide", () => {
+        expect(getSpeedMultiplier(Number.NaN)).toBe(1);
+        expect(getSpeedMultiplier(0)).toBe(1);
+        expect(getSpeedMultiplier(-50)).toBe(1);
+        expect(getSpeedMultiplier(Number.POSITIVE_INFINITY)).toBe(1);
+        expect(getSpeedMultiplier(Number.NEGATIVE_INFINITY)).toBe(1);
+    });
+
+    it("applySpeedSettings est neutre pour une vitesse à 100%", () => {
+        const itinerary = makeItinerary();
+        const scaled = applySpeedSettings(itinerary, 100);
+        expect(scaled.totalDuration.duration).toBe(itinerary.totalDuration.duration);
+    });
+
+    it("applySpeedSettings retombe sur 100% pour une vitesse invalide", () => {
+        const itinerary = makeItinerary();
+        const scaled = applySpeedSettings(itinerary, Number.NaN);
+        expect(scaled.totalDuration.duration).toBe(itinerary.totalDuration.duration);
+    });
+
     it("applique le pourcentage de vitesse aux durées et aux heures", () => {
         const itinerary = makeItinerary();
         const oneHour = 3_600_000;
@@ -240,6 +260,18 @@ describe("settingsStorage", () => {
         unsubscribe();
         persistGlobalSettings(itinerary.id, createDefaultGlobalSettings(itinerary));
 
+        expect(onChange).toHaveBeenCalledTimes(1);
+    });
+
+    it("subscribeToGlobalSettingsChanges réagit aussi à un évènement 'storage' cross-tab", () => {
+        const onChange = vi.fn();
+        const unsubscribe = subscribeToGlobalSettingsChanges(onChange);
+
+        window.dispatchEvent(new Event("storage"));
+        expect(onChange).toHaveBeenCalledTimes(1);
+
+        unsubscribe();
+        window.dispatchEvent(new Event("storage"));
         expect(onChange).toHaveBeenCalledTimes(1);
     });
 

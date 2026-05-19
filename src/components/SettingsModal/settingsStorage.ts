@@ -57,9 +57,12 @@ export function buildPauseConfigs(itinerary: Itinerary, baseSettings: GlobalSett
 
 export function persistGlobalSettings(itineraryId: number, settings: GlobalSettings): void {
     localStorage.setItem(getGlobalSettingsStorageKey(itineraryId), JSON.stringify(settings));
-    if (typeof window !== "undefined") {
-        window.dispatchEvent(new Event(GLOBAL_SETTINGS_CHANGE_EVENT));
+    /* v8 ignore start -- garde-fou SSR : window indéfini ne survient pas en runtime navigateur ni en jsdom */
+    if (typeof window === "undefined") {
+        return;
     }
+    /* v8 ignore stop */
+    window.dispatchEvent(new Event(GLOBAL_SETTINGS_CHANGE_EVENT));
 }
 
 /**
@@ -76,9 +79,11 @@ export function getGlobalSettingsStorageValue(itineraryId: number): string | nul
  * @param onChange rappel declenche quand les parametres evoluent
  */
 export function subscribeToGlobalSettingsChanges(onChange: () => void): () => void {
+    /* v8 ignore start -- garde-fou SSR : window indéfini ne survient pas en runtime navigateur ni en jsdom */
     if (typeof window === "undefined") {
         return () => undefined;
     }
+    /* v8 ignore stop */
 
     const handleChange = () => onChange();
     window.addEventListener(GLOBAL_SETTINGS_CHANGE_EVENT, handleChange);

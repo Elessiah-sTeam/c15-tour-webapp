@@ -18,11 +18,8 @@ export function useItinerary(store: ItineraryStore) {
         store.getSnapshot
     );
 
-    useSyncExternalStore(
-        subscribeToGlobalSettingsChanges,
-        () => getGlobalSettingsStorageValue(itinerary.id),
-        () => getGlobalSettingsStorageValue(itinerary.id)
-    );
+    const readStoredSettings = () => getGlobalSettingsStorageValue(itinerary.id);
+    useSyncExternalStore(subscribeToGlobalSettingsChanges, readStoredSettings, readStoredSettings);
 
     const settings = loadGlobalSettings(itinerary);
 
