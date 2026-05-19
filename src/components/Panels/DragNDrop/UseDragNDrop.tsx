@@ -13,6 +13,10 @@ export type DndProps = {
     handleDragEnd: (event: DragEndEvent) => void;
 }
 
+function isItemActionModalOpen(): boolean {
+    return document.body.classList.contains("item-action-modal-open");
+}
+
 /**
  * Fonction renvoyant les outils pour faire fonctionner le dragNDrop
  * Contient les fonctions métier du DragNDrop
@@ -21,10 +25,6 @@ export function useDragNDrop(): DndProps {
     const [activeItem, setActiveItem] = useState<Step | null>(null);
     const [activeCat, setActiveCat] = useState<Segment | null>(null);
     const itinerary: Itinerary = useItinerary(itineraryModel.store);
-
-    function isItemActionModalOpen(): boolean {
-        return document.body.classList.contains("item-action-modal-open");
-    }
 
     /**
      * Gère le début du dragNDrop quand l'élément est agripé,

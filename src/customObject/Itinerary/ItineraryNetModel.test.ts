@@ -126,9 +126,7 @@ describe('ItineraryNetModel', () => {
     });
 
     it('mappe segments, waypoints, breakDuration et estimatedArrival', async () => {
-      vi.mocked(fetch).mockResolvedValue({
-        ok: true,
-        json: async () => ({
+      vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify({
           id: 1,
           name: 'Roadtrip',
           shareCode: 'C15ROC',
@@ -156,8 +154,7 @@ describe('ItineraryNetModel', () => {
               ],
             },
           ],
-        }),
-      } as Response);
+        })));
 
       const store = createStore(makeValidItinerary({ id: -1 }));
       const net = new ItineraryNetModel(store, false);
@@ -177,9 +174,7 @@ describe('ItineraryNetModel', () => {
     });
 
     it('conserve la durée de trajet du premier point visible des segments suivants', async () => {
-      vi.mocked(fetch).mockResolvedValue({
-        ok: true,
-        json: async () => ({
+      vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify({
           id: 2,
           name: 'Roadtrip',
           segments: [
@@ -222,8 +217,10 @@ describe('ItineraryNetModel', () => {
               ],
             },
           ],
-        }),
-      } as Response);
+        }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }));
 
       const store = createStore(makeValidItinerary({ id: -1 }));
       const net = new ItineraryNetModel(store, false);
