@@ -401,6 +401,10 @@ h3, .stepTitle {
     font-family: inherit;
     color: inherit;
     line-height: 1.2;
+    background: none;
+    border: none;
+    font-family: inherit;
+    color: inherit;
 }
 
 .add-step-btn {

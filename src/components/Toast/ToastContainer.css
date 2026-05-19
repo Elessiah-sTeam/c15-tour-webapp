@@ -17,8 +17,30 @@
     font-size: clamp(12px, 1.4vw, 14px);
     color: #fff;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    cursor: pointer;
     animation: toast-in 0.2s ease-out;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.toast-message {
+    flex: 1;
+}
+
+.toast-dismiss {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    opacity: 0.8;
+    flex: 0 0 auto;
+}
+
+.toast-dismiss:hover {
+    opacity: 1;
 }
 
 .toast-error {

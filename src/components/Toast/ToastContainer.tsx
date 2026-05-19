@@ -16,9 +16,14 @@ export default function ToastContainer() {
                     key={toast.id}
                     className={`toast toast-${toast.level}`}
                     role={toast.level === "error" ? "alert" : "status"}
-                    onClick={() => toastStore.dismiss(toast.id)}
                 >
-                    {toast.message}
+                    <span className="toast-message">{toast.message}</span>
+                    <button
+                        type="button"
+                        className="toast-dismiss"
+                        aria-label="Fermer"
+                        onClick={() => toastStore.dismiss(toast.id)}
+                    >✕</button>
                 </div>
             ))}
         </div>
