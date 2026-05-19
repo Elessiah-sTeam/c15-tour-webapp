@@ -17,6 +17,8 @@ import {TimeSpan} from "../TimeSpan.ts";
 import type {Feature, LineString} from "geojson";
 import {updateStarts} from "./utils.ts";
 import {getAuthToken} from "../../auth/useAuth";
+import {saveStateStore} from "../SaveState/SaveStateStore.ts";
+import {pushErrorToast, pushSuccessToast} from "../Toast/ToastStore.ts";
 
 
 const BACKEND_URL: string = "http://localhost:8080"
@@ -51,6 +53,7 @@ export class ItineraryNetModel {
     public async get(id: number): Promise<void> {
         const response: ItineraryResponse = await this.retrieveItinerary(id);
         await this.applyItinerary(response);
+        saveStateStore.set(() => false);
     }
 
     /**
@@ -157,7 +160,40 @@ export class ItineraryNetModel {
      */
     public setupSave(): void {
         if (this.isDragging) return;
+        saveStateStore.set(() => true);
         this.put().then();
+    }
+
+    /**
+     * Enregistre le convoi en tant que brouillon (draft = true).
+     * Marque l'état comme sauvegardé si le backend répond OK.
+     */
+    public async saveAsDraft(): Promise<boolean> {
+        this.store.set(it => ({ ...it, draft: true }));
+        const ok = await this.put();
+        if (ok) {
+            saveStateStore.set(() => false);
+            pushSuccessToast("Convoi enregistré en brouillon.");
+        } else {
+            pushErrorToast("Impossible d'enregistrer le convoi en brouillon.");
+        }
+        return ok;
+    }
+
+    /**
+     * Finalise le convoi (draft = false).
+     * Marque l'état comme sauvegardé si le backend répond OK.
+     */
+    public async saveAsFinalized(): Promise<boolean> {
+        this.store.set(it => ({ ...it, draft: false }));
+        const ok = await this.put();
+        if (ok) {
+            saveStateStore.set(() => false);
+            pushSuccessToast("Convoi finalisé et enregistré.");
+        } else {
+            pushErrorToast("Impossible de finaliser le convoi.");
+        }
+        return ok;
     }
 
     /**
@@ -206,9 +242,23 @@ export class ItineraryNetModel {
         return netResponse;
     }
 
+    /**
+     * Parse une date ISO renvoyée par l'API. Chaîne absente ou invalide → Date invalide (pas « maintenant »).
+     */
     private normalizeNetDate(date: string | undefined): Date {
-        const normalized: Date = new Date(date ?? Date.now());
-        return Number.isNaN(normalized.getTime()) ? new Date() : normalized;
+        if (date === undefined || date === null || date === "") {
+            return new Date(NaN);
+        }
+        const normalized: Date = new Date(date);
+        return Number.isNaN(normalized.getTime()) ? new Date(NaN) : normalized;
+    }
+
+    private parseOptionalIsoDate(iso: string | undefined): Date | undefined {
+        if (iso === undefined || iso === null || iso === "") {
+            return undefined;
+        }
+        const d = new Date(iso);
+        return Number.isNaN(d.getTime()) ? undefined : d;
     }
 
     /**
@@ -223,12 +273,14 @@ export class ItineraryNetModel {
                                isFirstSeg: boolean): Step[] {
         const startId: number = refId.id;
         return waypoints.map((waypoint: Waypoint) => {
+            const estimatedArrival = this.parseOptionalIsoDate(waypoint.estimatedArrival);
             return {
                 id: `${refId.id++}`,
                 content: {
                     title: waypoint.name,
                     duration: new TimeSpan(),
                     location: {lat: waypoint.coordinates.latitude, lon: waypoint.coordinates.longitude},
+                    ...(estimatedArrival !== undefined ? {estimatedArrival} : {}),
                 },
                 isDefaultSegStart: !isFirstSeg && startId == refId.id,
             }
@@ -281,7 +333,10 @@ export class ItineraryNetModel {
                         duration: new TimeSpan(seg.duration * 1000),
                         distance: seg.distance,
                         geometry: this.normalizeNetGeometry(seg.geometry),
-                        hour: this.normalizeNetDate(seg.estimatedDeparture)
+                        hour: this.normalizeNetDate(seg.estimatedDeparture),
+                        ...(seg.breakDuration !== undefined && seg.breakDuration !== null
+                            ? {breakDuration: seg.breakDuration}
+                            : {}),
                     },
                     steps: steps,
                 }
@@ -298,14 +353,17 @@ export class ItineraryNetModel {
         this.store.set(() => {
             // Une ref pour incrémenter au sein des fonctions et pas perdre le fil
             const refId: {id: number} = {id: 0};
-            const segments: Segment[] = this.normalizeSegments(response.segments, refId);
+            const segments: Segment[] = this.normalizeSegments(response.segments ?? [], refId);
+            const totalDurationSec = response.totalDuration ?? 0;
+            const totalDistanceM = response.totalDistance ?? 0;
             return {
                 id: response.id,
                 name: response.name,
-                shareCode: response.shareCode,
-                totalDuration: new TimeSpan(response.totalDuration * 1000),
-                totalDistance: response.totalDistance * 0.001,
+                shareCode: response.shareCode ?? "",
+                totalDuration: new TimeSpan(totalDurationSec * 1000),
+                totalDistance: totalDistanceM * 0.001,
                 segments: updateStarts(segments),
+                draft: response.draft ?? true,
             };
         });
     }
@@ -316,15 +374,13 @@ export class ItineraryNetModel {
      * @private
      */
     private buildNetWaypoints(steps: Step[]): Waypoint[] {
-        return steps.map((step: Step) => {
-            return {
-                name: step.content.title,
-                coordinates: {
-                    latitude: step.content.location?.lat ?? 0,
-                    longitude: step.content.location?.lon ?? 0,
-                }
-            }
-        })
+        return steps.map((step: Step) => ({
+            name: step.content.title,
+            coordinates: {
+                latitude: step.content.location?.lat ?? 0,
+                longitude: step.content.location?.lon ?? 0,
+            },
+        }));
     }
 
     /**
@@ -374,12 +430,11 @@ export class ItineraryNetModel {
         // On retire le départ et l'arrivée qui ne sont qu'esthétique
         copy.splice(0, 1);
         copy.pop();
-        return copy.map((seg: Segment) => {
-            return {
-                name: seg.content.title.length > 1 ? seg.content.title : "No Name",
-                waypoints: this.buildNetWaypoints(seg.steps)
-            }
-        })
+        return copy.map((seg: Segment) => ({
+            name: seg.content.title.length > 1 ? seg.content.title : "No Name",
+            waypoints: this.buildNetWaypoints(seg.steps),
+            breakDuration: seg.content.breakDuration ?? 0,
+        }))
     }
 
     /**
@@ -392,9 +447,18 @@ export class ItineraryNetModel {
         if (!netSegments)
             return null;
 
+        const startSeg = itinerary.segments[0];
+        const startHour = startSeg?.content.hour;
+        const departureTime =
+            startHour !== undefined && !Number.isNaN(startHour.getTime())
+                ? startHour.toISOString()
+                : undefined;
+
         return {
             name: itinerary.name.length > 1 ? itinerary.name : "No Name",
             segments: netSegments,
+            ...(departureTime !== undefined ? {departureTime} : {}),
+            draft: itinerary.draft,
         }
     }
 }

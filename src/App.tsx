@@ -5,14 +5,18 @@ import HomePage from "./pages/HomePage.tsx";
 import PlannerPage from "./pages/PlannerPage.tsx";
 import HistoryPage from "./pages/HistoryPage.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
+import RegisterPage from "./pages/RegisterPage.tsx";
+import ToastContainer from "./components/Toast/ToastContainer.tsx";
 import "./App.css";
 
 export default function App() {
   return (
     <AuthProvider>
+      <ToastContainer />
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
           <Route path="/" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
           <Route path="/planner" element={<ProtectedRoute><PlannerPage /></ProtectedRoute>} />
           <Route path="/history" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />

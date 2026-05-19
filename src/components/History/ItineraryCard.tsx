@@ -10,8 +10,12 @@ interface ItineraryCardProps {
     onShare: (shareCode: string) => void;
 }
 
+function segmentsList(itinerary: ItineraryResponse): SegmentResponse[] {
+    return itinerary.segments ?? [];
+}
+
 function getStatus(itinerary: ItineraryResponse): "draft" | "finalized" {
-    return itinerary.segments.every(s => s.waypoints.length >= 2) ? "finalized" : "draft";
+    return itinerary.draft === false ? "finalized" : "draft";
 }
 
 function formatDuration(seconds: number): string {
@@ -28,6 +32,12 @@ function countPoints(segments: SegmentResponse[]): number {
     return segments.reduce((sum, s) => sum + s.waypoints.length, 0);
 }
 
+function formatCreatedAt(createdAt?: string): string {
+    if (!createdAt) return '';
+    const d = new Date(createdAt);
+    return d.toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
 function getStartCity(segments: SegmentResponse[]): string {
     return segments[0]?.waypoints[0]?.name || "D\u00e9part";
 }
@@ -38,8 +48,9 @@ function getEndCity(segments: SegmentResponse[]): string {
 }
 
 export function ItineraryCard({ itinerary, onOpen, onDelete, onShare }: ItineraryCardProps) {
+    const segs = segmentsList(itinerary);
     const status = getStatus(itinerary);
-    const canDownloadGpx = hasGpxGeometry(itinerary.segments.map((segment) => ({
+    const canDownloadGpx = hasGpxGeometry(segs.map((segment) => ({
         geometry: segment.geometry,
     })));
     const downloadLabel = canDownloadGpx
@@ -53,7 +64,7 @@ export function ItineraryCard({ itinerary, onOpen, onDelete, onShare }: Itinerar
     return (
         <div className="ch-card">
             <div className="ch-thumb">
-                <ConvoyThumbnail segments={itinerary.segments} />
+                <ConvoyThumbnail segments={segs} />
             </div>
 
             <div className="ch-info">
@@ -65,16 +76,19 @@ export function ItineraryCard({ itinerary, onOpen, onDelete, onShare }: Itinerar
                 </div>
 
                 <div className="ch-route">
-                    {getStartCity(itinerary.segments)} {"\u2192"} {getEndCity(itinerary.segments)}
+                    {getStartCity(segs)} {"\u2192"} {getEndCity(segs)}
                 </div>
 
                 <div className="ch-stats">
-                    <span>{countPoints(itinerary.segments)} points</span>
+                    <span>{countPoints(segs)} points</span>
                     <span className="ch-dot">{"\u2022"}</span>
-                    <span>{formatDistance(itinerary.totalDistance)}</span>
+                    <span>{formatDistance(itinerary.totalDistance ?? 0)}</span>
                     <span className="ch-dot">{"\u2022"}</span>
-                    <span>{formatDuration(itinerary.totalDuration)}</span>
+                    <span>{formatDuration(itinerary.totalDuration ?? 0)}</span>
                 </div>
+                {itinerary.createdAt && (
+                    <div className="ch-date">{"Cr\u00e9\u00e9 le "}{formatCreatedAt(itinerary.createdAt)}</div>
+                )}
             </div>
 
             <div className="ch-actions">
@@ -84,7 +98,7 @@ export function ItineraryCard({ itinerary, onOpen, onDelete, onShare }: Itinerar
                 <div className="ch-actions-row">
                     <button
                         className="ch-btn-icon"
-                        onClick={() => downloadGpx(itinerary.name, itinerary.segments.map((segment) => ({
+                        onClick={() => downloadGpx(itinerary.name, segs.map((segment) => ({
                             geometry: segment.geometry,
                         })))}
                         aria-label={downloadLabel}

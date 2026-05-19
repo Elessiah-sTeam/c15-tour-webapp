@@ -8,7 +8,9 @@ export type stepInfo = {
     title: string;
     duration: TimeSpan;
     location?: Coordinates;
-}
+    /** Heure d'arrivée estimée au waypoint (API `estimatedArrival`) */
+    estimatedArrival?: Date;
+};
 
 export type Step = {
     id: string;
@@ -22,6 +24,8 @@ export type segmentInfo = {
     duration: TimeSpan;
     distance: number;
     geometry?: Feature<LineString>;
+    /** Pause à la fin du segment en secondes (API `breakDuration`) */
+    breakDuration?: number;
 }
 
 export type reorderStepInfo = {
@@ -47,6 +51,7 @@ export type Itinerary = {
     totalDuration: TimeSpan;
     totalDistance: number;
     segments: Segment[];
+    draft: boolean;
 }
 
 export type ItineraryArgs = {

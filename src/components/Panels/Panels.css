@@ -348,6 +348,7 @@ h3, .stepTitle {
     color: #fff;
 }
 
+
 .hour {
     font-family: 'Montserrat', sans-serif;
     font-weight: 800;
@@ -395,7 +396,15 @@ h3, .stepTitle {
     font-weight: 700;
     padding: 0;
     cursor: pointer;
+    background: none;
+    border: none;
+    font-family: inherit;
+    color: inherit;
     line-height: 1.2;
+    background: none;
+    border: none;
+    font-family: inherit;
+    color: inherit;
 }
 
 .add-step-btn {
@@ -429,6 +438,65 @@ h3, .stepTitle {
 
 .action-buttons button:disabled {
     cursor: default;
+}
+
+.save-buttons {
+    display: flex;
+    gap: 6px;
+    padding: 0 6px 2px;
+}
+
+.save-btn {
+    flex: 1;
+    border-radius: 8px;
+    padding: clamp(5px, 0.9vh, 7px) 8px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(10px, 1.4vw, 12px);
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 120ms ease, transform 120ms ease;
+    white-space: nowrap;
+}
+
+.save-btn:disabled {
+    cursor: default;
+    opacity: 0.5;
+}
+
+.save-btn-draft {
+    border: 1.5px dashed #BB487C;
+    background: transparent;
+    color: #BB487C;
+}
+
+.save-btn-draft:hover:not(:disabled) {
+    background: rgba(187, 72, 124, 0.08);
+    transform: translateY(-1px);
+}
+
+.save-btn-draft.dirty {
+    border-style: solid;
+}
+
+.save-btn-finalize {
+    border: none;
+    background: rgba(187, 72, 124, 0.35);
+    color: #BB487C;
+}
+
+.save-btn-finalize:hover:not(:disabled) {
+    background: rgba(187, 72, 124, 0.5);
+    transform: translateY(-1px);
+}
+
+.save-btn-finalize.dirty {
+    background: #BB487C;
+    color: #fff;
+}
+
+.save-btn-finalize.dirty:hover:not(:disabled) {
+    background: #a33b6a;
+    transform: translateY(-1px);
 }
 
 .click-input-wrapper {

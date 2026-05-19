@@ -11,6 +11,7 @@ import type {
 import {TimeSpan} from "../TimeSpan.ts";
 import {ItineraryNetModel} from "./ItineraryNetModel.ts";
 import {updateStarts} from "./utils.ts";
+import {saveStateStore} from "../SaveState/SaveStateStore.ts";
 
 /**
  * Modèle de l'itinéraire, regroupant toutes les fonctions métiers pour le manipuler
@@ -53,6 +54,7 @@ class ItineraryModel {
      * Réinitialise l'itinéraire
      */
     reset() {
+        saveStateStore.set(() => false);
         return this.store.set(() => {
             return this.formatItinerary({
                 id: -1,
@@ -60,7 +62,8 @@ class ItineraryModel {
                 shareCode: "",
                 totalDuration: new TimeSpan(),
                 totalDistance: 0,
-                segments: []
+                segments: [],
+                draft: true,
             });
         });
     }
@@ -446,8 +449,12 @@ class ItineraryModel {
 
         // Vérifie l'index d'origine
         if (fromStepIndex < 0 || fromStepIndex >= fromSeg.steps.length) return null;
+        if (fromSeg.steps[fromStepIndex]?.isDefaultSegStart) return null;
 
-        const sameSeg = fromSegmentId == toSegmentId;
+        // Identité des segments (pas == sur les id) : sinon newFromSteps et newToSteps
+        // partagent la même référence alors que source et cible diffèrent, ce qui écrase
+        // les étapes du segment d'arrivée.
+        const sameSeg = fromSeg === toSeg;
 
         // Préparer nouveaux tableaux de steps (immutables)
         const newFromSteps: Step[] = [...fromSeg.steps];
@@ -483,9 +490,13 @@ class ItineraryModel {
      * @private
      */
     private replaceSteps(env: reorderStepInfo,
-                         movedStep: Step): void {
-        // On clamp après les suppressions pour avoir la dernière taille et éviter les problèmes
-        const clamped = this.clamp(env.insertIndex, 0, env.newToSteps.length);
+                         movedStep: Step,
+                         fromStepIndex: number): void {
+        let insert = env.insertIndex;
+        if (env.sameSeg && fromStepIndex < insert) {
+            insert -= 1;
+        }
+        const clamped = this.clamp(insert, 0, env.newToSteps.length);
         env.newToSteps.splice(clamped, 0, movedStep);
     }
 
@@ -498,8 +509,8 @@ class ItineraryModel {
     private moveSteps(env: reorderStepInfo, fromStepIndex: number): boolean {
 
         const movedStep: Step = this.retrieveTargets(env, fromStepIndex);
-        if(!movedStep) return false;
-        this.replaceSteps(env, movedStep);
+        if (!movedStep) return false;
+        this.replaceSteps(env, movedStep, fromStepIndex);
         return true;
     }
 
@@ -538,13 +549,13 @@ class ItineraryModel {
                              fromSegmentId: string,
                              toSegmentId: string): Segment[] {
         const copy: Segment[] = segments.map((seg: Segment) => {
-            if (seg.id == fromSegmentId && env.sameSeg) {
+            if (seg.id === fromSegmentId && env.sameSeg) {
                 return {...seg, steps: env.newToSteps};
             }
-            if (seg.id == fromSegmentId) {
+            if (seg.id === fromSegmentId) {
                 return {...seg, steps: env.newFromSteps};
             }
-            if (seg.id == toSegmentId) {
+            if (seg.id === toSegmentId) {
                 return {...seg, steps: env.newToSteps};
             }
             return {...seg};
