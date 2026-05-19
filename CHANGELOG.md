@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.1.0](https://github.com/Elessiah-sTeam/c15-tour-webapp/compare/v1.0.1...v1.1.0) (2026-05-19)
+
+
+### Features
+
+* ajout des heures sur chaque étape ([6119b07](https://github.com/Elessiah-sTeam/c15-tour-webapp/commit/6119b07ae15d71ee5b73c64c4a1e7a237f4a8e23))
+* publish Docker image to GHCR on release ([b630c31](https://github.com/Elessiah-sTeam/c15-tour-webapp/commit/b630c319e0019ce4c5aad747c8d2394a70eb6721))
+* publish Docker image to GHCR on release ([18ad1ed](https://github.com/Elessiah-sTeam/c15-tour-webapp/commit/18ad1ed46c47ce1b6c87d21d8353d59ec23eb90e))
+
 ## [1.0.1](https://github.com/Elessiah-sTeam/c15-tour-webapp/compare/v1.0.0...v1.0.1) (2026-05-19)
 
 
