@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.1](https://github.com/Elessiah-sTeam/c15-tour-webapp/compare/v1.0.0...v1.0.1) (2026-05-19)
+
+
+### Bug Fixes
+
+* move snapshot creation into release workflow job ([3cfa8ea](https://github.com/Elessiah-sTeam/c15-tour-webapp/commit/3cfa8ea29d4d7773463d18dd07b296db1c8497a4))
+* move snapshot creation into release workflow job ([c8e2444](https://github.com/Elessiah-sTeam/c15-tour-webapp/commit/c8e244446c8211adf9b100494de03be878e92302))
+
 ## 1.0.0 (2026-05-19)
 
 
