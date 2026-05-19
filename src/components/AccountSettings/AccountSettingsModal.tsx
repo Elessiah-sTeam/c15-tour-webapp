@@ -96,7 +96,7 @@ export function AccountSettingsModal({ isOpen, onClose, onLogout }: AccountSetti
                     text: errorData.message || 'Erreur lors de la mise à jour du mot de passe'
                 });
             }
-        } catch (error) {
+        } catch {
             setMessage({
                 type: 'error',
                 text: 'Erreur de connexion au serveur'
