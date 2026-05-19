@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TimeSpan } from "../../customObject/TimeSpan.ts";
 import type { Itinerary } from "../../customObject/Itinerary/types.ts";
 import {
@@ -6,10 +6,13 @@ import {
     buildPauseConfigs,
     createDefaultGlobalSettings,
     getGlobalSettingsStorageKey,
+    getGlobalSettingsStorageValue,
     getSegmentPauseDuration,
     getSpeedMultiplier,
     loadGlobalSettings,
+    persistGlobalSettings,
     removeSegmentPauseConfig,
+    subscribeToGlobalSettingsChanges,
     upsertSegmentPauseConfig
 } from "./settingsStorage.ts";
 
@@ -213,5 +216,39 @@ describe("settingsStorage", () => {
         expect(scaled.segments[2].content.hour.getTime()).toBe(
             new Date("2026-04-21T10:24:00").getTime()
         );
+    });
+
+    it("retourne null si aucune valeur stockée, sinon la valeur JSON brute", () => {
+        const itinerary = makeItinerary();
+
+        expect(getGlobalSettingsStorageValue(itinerary.id)).toBeNull();
+
+        persistGlobalSettings(itinerary.id, createDefaultGlobalSettings(itinerary));
+
+        expect(getGlobalSettingsStorageValue(itinerary.id)).not.toBeNull();
+    });
+
+    it("notifie les abonnés lors d'un persistGlobalSettings, et pas après désabonnement", () => {
+        const onChange = vi.fn();
+        const unsubscribe = subscribeToGlobalSettingsChanges(onChange);
+        const itinerary = makeItinerary();
+
+        persistGlobalSettings(itinerary.id, createDefaultGlobalSettings(itinerary));
+
+        expect(onChange).toHaveBeenCalledTimes(1);
+
+        unsubscribe();
+        persistGlobalSettings(itinerary.id, createDefaultGlobalSettings(itinerary));
+
+        expect(onChange).toHaveBeenCalledTimes(1);
+    });
+
+    it("utilise les paramètres par défaut si le JSON stocké est invalide", () => {
+        const itinerary = makeItinerary();
+        localStorage.setItem(getGlobalSettingsStorageKey(itinerary.id), "{ invalid json }");
+
+        const settings = loadGlobalSettings(itinerary);
+
+        expect(settings.speedPercentage).toBe(100);
     });
 });
