@@ -55,9 +55,9 @@ describe('useAuthFetch', () => {
         expect(callHeaders.Authorization).toBeUndefined();
     });
 
-    it('appelle logout et redirige vers /login sur réponse 401', async () => {
+    it('appelle logout et redirige vers /login sur réponse 403', async () => {
         localStorage.setItem('auth_token', 'expired-token');
-        vi.mocked(fetch).mockResolvedValueOnce({ status: 401, ok: false } as Response);
+        vi.mocked(fetch).mockResolvedValueOnce({ status: 403, ok: false } as Response);
 
         const { result } = renderHook(() => useAuthFetch(), { wrapper });
 
@@ -69,9 +69,23 @@ describe('useAuthFetch', () => {
         expect(mockNavigate).toHaveBeenCalledWith('/login');
     });
 
-    it("ne redirige pas sur d'autres erreurs", async () => {
+    it("ne déconnecte pas sur réponse 401 (mauvais mot de passe, pas un token invalide)", async () => {
         localStorage.setItem('auth_token', 'test-token');
-        vi.mocked(fetch).mockResolvedValueOnce({ status: 403, ok: false } as Response);
+        vi.mocked(fetch).mockResolvedValueOnce({ status: 401, ok: false } as Response);
+
+        const { result } = renderHook(() => useAuthFetch(), { wrapper });
+
+        await act(async () => {
+            await result.current('http://api/endpoint');
+        });
+
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(localStorage.getItem('auth_token')).toBe('test-token');
+    });
+
+    it("ne redirige pas sur d'autres erreurs (ex: 400, 404, 500)", async () => {
+        localStorage.setItem('auth_token', 'test-token');
+        vi.mocked(fetch).mockResolvedValueOnce({ status: 400, ok: false } as Response);
 
         const { result } = renderHook(() => useAuthFetch(), { wrapper });
 

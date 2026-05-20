@@ -15,7 +15,7 @@ export function useAuthFetch() {
             },
         });
 
-        if (res.status === 401) {
+        if (res.status === 403) {
             logout();
             navigate("/login");
         }

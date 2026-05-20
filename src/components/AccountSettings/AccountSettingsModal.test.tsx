@@ -125,7 +125,10 @@ describe('AccountSettingsModal', () => {
 
     it('affiche un message de succès après changement de mot de passe réussi', async () => {
         const user = userEvent.setup();
-        vi.mocked(fetch).mockResolvedValueOnce({ ok: true } as Response);
+        vi.mocked(fetch).mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ message: 'Password updated successfully', token: 'new-jwt' }),
+        } as Response);
         renderModalWithEmail('user@example.com');
 
         await user.type(screen.getByLabelText('Mot de passe actuel'), 'oldpassword');
@@ -191,7 +194,10 @@ describe('AccountSettingsModal', () => {
 
     it('envoie le token Authorization dans la requête', async () => {
         const user = userEvent.setup();
-        vi.mocked(fetch).mockResolvedValueOnce({ ok: true } as Response);
+        vi.mocked(fetch).mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ message: 'Password updated successfully', token: 'new-jwt' }),
+        } as Response);
         renderModalWithEmail('user@example.com');
 
         await user.type(screen.getByLabelText('Mot de passe actuel'), 'oldpassword');
@@ -211,9 +217,28 @@ describe('AccountSettingsModal', () => {
         });
     });
 
-    it('déconnecte et redirige vers /login sur réponse 401', async () => {
+    it('remplace le JWT stocké avec le nouveau token retourné', async () => {
         const user = userEvent.setup();
-        vi.mocked(fetch).mockResolvedValueOnce({ status: 401, ok: false } as Response);
+        vi.mocked(fetch).mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ message: 'Password updated successfully', token: 'new-jwt' }),
+        } as Response);
+        renderModalWithEmail('user@example.com');
+
+        await user.type(screen.getByLabelText('Mot de passe actuel'), 'oldpassword');
+        await user.type(screen.getByLabelText('Nouveau mot de passe'), 'Newpass1');
+        await user.type(screen.getByLabelText('Confirmer le nouveau mot de passe'), 'Newpass1');
+        await user.click(screen.getByRole('button', { name: /mettre à jour/i }));
+
+        await waitFor(() => {
+            expect(localStorage.getItem('auth_token')).toBe('new-jwt');
+        });
+        expect(screen.getByText('Mot de passe mis à jour avec succès')).toBeInTheDocument();
+    });
+
+    it('déconnecte et redirige vers /login sur réponse 403 (token absent)', async () => {
+        const user = userEvent.setup();
+        vi.mocked(fetch).mockResolvedValueOnce({ status: 403, ok: false } as Response);
         renderModalWithEmail('user@example.com');
 
         await user.type(screen.getByLabelText('Mot de passe actuel'), 'oldpassword');

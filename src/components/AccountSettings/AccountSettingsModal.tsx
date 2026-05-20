@@ -13,7 +13,7 @@ interface AccountSettingsModalProps {
 }
 
 export function AccountSettingsModal({ isOpen, onClose, onLogout }: AccountSettingsModalProps) {
-    const { email } = useAuth();
+    const { email, login } = useAuth();
     const authFetch = useAuthFetch();
 
     const [currentPassword, setCurrentPassword] = useState('');
@@ -78,6 +78,10 @@ export function AccountSettingsModal({ isOpen, onClose, onLogout }: AccountSetti
             });
 
             if (response.ok) {
+                const data = await response.json().catch(() => ({}));
+                if (data.token) {
+                    login(data.token);
+                }
                 setMessage({ type: 'success', text: 'Mot de passe mis à jour avec succès' });
                 setCurrentPassword('');
                 setNewPassword('');
@@ -89,7 +93,7 @@ export function AccountSettingsModal({ isOpen, onClose, onLogout }: AccountSetti
                 const errorData = await response.json().catch(() => ({}));
                 setMessage({
                     type: 'error',
-                    text: errorData.message || 'Erreur lors de la mise à jour du mot de passe'
+                    text: errorData.error || errorData.message || 'Erreur lors de la mise à jour du mot de passe'
                 });
             }
         } catch {

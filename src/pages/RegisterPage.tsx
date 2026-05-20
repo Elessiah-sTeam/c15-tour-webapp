@@ -15,7 +15,6 @@ export default function RegisterPage() {
     const { login } = useAuth();
     const navigate = useNavigate();
 
-    const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -43,8 +42,13 @@ export default function RegisterPage() {
             const res = await fetch(`${BACKEND_URL}/auth/register`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, email, password }),
+                body: JSON.stringify({ email, password }),
             });
+
+            if (res.status === 409) {
+                setError("Cette adresse email est déjà utilisée.");
+                return;
+            }
 
             if (!res.ok) {
                 setError("Impossible de créer le compte. Vérifiez vos informations.");
@@ -86,22 +90,6 @@ export default function RegisterPage() {
                 </div>
 
                 <form className="login-form" onSubmit={handleSubmit}>
-                    <div className="login-form__field">
-                        <label className="login-form__label" htmlFor="register-username">
-                            Identifiant
-                        </label>
-                        <input
-                            id="register-username"
-                            type="text"
-                            className={`login-form__input${error ? " login-form__input--error" : ""}`}
-                            placeholder="Choisissez un identifiant"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            autoComplete="username"
-                            required
-                        />
-                    </div>
-
                     <div className="login-form__field">
                         <label className="login-form__label" htmlFor="register-email">
                             Adresse email

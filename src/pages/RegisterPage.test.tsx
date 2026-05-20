@@ -23,15 +23,13 @@ function renderRegisterPage() {
 
 async function fillForm(
     user: ReturnType<typeof userEvent.setup>,
-    opts: { username?: string; email?: string; password?: string; confirmPassword?: string } = {}
+    opts: { email?: string; password?: string; confirmPassword?: string } = {}
 ) {
     const {
-        username = 'johndoe',
         email = 'john@example.com',
         password = 'Password1',
         confirmPassword = 'Password1',
     } = opts;
-    if (username) await user.type(screen.getByLabelText('Identifiant'), username);
     if (email) await user.type(screen.getByLabelText('Adresse email'), email);
     if (password) await user.type(screen.getByLabelText('Mot de passe'), password);
     if (confirmPassword) await user.type(screen.getByLabelText('Confirmer le mot de passe'), confirmPassword);
@@ -46,10 +44,10 @@ describe('RegisterPage', () => {
 
     it('affiche tous les champs du formulaire', () => {
         renderRegisterPage();
-        expect(screen.getByLabelText('Identifiant')).toBeInTheDocument();
         expect(screen.getByLabelText('Adresse email')).toBeInTheDocument();
         expect(screen.getByLabelText('Mot de passe')).toBeInTheDocument();
         expect(screen.getByLabelText('Confirmer le mot de passe')).toBeInTheDocument();
+        expect(screen.queryByLabelText('Identifiant')).not.toBeInTheDocument();
     });
 
     it('affiche le lien vers la page de connexion', () => {
@@ -150,7 +148,7 @@ describe('RegisterPage', () => {
         expect(screen.getByRole('button', { name: /création du compte/i })).toBeDisabled();
     });
 
-    it('envoie username, email et password dans la requête', async () => {
+    it('envoie email et password dans la requête (sans username)', async () => {
         const user = userEvent.setup();
         vi.mocked(fetch).mockResolvedValueOnce({
             ok: true,
@@ -158,16 +156,29 @@ describe('RegisterPage', () => {
         } as Response);
 
         renderRegisterPage();
-        await fillForm(user, { username: 'jdoe', email: 'jdoe@test.com', password: 'Password1', confirmPassword: 'Password1' });
+        await fillForm(user, { email: 'jdoe@test.com', password: 'Password1', confirmPassword: 'Password1' });
         await user.click(screen.getByRole('button', { name: /créer mon compte/i }));
 
         await waitFor(() => {
             expect(fetch).toHaveBeenCalledWith(
                 'http://localhost:8080/auth/register',
                 expect.objectContaining({
-                    body: JSON.stringify({ username: 'jdoe', email: 'jdoe@test.com', password: 'Password1' }),
+                    body: JSON.stringify({ email: 'jdoe@test.com', password: 'Password1' }),
                 })
             );
+        });
+    });
+
+    it('affiche une erreur si l\'email est déjà utilisé (409)', async () => {
+        const user = userEvent.setup();
+        vi.mocked(fetch).mockResolvedValueOnce({ ok: false, status: 409 } as Response);
+
+        renderRegisterPage();
+        await fillForm(user);
+        await user.click(screen.getByRole('button', { name: /créer mon compte/i }));
+
+        await waitFor(() => {
+            expect(screen.getByText('Cette adresse email est déjà utilisée.')).toBeInTheDocument();
         });
     });
 });
