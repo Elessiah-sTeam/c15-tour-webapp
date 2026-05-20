@@ -41,11 +41,13 @@ function formatDistance(distanceKm: number): string {
         return "Distance inconnue";
     }
 
-    if (distanceKm >= 10) {
-        return `${distanceKm.toFixed(0)} km`;
-    }
+    const roundedDistance = Math.round(distanceKm * 10) / 10;
+    const fractionDigits = Number.isInteger(roundedDistance) ? 0 : 1;
 
-    return `${distanceKm.toFixed(1)} km`;
+    return `${new Intl.NumberFormat("fr-FR", {
+        minimumFractionDigits: fractionDigits,
+        maximumFractionDigits: 1,
+    }).format(roundedDistance)} km`;
 }
 
 function formatDuration(durationMs: number): string {
@@ -153,13 +155,20 @@ function drawText(
     text: string,
     x: number,
     y: number,
-    options: { size?: number; weight?: number; color?: string; align?: CanvasTextAlign; maxWidth?: number } = {},
+    options: {
+        size?: number;
+        weight?: number;
+        color?: string;
+        align?: CanvasTextAlign;
+        baseline?: CanvasTextBaseline;
+        maxWidth?: number;
+    } = {},
 ): void {
     ctx.save();
     ctx.fillStyle = options.color ?? "#2E2430";
     ctx.font = `${options.weight ?? 600} ${options.size ?? 28}px "Montserrat", "Segoe UI", sans-serif`;
     ctx.textAlign = options.align ?? "left";
-    ctx.textBaseline = "top";
+    ctx.textBaseline = options.baseline ?? "top";
     if (options.maxWidth) {
         ctx.fillText(text, x, y, options.maxWidth);
     } else {
@@ -374,7 +383,7 @@ async function drawRouteSnapshot(
     height: number,
     routes: RoutePoint[][],
     title: string,
-    options: { variant: "section" | "overview" },
+    options: { variant: "section" | "overview"; showOverlayLabel?: boolean },
 ): Promise<void> {
     const routesWithPath = routes.filter((route) => route.length >= 2);
     const box = { x, y, width, height, padding: 0.08 };
@@ -542,26 +551,28 @@ async function drawRouteSnapshot(
     drawMarker(firstMapped, "#16A34A", firstPoint.label ?? "Départ");
     drawMarker(lastMapped, "#E11D48", lastPoint.label ?? "Arrivée");
 
-    ctx.save();
-    ctx.fillStyle = "rgba(255, 255, 255, 0.86)";
-    ctx.strokeStyle = "rgba(187, 72, 124, 0.18)";
-    ctx.lineWidth = 2;
-    roundRect(ctx, x + 24, y + 24, 280, 64, 18);
-    ctx.fill();
-    ctx.stroke();
-    ctx.restore();
+    if (options.showOverlayLabel !== false) {
+        ctx.save();
+        ctx.fillStyle = "rgba(255, 255, 255, 0.86)";
+        ctx.strokeStyle = "rgba(187, 72, 124, 0.18)";
+        ctx.lineWidth = 2;
+        roundRect(ctx, x + 24, y + 24, 280, 64, 18);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
 
-    drawText(ctx, projector.drawn ? "Carte du trajet" : "Aperçu du trajet", x + 44, y + 41, {
-        size: 22,
-        weight: 800,
-        color: EXPORT_ACCENT_DARK,
-    });
-    drawText(ctx, title, x + 44, y + 68, {
-        size: 16,
-        weight: 500,
-        color: "#67425B",
-        maxWidth: 220,
-    });
+        drawText(ctx, projector.drawn ? "Carte du trajet" : "Aperçu du trajet", x + 44, y + 41, {
+            size: 22,
+            weight: 800,
+            color: EXPORT_ACCENT_DARK,
+        });
+        drawText(ctx, title, x + 44, y + 68, {
+            size: 16,
+            weight: 500,
+            color: "#67425B",
+            maxWidth: 220,
+        });
+    }
 
     if (projector.drawn) {
         drawText(ctx, "\u00a9 OpenStreetMap contributors", x + width - 22, y + height - 20, {
@@ -734,6 +745,7 @@ async function buildCoverCanvas(itinerary: Itinerary, sections: ExportSection[])
     drawShadowedPanel(ctx, 84, 402, 1072, 478, 34, EXPORT_PANEL);
     await drawRouteSnapshot(ctx, 108, 438, 1024, 410, overviewRoutesForCover(itinerary, sections), title, {
         variant: "overview",
+        showOverlayLabel: false,
     });
 
     drawShadowedPanel(ctx, 84, 898, 1072, 212, 30, EXPORT_PANEL);
@@ -823,6 +835,16 @@ async function buildCoverCanvas(itinerary: Itinerary, sections: ExportSection[])
         sections.slice(0, 8).forEach((section, index) => {
             const rowY = 1264 + index * 80;
             ctx.save();
+            ctx.font = '800 20px "Montserrat", "Segoe UI", sans-serif';
+            const sectionTitle = fitText(ctx, section.title, 520);
+            ctx.restore();
+
+            ctx.save();
+            ctx.font = '700 17px "Montserrat", "Segoe UI", sans-serif';
+            const sectionSubtitle = fitText(ctx, section.subtitle, 280);
+            ctx.restore();
+
+            ctx.save();
             ctx.fillStyle = "rgba(248, 236, 243, 0.92)";
             roundRect(ctx, 118, rowY, 1004, 60, 18);
             ctx.fill();
@@ -835,23 +857,25 @@ async function buildCoverCanvas(itinerary: Itinerary, sections: ExportSection[])
             ctx.fill();
             ctx.restore();
 
-            drawText(ctx, `${index + 1}`, 140, rowY + 20, {
+            drawText(ctx, `${index + 1}`, 146, rowY + 30, {
                 size: 18,
                 weight: 900,
                 color: "#FFFFFF",
                 align: "center",
+                baseline: "middle",
             });
-            drawText(ctx, section.title, 174, rowY + 14, {
+            drawText(ctx, sectionTitle, 174, rowY + 30, {
                 size: 20,
                 weight: 800,
                 color: "#2E2430",
+                baseline: "middle",
             });
-            drawText(ctx, section.subtitle, 740, rowY + 18, {
+            drawText(ctx, sectionSubtitle, 1088, rowY + 30, {
                 size: 17,
                 weight: 700,
                 color: "#6A4960",
                 align: "right",
-                maxWidth: 334,
+                baseline: "middle",
             });
         });
     }
@@ -909,7 +933,21 @@ async function buildSectionCanvas(
     });
 
     drawShadowedPanel(ctx, 84, 270, 1072, 782, 34, EXPORT_PANEL);
-    await drawRouteSnapshot(ctx, 120, 314, 1000, 454, [section.routePoints], section.title, { variant: "section" });
+    drawText(ctx, "Carte du trajet", 120, 314, {
+        size: 22,
+        weight: 800,
+        color: EXPORT_ACCENT_DARK,
+    });
+    drawText(ctx, section.title, 120, 346, {
+        size: 16,
+        weight: 500,
+        color: "#67425B",
+        maxWidth: 780,
+    });
+    await drawRouteSnapshot(ctx, 120, 396, 1000, 372, [section.routePoints], section.title, {
+        variant: "section",
+        showOverlayLabel: false,
+    });
 
     drawShadowedPanel(ctx, 84, 1088, 1072, 540, 32, "rgba(255, 255, 255, 0.92)");
     drawText(ctx, "Détails du tronçon", 118, 1128, {

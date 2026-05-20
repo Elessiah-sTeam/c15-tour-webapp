@@ -13,6 +13,10 @@ export type DndProps = {
     handleDragEnd: (event: DragEndEvent) => void;
 }
 
+function isItemActionModalOpen(): boolean {
+    return document.body.classList.contains("item-action-modal-open");
+}
+
 /**
  * Fonction renvoyant les outils pour faire fonctionner le dragNDrop
  * Contient les fonctions métier du DragNDrop
@@ -28,6 +32,10 @@ export function useDragNDrop(): DndProps {
      * @param event informations sur le début du Drag
      */
     function handleDragStart(event: DragStartEvent) {
+        if (isItemActionModalOpen()) {
+            return;
+        }
+
         const {active} = event;
         const type = active.data.current?.type;
 
@@ -52,6 +60,10 @@ export function useDragNDrop(): DndProps {
      * @param event
      */
     function handleDragMove(event: DragMoveEvent) {
+        if (isItemActionModalOpen()) {
+            return;
+        }
+
         const { active, over } = event;
 
         if (!over) {
@@ -74,6 +86,12 @@ export function useDragNDrop(): DndProps {
      * @param event
      */
     function handleDragEnd(event: DragEndEvent) {
+        if (isItemActionModalOpen()) {
+            setActiveItem(null);
+            setActiveCat(null);
+            return;
+        }
+
         setActiveItem(null);
         setActiveCat(null);
         handleDragMove(event);

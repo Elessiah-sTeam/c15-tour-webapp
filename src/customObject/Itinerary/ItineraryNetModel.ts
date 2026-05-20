@@ -261,6 +261,15 @@ export class ItineraryNetModel {
         return Number.isNaN(d.getTime()) ? undefined : d;
     }
 
+    private buildStepDuration(previousArrival: Date | undefined, estimatedArrival: Date | undefined): TimeSpan {
+        if (!previousArrival || !estimatedArrival) {
+            return new TimeSpan();
+        }
+
+        const durationMs = estimatedArrival.getTime() - previousArrival.getTime();
+        return new TimeSpan(Math.max(0, durationMs));
+    }
+
     /**
      * Transforme des steps Net en steps utilisable pour le front
      * @param waypoints steps Net à normaliser
@@ -272,13 +281,18 @@ export class ItineraryNetModel {
                                refId: {id: number} = {id: 0},
                                isFirstSeg: boolean): Step[] {
         const startId: number = refId.id;
+        let previousArrival: Date | undefined;
+
         return waypoints.map((waypoint: Waypoint) => {
             const estimatedArrival = this.parseOptionalIsoDate(waypoint.estimatedArrival);
+            const duration = this.buildStepDuration(previousArrival, estimatedArrival);
+            previousArrival = estimatedArrival;
+
             return {
                 id: `${refId.id++}`,
                 content: {
                     title: waypoint.name,
-                    duration: new TimeSpan(),
+                    duration,
                     location: {lat: waypoint.coordinates.latitude, lon: waypoint.coordinates.longitude},
                     ...(estimatedArrival !== undefined ? {estimatedArrival} : {}),
                 },
@@ -331,7 +345,7 @@ export class ItineraryNetModel {
                     content: {
                         title: seg.name,
                         duration: new TimeSpan(seg.duration * 1000),
-                        distance: seg.distance,
+                        distance: seg.distance * 0.001,
                         geometry: this.normalizeNetGeometry(seg.geometry),
                         hour: this.normalizeNetDate(seg.estimatedDeparture),
                         ...(seg.breakDuration !== undefined && seg.breakDuration !== null
