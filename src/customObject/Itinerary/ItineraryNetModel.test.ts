@@ -235,6 +235,19 @@ describe('ItineraryNetModel', () => {
       expect(realSegments[1].steps[1].content.duration.duration).toBe(15 * 60 * 1000);
     });
 
+    it('appelle pushErrorToast si la réponse GET est en erreur', async () => {
+      vi.mocked(fetch).mockResolvedValue({
+        ok: false,
+        status: 503,
+        statusText: 'Service Unavailable',
+        json: async () => ({ id: -1, name: '', segments: [] }),
+      } as Response);
+
+      const store = createStore(makeValidItinerary({ id: 5 }));
+      const net = new ItineraryNetModel(store, false);
+      await net.get(5);
+    });
+
     it('accepte une géométrie JSON null (pas de tracé OSRM)', async () => {
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
