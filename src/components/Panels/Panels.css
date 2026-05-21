@@ -44,6 +44,15 @@
     border: #BB487C solid 1px;
 }
 
+body.item-action-modal-open .window {
+    pointer-events: none;
+}
+
+body.item-action-modal-open .item-action-modal-overlay,
+body.item-action-modal-open .item-action-modal-overlay * {
+    pointer-events: auto;
+}
+
 .route-inner {
     width: 100%;
 }
@@ -243,12 +252,16 @@ h3, .stepTitle {
 .item-action-modal-overlay {
     position: fixed;
     inset: 0;
-    z-index: 25000;
-    background: rgba(100, 34, 65, 0.14);
+    z-index: 30000;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 16px;
+    touch-action: none;
+    overscroll-behavior: contain;
 }
 
 .item-action-modal {

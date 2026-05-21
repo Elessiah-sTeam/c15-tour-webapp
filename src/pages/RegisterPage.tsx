@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Map } from "lucide-react";
 import { useAuth } from "../auth/useAuth";
+import { validatePassword } from "../auth/passwordValidation";
 import "./LoginPage.css";
 
 const BACKEND_URL = "http://localhost:8080";
@@ -14,7 +15,7 @@ export default function RegisterPage() {
     const { login } = useAuth();
     const navigate = useNavigate();
 
-    const [username, setUsername] = useState("");
+    const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
@@ -29,14 +30,25 @@ export default function RegisterPage() {
             return;
         }
 
+        const passwordError = validatePassword(password);
+        if (passwordError) {
+            setError(passwordError);
+            return;
+        }
+
         setLoading(true);
 
         try {
             const res = await fetch(`${BACKEND_URL}/auth/register`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, password }),
+                body: JSON.stringify({ email, password }),
             });
+
+            if (res.status === 409) {
+                setError("Cette adresse email est déjà utilisée.");
+                return;
+            }
 
             if (!res.ok) {
                 setError("Impossible de créer le compte. Vérifiez vos informations.");
@@ -46,7 +58,7 @@ export default function RegisterPage() {
             const data: RegisterResponse = await res.json().catch(() => ({}));
 
             if (data.token) {
-                login(data.token);
+                login(data.token, email);
                 navigate("/", { replace: true });
                 return;
             }
@@ -79,17 +91,17 @@ export default function RegisterPage() {
 
                 <form className="login-form" onSubmit={handleSubmit}>
                     <div className="login-form__field">
-                        <label className="login-form__label" htmlFor="register-username">
-                            Identifiant
+                        <label className="login-form__label" htmlFor="register-email">
+                            Adresse email
                         </label>
                         <input
-                            id="register-username"
-                            type="text"
+                            id="register-email"
+                            type="email"
                             className={`login-form__input${error ? " login-form__input--error" : ""}`}
-                            placeholder="Choisissez un identifiant"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            autoComplete="username"
+                            placeholder="votre@email.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            autoComplete="email"
                             required
                         />
                     </div>

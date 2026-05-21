@@ -126,9 +126,7 @@ describe('ItineraryNetModel', () => {
     });
 
     it('mappe segments, waypoints, breakDuration et estimatedArrival', async () => {
-      vi.mocked(fetch).mockResolvedValue({
-        ok: true,
-        json: async () => ({
+      vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify({
           id: 1,
           name: 'Roadtrip',
           shareCode: 'C15ROC',
@@ -151,12 +149,12 @@ describe('ItineraryNetModel', () => {
                 {
                   name: 'WP2',
                   coordinates: { latitude: 47.2, longitude: -1.52 },
+                  estimatedArrival: '2024-06-01T10:12:00.000Z',
                 },
               ],
             },
           ],
-        }),
-      } as Response);
+        })));
 
       const store = createStore(makeValidItinerary({ id: -1 }));
       const net = new ItineraryNetModel(store, false);
@@ -167,9 +165,74 @@ describe('ItineraryNetModel', () => {
       expect(realSeg).toBeDefined();
       expect(realSeg!.content.title).toBe('Seg 1');
       expect(realSeg!.content.breakDuration).toBe(90);
-      expect(realSeg!.content.distance).toBe(5000);
+      expect(realSeg!.content.distance).toBe(5);
       const withEta = realSeg!.steps.find(s => s.content.title === 'WP1');
       expect(withEta?.content.estimatedArrival?.toISOString()).toBe('2024-06-01T10:00:00.000Z');
+      expect(withEta?.content.duration.duration).toBe(0);
+      const secondStep = realSeg!.steps.find(s => s.content.title === 'WP2');
+      expect(secondStep?.content.duration.duration).toBe(12 * 60 * 1000);
+    });
+
+    it('conserve la durée de trajet du premier point visible des segments suivants', async () => {
+      vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify({
+          id: 2,
+          name: 'Roadtrip',
+          segments: [
+            {
+              name: 'Seg 1',
+              distance: 5000,
+              duration: 120,
+              geometry: lineFeatureJson,
+              estimatedDeparture: '2024-06-01T10:12:00.000Z',
+              waypoints: [
+                {
+                  name: 'Départ',
+                  coordinates: { latitude: 47.1, longitude: -1.5 },
+                  estimatedArrival: '2024-06-01T10:00:00.000Z',
+                },
+                {
+                  name: 'Point 1',
+                  coordinates: { latitude: 47.2, longitude: -1.52 },
+                  estimatedArrival: '2024-06-01T10:12:00.000Z',
+                },
+              ],
+            },
+            {
+              name: 'Seg 2',
+              distance: 3000,
+              duration: 900,
+              geometry: lineFeatureJson,
+              estimatedDeparture: '2024-06-01T10:27:00.000Z',
+              waypoints: [
+                {
+                  name: 'Point 1',
+                  coordinates: { latitude: 47.2, longitude: -1.52 },
+                  estimatedArrival: '2024-06-01T10:12:00.000Z',
+                },
+                {
+                  name: 'Point 2',
+                  coordinates: { latitude: 47.25, longitude: -1.55 },
+                  estimatedArrival: '2024-06-01T10:27:00.000Z',
+                },
+              ],
+            },
+          ],
+        }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }));
+
+      const store = createStore(makeValidItinerary({ id: -1 }));
+      const net = new ItineraryNetModel(store, false);
+      await net.get(2);
+
+      const realSegments = store.getSnapshot().segments.filter(s => !s.isStartEnd);
+      expect(realSegments).toHaveLength(2);
+      expect(realSegments[1].steps).toHaveLength(2);
+      expect(realSegments[1].steps[0].isDefaultSegStart).toBe(true);
+      expect(realSegments[1].steps[0].content.duration.duration).toBe(0);
+      expect(realSegments[1].steps[1].content.title).toBe('Point 2');
+      expect(realSegments[1].steps[1].content.duration.duration).toBe(15 * 60 * 1000);
     });
 
     it('accepte une géométrie JSON null (pas de tracé OSRM)', async () => {
