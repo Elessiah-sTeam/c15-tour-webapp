@@ -50,7 +50,7 @@ export function ConvoyThumbnail({ segments }: ConvoyThumbnailProps) {
                     );
                     routes.push(latlngs);
                 }
-            } catch (e) {
+            } catch {
                 pushErrorToast('Erreur parsing geometry');
             }
         }

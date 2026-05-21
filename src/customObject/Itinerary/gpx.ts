@@ -29,7 +29,7 @@ function parseGeometryInput(geometry: GpxGeometryInput): unknown {
 
     try {
         return JSON.parse(geometry) as unknown;
-    } catch (error) {
+    } catch {
         pushErrorToast("Impossible de parser la geometrie GPX");
         return null;
     }
