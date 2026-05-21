@@ -67,7 +67,7 @@ export class ItineraryNetModel {
         const request: ItineraryRequest | null = this.buildNetObject();
         if (!request)
         {
-            console.error(`Erreur ! Impossible d'envoyer un itinéraire incomplet !`);
+            pushErrorToast("Erreur ! Impossible d'envoyer un itinéraire incomplet !");
             return false;
         }
         const response: Response = await fetch(BACKEND_URL + `/tours/${itinerary.id}`, {
@@ -77,7 +77,7 @@ export class ItineraryNetModel {
         });
 
         if (!response.ok) {
-            console.error(`Erreur API: ${response.status} ${response.statusText}`);
+            pushErrorToast(`Erreur API: ${response.status} ${response.statusText}`);
             return false;
         }
         await this.applyItinerary((await response.json()) as ItineraryResponse);
@@ -106,14 +106,14 @@ export class ItineraryNetModel {
             });
 
             if (!response.ok) {
-                console.error(`Erreur API: ${response.status} ${response.statusText}`);
+                pushErrorToast(`Erreur API: ${response.status} ${response.statusText}`);
                 return false;
             }
 
             await this.applyItinerary((await response.json()) as ItineraryResponse);
             return true;
-        } catch (error) {
-            console.error("Erreur API: impossible de mettre a jour l'heure de depart", error);
+        } catch {
+            pushErrorToast("Erreur API: impossible de mettre a jour l'heure de depart");
             return false;
         }
     }
@@ -127,7 +127,7 @@ export class ItineraryNetModel {
         const request: ItineraryRequest | null = this.buildNetObject();
 
         if (!request) {
-            console.error(`Erreur ! Impossible d'envoyer un itinéraire incomplet !`)
+            pushErrorToast("Erreur ! Impossible d'envoyer un itinéraire incomplet !");
             return false;
         }
 
@@ -138,14 +138,14 @@ export class ItineraryNetModel {
         })
 
         if (!response.ok) {
-            console.error(`Erreur API: ${response.status} ${response.statusText}`);
+            pushErrorToast(`Erreur API: ${response.status} ${response.statusText}`);
             return false;
         }
 
         const itinerary: ItineraryResponse = await response.json();
 
         if (!itinerary.id && itinerary.id !== 0) {
-            console.error(`Erreur API: Impossible de récupérer l'ID de l'itinéraire dans la réponse du backend`);
+            pushErrorToast("Erreur API: Impossible de récupérer l'ID de l'itinéraire dans la réponse du backend");
             return false;
         }
 
@@ -224,7 +224,7 @@ export class ItineraryNetModel {
         });
 
         if (!response.ok) {
-            console.error(`Erreur API: ${response.status} ${response.statusText}`);
+            pushErrorToast(`Erreur API: ${response.status} ${response.statusText}`);
         }
 
         return (await response.json()) as ItineraryResponse;

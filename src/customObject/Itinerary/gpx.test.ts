@@ -58,4 +58,9 @@ describe("gpx helpers", () => {
         expect(() => buildGpxDocument("Vide", [{ geometry: undefined }]))
             .toThrow("Aucune geometrie exploitable pour generer un GPX.");
     });
+
+    it("returns empty array when geometry is invalid JSON", () => {
+        const result = extractLineStringCoordinates("{ invalid json }");
+        expect(result).toEqual([]);
+    });
 });

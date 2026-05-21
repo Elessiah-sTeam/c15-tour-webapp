@@ -171,6 +171,16 @@ describe('reorderItems()', () => {
     expect(model.reorderStep).toHaveBeenCalledWith('seg-a', 0, 'seg-a', 1);
   });
 
+  it("appelle pushErrorToast si le segment source n'existe pas dans les catégories", () => {
+    const seg = makeSegment('seg-a', [makeStep('step-1')]);
+    const itinerary = makeItinerary([seg]);
+    const model = { reorderStep: vi.fn() } as unknown as ItineraryModel;
+    const active = makeActive('step-1', 'nonexistent-seg');
+    const over = makeOver('step-1', 'seg-a');
+    reorderItems(itinerary, model, active, over);
+    expect(model.reorderStep).not.toHaveBeenCalled();
+  });
+
   it('appelle reorderStep pour un déplacement entre deux segments', () => {
     const s1 = makeStep('step-1');
     const s2 = makeStep('step-2');
