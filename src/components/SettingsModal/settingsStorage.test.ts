@@ -1,13 +1,18 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TimeSpan } from "../../customObject/TimeSpan.ts";
 import type { Itinerary } from "../../customObject/Itinerary/types.ts";
 import {
+    applySpeedSettings,
     buildPauseConfigs,
     createDefaultGlobalSettings,
     getGlobalSettingsStorageKey,
+    getGlobalSettingsStorageValue,
     getSegmentPauseDuration,
+    getSpeedMultiplier,
     loadGlobalSettings,
+    persistGlobalSettings,
     removeSegmentPauseConfig,
+    subscribeToGlobalSettingsChanges,
     upsertSegmentPauseConfig
 } from "./settingsStorage.ts";
 
@@ -142,5 +147,140 @@ describe("settingsStorage", () => {
         expect(loadGlobalSettings(itineraryWithoutSeg1).pauseConfigs).toEqual([
             { segmentId: "seg-2", segmentName: "Segment 2", duration: 30 }
         ]);
+    });
+
+    it("calcule un multiplicateur de durée à partir du pourcentage de vitesse", () => {
+        expect(getSpeedMultiplier(100)).toBe(1);
+        expect(getSpeedMultiplier(80)).toBe(1.2);
+        expect(getSpeedMultiplier(75)).toBe(1.25);
+    });
+
+    it("getSpeedMultiplier retombe sur 100% si l'entrée est invalide", () => {
+        expect(getSpeedMultiplier(Number.NaN)).toBe(1);
+        expect(getSpeedMultiplier(0)).toBe(1);
+        expect(getSpeedMultiplier(-50)).toBe(1);
+        expect(getSpeedMultiplier(Number.POSITIVE_INFINITY)).toBe(1);
+        expect(getSpeedMultiplier(Number.NEGATIVE_INFINITY)).toBe(1);
+    });
+
+    it("applySpeedSettings est neutre pour une vitesse à 100%", () => {
+        const itinerary = makeItinerary();
+        const scaled = applySpeedSettings(itinerary, 100);
+        expect(scaled.totalDuration.duration).toBe(itinerary.totalDuration.duration);
+    });
+
+    it("applySpeedSettings retombe sur 100% pour une vitesse invalide", () => {
+        const itinerary = makeItinerary();
+        const scaled = applySpeedSettings(itinerary, Number.NaN);
+        expect(scaled.totalDuration.duration).toBe(itinerary.totalDuration.duration);
+    });
+
+    it("applique le pourcentage de vitesse aux durées et aux heures", () => {
+        const itinerary = makeItinerary();
+        const oneHour = 3_600_000;
+        const quarterHour = 15 * 60_000;
+
+        const route = {
+            ...itinerary,
+            totalDuration: new TimeSpan(oneHour + quarterHour),
+            segments: itinerary.segments.map((segment) => {
+                if (segment.id === "start") {
+                    return {
+                        ...segment,
+                        content: {
+                            ...segment.content,
+                            duration: new TimeSpan(oneHour),
+                        }
+                    };
+                }
+
+                if (segment.id === "seg-1") {
+                    return {
+                        ...segment,
+                        content: {
+                            ...segment.content,
+                            duration: new TimeSpan(oneHour),
+                        },
+                        steps: [
+                            {
+                                id: "step-1",
+                                isDefaultSegStart: false,
+                                content: {
+                                    title: "Step 1",
+                                    duration: new TimeSpan(quarterHour),
+                                }
+                            }
+                        ]
+                    };
+                }
+
+                if (segment.id === "seg-2") {
+                    return {
+                        ...segment,
+                        content: {
+                            ...segment.content,
+                            duration: new TimeSpan(quarterHour),
+                        }
+                    };
+                }
+
+                return segment;
+            })
+        };
+
+        const scaled = applySpeedSettings(route, 80);
+
+        expect(scaled.totalDuration.duration).toBe(Math.round((oneHour + quarterHour) * 1.2));
+        expect(scaled.segments[1].content.duration.duration).toBe(Math.round(oneHour * 1.2));
+        expect(scaled.segments[1].steps[0].content.duration.duration).toBe(Math.round(quarterHour * 1.2));
+        expect(scaled.segments[2].content.hour.getTime()).toBe(
+            new Date("2026-04-21T10:24:00").getTime()
+        );
+    });
+
+    it("retourne null si aucune valeur stockée, sinon la valeur JSON brute", () => {
+        const itinerary = makeItinerary();
+
+        expect(getGlobalSettingsStorageValue(itinerary.id)).toBeNull();
+
+        persistGlobalSettings(itinerary.id, createDefaultGlobalSettings(itinerary));
+
+        expect(getGlobalSettingsStorageValue(itinerary.id)).not.toBeNull();
+    });
+
+    it("notifie les abonnés lors d'un persistGlobalSettings, et pas après désabonnement", () => {
+        const onChange = vi.fn();
+        const unsubscribe = subscribeToGlobalSettingsChanges(onChange);
+        const itinerary = makeItinerary();
+
+        persistGlobalSettings(itinerary.id, createDefaultGlobalSettings(itinerary));
+
+        expect(onChange).toHaveBeenCalledTimes(1);
+
+        unsubscribe();
+        persistGlobalSettings(itinerary.id, createDefaultGlobalSettings(itinerary));
+
+        expect(onChange).toHaveBeenCalledTimes(1);
+    });
+
+    it("subscribeToGlobalSettingsChanges réagit aussi à un évènement 'storage' cross-tab", () => {
+        const onChange = vi.fn();
+        const unsubscribe = subscribeToGlobalSettingsChanges(onChange);
+
+        window.dispatchEvent(new Event("storage"));
+        expect(onChange).toHaveBeenCalledTimes(1);
+
+        unsubscribe();
+        window.dispatchEvent(new Event("storage"));
+        expect(onChange).toHaveBeenCalledTimes(1);
+    });
+
+    it("utilise les paramètres par défaut si le JSON stocké est invalide", () => {
+        const itinerary = makeItinerary();
+        localStorage.setItem(getGlobalSettingsStorageKey(itinerary.id), "{ invalid json }");
+
+        const settings = loadGlobalSettings(itinerary);
+
+        expect(settings.speedPercentage).toBe(100);
     });
 });
