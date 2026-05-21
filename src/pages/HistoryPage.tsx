@@ -6,6 +6,7 @@ import ShareModal from '../components/Panels/ShareModal';
 import type { ItineraryResponse } from '../customObject/Itinerary/netTypes';
 import { itineraryModel } from '../customObject/Itinerary/ItineraryStore';
 import { getAuthToken, useAuth } from '../auth/useAuth';
+import { pushErrorToast } from '../customObject/Toast/ToastStore';
 import '../components/History/HistoryPage.css';
 
 const BACKEND_URL = "http://localhost:8080";
@@ -68,8 +69,8 @@ export default function HistoryPage() {
                     setItineraries([...firstData.content, ...remainingPages.flat()]);
                 }
             }
-        } catch (err) {
-            console.error('Erreur chargement:', err);
+        } catch {
+            pushErrorToast('Erreur chargement des convois');
         } finally {
             setLoading(false);
         }
@@ -109,8 +110,8 @@ export default function HistoryPage() {
         try {
             await fetch(`${BACKEND_URL}/tours/${id}`, { method: 'DELETE', headers: authHeaders() });
             setItineraries(prev => prev.filter(i => i.id !== id));
-        } catch (err) {
-            console.error('Erreur suppression:', err);
+        } catch {
+            pushErrorToast('Erreur lors de la suppression du convoi');
         }
     };
 

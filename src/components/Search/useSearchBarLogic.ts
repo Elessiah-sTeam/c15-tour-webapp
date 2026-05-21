@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent, RefObject } from "react";
 import { useMap } from "react-leaflet";
+import { pushErrorToast } from "../../customObject/Toast/ToastStore.ts";
 import type { LatLngExpression } from "leaflet";
 import { DomEvent } from "leaflet";
 import { useItinerary } from "../../customObject/Itinerary/UseItinerary.ts";
@@ -240,7 +241,7 @@ export const useSearchBarLogic = ({
         setResults(deduplicateByName(parsed));
       } catch (e) {
         if ((e as Error).name === "AbortError") return;
-        console.error(e);
+        pushErrorToast("Impossible de rechercher pour l'instant");
         setError("Impossible de rechercher pour l'instant");
       } finally {
         setIsLoading(false);

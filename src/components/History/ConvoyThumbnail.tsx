@@ -2,6 +2,7 @@ import { MapContainer, TileLayer, Polyline, CircleMarker } from 'react-leaflet';
 import type { SegmentResponse } from '../../customObject/Itinerary/netTypes';
 import 'leaflet/dist/leaflet.css';
 import { extractLineStringCoordinates } from '../../customObject/Itinerary/gpx.ts';
+import { pushErrorToast } from '../../customObject/Toast/ToastStore.ts';
 
 interface ConvoyThumbnailProps {
     segments: SegmentResponse[];
@@ -50,7 +51,7 @@ export function ConvoyThumbnail({ segments }: ConvoyThumbnailProps) {
                     routes.push(latlngs);
                 }
             } catch (e) {
-                console.error('Erreur parsing geometry:', e);
+                pushErrorToast('Erreur parsing geometry');
             }
         }
     });

@@ -1,5 +1,6 @@
 import type { Feature, LineString } from "geojson";
 import { sanitizeFileName } from "./fileName.ts";
+import { pushErrorToast } from "../Toast/ToastStore.ts";
 
 type LineStringGeometry = {
     type?: string;
@@ -29,7 +30,7 @@ function parseGeometryInput(geometry: GpxGeometryInput): unknown {
     try {
         return JSON.parse(geometry) as unknown;
     } catch (error) {
-        console.error("Impossible de parser la geometrie GPX", error);
+        pushErrorToast("Impossible de parser la geometrie GPX");
         return null;
     }
 }
