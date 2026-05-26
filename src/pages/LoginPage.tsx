@@ -16,7 +16,7 @@ export default function LoginPage() {
     const location = useLocation();
     const state = location.state as LoginLocationState | null;
 
-    const [username, setUsername] = useState("");
+    const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
     const [notice, setNotice] = useState<string | null>(state?.message ?? null);
@@ -32,7 +32,7 @@ export default function LoginPage() {
             const res = await fetch(`${BACKEND_URL}/auth/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, password }),
+                body: JSON.stringify({ email, password }),
             });
 
             if (!res.ok) {
@@ -41,7 +41,7 @@ export default function LoginPage() {
             }
 
             const data = await res.json();
-            login(data.token);
+            login(data.token, email);
             navigate("/", { replace: true });
         } catch {
             setError("Impossible de joindre le serveur. Vérifiez votre connexion.");
@@ -67,17 +67,17 @@ export default function LoginPage() {
 
                 <form className="login-form" onSubmit={handleSubmit}>
                     <div className="login-form__field">
-                        <label className="login-form__label" htmlFor="username">
-                            Identifiant
+                        <label className="login-form__label" htmlFor="email">
+                            Adresse email
                         </label>
                         <input
-                            id="username"
-                            type="text"
+                            id="email"
+                            type="email"
                             className={`login-form__input${error ? " login-form__input--error" : ""}`}
-                            placeholder="Votre identifiant"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            autoComplete="username"
+                            placeholder="votre@email.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            autoComplete="email"
                             required
                         />
                     </div>
@@ -100,6 +100,10 @@ export default function LoginPage() {
 
                     {notice && <p className="login-form__notice">{notice}</p>}
                     {error && <p className="login-form__error">{error}</p>}
+
+                    <Link to="/forgot-password" className="login-form__link">
+                        Mot de passe oublié ?
+                    </Link>
 
                     <button type="submit" className="login-form__submit" disabled={loading}>
                         {loading ? "Connexion en cours…" : "Se connecter"}

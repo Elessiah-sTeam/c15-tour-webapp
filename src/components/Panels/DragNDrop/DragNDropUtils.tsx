@@ -1,6 +1,7 @@
 import type {Active, Over} from "@dnd-kit/core";
 import type {Itinerary, Segment, Step} from "../../../customObject/Itinerary/types.ts";
 import ItineraryModel from "../../../customObject/Itinerary/ItineraryModel.ts";
+import { pushErrorToast } from "../../../customObject/Toast/ToastStore.ts";
 
 /**
  * Permet de récupérer l'étape qui est saisi
@@ -74,7 +75,7 @@ function getOriginsNTargets(categories: Segment[],
     const to: Segment | undefined = categories.find((c: Segment): boolean => c.id === destCategory);
 
     if (!from || !to) {
-        console.error("Failed to find the source or destination category !");
+        pushErrorToast("Failed to find the source or destination category !");
         return null;
     }
 

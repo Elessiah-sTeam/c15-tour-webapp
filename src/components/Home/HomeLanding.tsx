@@ -1,10 +1,10 @@
-import { ArrowRight, CarFront, FilePlus2, FolderClock, LogOut } from "lucide-react";
+import { ArrowRight, CarFront, FilePlus2, FolderClock, UserCircle } from "lucide-react";
 import "./HomeLanding.css";
 
 type HomeLandingProps = {
   onCreateNew?: () => void;
   onOpenHistory?: () => void;
-  onLogout?: () => void;
+  onOpenAccountSettings?: () => void;
 };
 
 /**
@@ -13,7 +13,7 @@ type HomeLandingProps = {
 export default function HomeLanding({
   onCreateNew,
   onOpenHistory,
-  onLogout,
+  onOpenAccountSettings,
 }: HomeLandingProps) {
   return (
     <div className="home-landing">
@@ -29,10 +29,10 @@ export default function HomeLanding({
           <button
             type="button"
             className="home-landing__settings"
-            aria-label="Se déconnecter"
-            onClick={onLogout}
+            aria-label="Paramètres du compte"
+            onClick={onOpenAccountSettings}
           >
-            <LogOut size={22} strokeWidth={2.4} />
+            <UserCircle size={22} strokeWidth={2.4} />
           </button>
         </header>
 

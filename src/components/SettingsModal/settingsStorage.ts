@@ -1,6 +1,10 @@
 import type { Itinerary, Segment } from "../../customObject/Itinerary/types.ts";
 import type { GlobalSettings, PauseConfig } from "./settingsTypes.ts";
 import { DEFAULT_PAUSE_DURATION } from "./settingsTypes.ts";
+import { TimeSpan } from "../../customObject/TimeSpan.ts";
+import { updateStarts } from "../../customObject/Itinerary/utils.ts";
+
+const GLOBAL_SETTINGS_CHANGE_EVENT = "global-settings-changed";
 
 function formatLocalDate(date: Date): string {
     const year = date.getFullYear();
@@ -53,6 +57,42 @@ export function buildPauseConfigs(itinerary: Itinerary, baseSettings: GlobalSett
 
 export function persistGlobalSettings(itineraryId: number, settings: GlobalSettings): void {
     localStorage.setItem(getGlobalSettingsStorageKey(itineraryId), JSON.stringify(settings));
+    /* v8 ignore start -- garde-fou SSR : window indéfini ne survient pas en runtime navigateur ni en jsdom */
+    if (typeof window === "undefined") {
+        return;
+    }
+    /* v8 ignore stop */
+    window.dispatchEvent(new Event(GLOBAL_SETTINGS_CHANGE_EVENT));
+}
+
+/**
+ * Retourne la valeur brute stockee pour les parametres globaux d'un itineraire.
+ * @param itineraryId identifiant de l'itineraire
+ */
+export function getGlobalSettingsStorageValue(itineraryId: number): string | null {
+    return localStorage.getItem(getGlobalSettingsStorageKey(itineraryId));
+}
+
+/**
+ * Ecoute les changements des parametres globaux, y compris ceux emis depuis
+ * un autre contexte de navigation.
+ * @param onChange rappel declenche quand les parametres evoluent
+ */
+export function subscribeToGlobalSettingsChanges(onChange: () => void): () => void {
+    /* v8 ignore start -- garde-fou SSR : window indéfini ne survient pas en runtime navigateur ni en jsdom */
+    if (typeof window === "undefined") {
+        return () => undefined;
+    }
+    /* v8 ignore stop */
+
+    const handleChange = () => onChange();
+    window.addEventListener(GLOBAL_SETTINGS_CHANGE_EVENT, handleChange);
+    window.addEventListener("storage", handleChange);
+
+    return () => {
+        window.removeEventListener(GLOBAL_SETTINGS_CHANGE_EVENT, handleChange);
+        window.removeEventListener("storage", handleChange);
+    };
 }
 
 export function loadGlobalSettings(itinerary: Itinerary): GlobalSettings {
@@ -125,4 +165,56 @@ export function removeSegmentPauseConfig(itinerary: Itinerary, segmentId: string
 
     persistGlobalSettings(itinerary.id, nextSettings);
     return nextSettings;
+}
+
+/**
+ * Convertit le pourcentage de vitesse en coefficient d'allongement des durees.
+ * Exemple: 80% -> 1.20, donc +20% sur les durees. 75% -> 1.25, donc +25%.
+ * Formule : 2 - (speedPercentage / 100)
+ * @param speedPercentage pourcentage de vitesse de conduite
+ */
+export function getSpeedMultiplier(speedPercentage: number): number {
+    const normalizedSpeed = Number.isFinite(speedPercentage) && speedPercentage > 0
+        ? speedPercentage
+        : 100;
+
+    return 2 - normalizedSpeed / 100;
+}
+
+function scaleTimeSpan(duration: TimeSpan | undefined, multiplier: number): TimeSpan {
+    const normalizedDuration = Object.assign(new TimeSpan(), duration);
+    return new TimeSpan(Math.round(normalizedDuration.duration * multiplier));
+}
+
+function scaleSegment(segment: Segment, multiplier: number): Segment {
+    return {
+        ...segment,
+        content: {
+            ...segment.content,
+            duration: scaleTimeSpan(segment.content.duration, multiplier)
+        },
+        steps: segment.steps.map((step) => ({
+            ...step,
+            content: {
+                ...step.content,
+                duration: scaleTimeSpan(step.content.duration, multiplier)
+            }
+        }))
+    };
+}
+
+/**
+ * Applique le coefficient de vitesse aux durees du trajet, des segments et des etapes.
+ * @param itinerary itineraire source
+ * @param speedPercentage pourcentage de vitesse a appliquer
+ */
+export function applySpeedSettings(itinerary: Itinerary, speedPercentage: number): Itinerary {
+    const multiplier = getSpeedMultiplier(speedPercentage);
+    const scaledSegments = updateStarts(itinerary.segments.map((segment) => scaleSegment(segment, multiplier)));
+
+    return {
+        ...itinerary,
+        totalDuration: scaleTimeSpan(itinerary.totalDuration, multiplier),
+        segments: scaledSegments
+    };
 }
