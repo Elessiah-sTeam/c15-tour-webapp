@@ -22,7 +22,6 @@ export default function SortableStepHeader({category, model} : {category: Segmen
         >
             <Item
                 duration={category.content.duration}
-                isStartEnd={false}
                 categoryId={category.id}
                 isDefault={false}
                 title={category.content.title}

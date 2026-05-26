@@ -11,11 +11,11 @@ import {
     removeSegmentPauseConfig,
     upsertSegmentPauseConfig
 } from "../SettingsModal/settingsStorage.ts";
+import { DEFAULT_PAUSE_DURATION } from "../SettingsModal/settingsTypes.ts";
 
 type Props = {
     duration?: TimeSpan;
     hour?: Date;
-    isStartEnd: boolean;
     children: React.ReactNode;
     categoryId: string;
     itemId?: string;
@@ -29,6 +29,10 @@ function formatPanelDuration(duration?: TimeSpan): string {
     const totalHours = (composed.days * 24) + composed.hours;
 
     return `${totalHours}h${String(composed.minutes).padStart(2, "0")}`;
+}
+
+export function formatPanelHour(hour?: Date): string {
+    return `${hour?.getHours()}:${hour?.getMinutes().toString().padStart(2, "0")}`;
 }
 
 /**
@@ -45,7 +49,6 @@ function formatPanelDuration(duration?: TimeSpan): string {
 export default function Item({
     duration,
     hour,
-    isStartEnd,
     children,
     categoryId,
     itemId,
@@ -54,7 +57,7 @@ export default function Item({
 }: Props) {
     const delMod = useDeleteMod(deleteModStore);
     const [showActionModal, setShowActionModal] = React.useState(false);
-    const [pauseDuration, setPauseDuration] = React.useState<number>(30);
+    const [pauseDuration, setPauseDuration] = React.useState<number>(DEFAULT_PAUSE_DURATION);
     duration = Object.assign(new TimeSpan(), duration);
 
     /**
@@ -88,13 +91,22 @@ export default function Item({
             return;
         }
 
-        itineraryModel.renameSegment(categoryId, name);
-
         if (nextPauseDuration != null) {
             const normalizedPause = Math.max(0, Math.min(120, nextPauseDuration));
             setPauseDuration(normalizedPause);
+            const currentSegment = itineraryModel.getSegment(categoryId);
+            if (currentSegment) {
+                itineraryModel.updateSegmentInfo(categoryId, {
+                    ...currentSegment.content,
+                    title: name,
+                    breakDuration: normalizedPause * 60,
+                });
+            }
             upsertSegmentPauseConfig(itineraryModel.route, categoryId, name, normalizedPause);
+            return;
         }
+
+        itineraryModel.renameSegment(categoryId, name);
     }
 
     return (
@@ -104,8 +116,8 @@ export default function Item({
                     {children}
                 </div>
                 <div className={"item-trailing"}>
-                    {isStartEnd
-                        ? <b className={"hour"}>{hour?.getHours()}:{hour?.getMinutes().toString().padStart(2, "0")}</b>
+                    {hour
+                        ? <b className={"hour"}>{formatPanelHour(hour)}</b>
                         : <b className={"hour"}>{formatPanelDuration(duration)}</b>}
                     {isDefault
                         ? <span className={"item-action-placeholder"} aria-hidden={true}></span>

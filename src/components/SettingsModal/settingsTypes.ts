@@ -14,4 +14,4 @@ export interface GlobalSettings {
     pauseConfigs: PauseConfig[];
 }
 
-export const DEFAULT_PAUSE_DURATION = 30;
+export const DEFAULT_PAUSE_DURATION = 0;

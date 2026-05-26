@@ -35,9 +35,8 @@ export default function SortablePDP({visible, item, categoryId, isStartEnd, hour
           {...listeners}
       >
           <Item
-              isStartEnd={isStartEnd}
               duration={item.content.duration}
-              hour={isStartEnd ? hour : undefined}
+              hour={isStartEnd ? hour : item.content.estimatedArrival}
               itemId={item.id}
               categoryId={categoryId}
               isDefault={item.isDefaultSegStart}

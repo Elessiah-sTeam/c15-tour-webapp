@@ -1,13 +1,18 @@
 import './Panels.css';
-import { Flag, Rocket } from "lucide-react";
-import { TimespanOffset, type unitTimeSpan } from "../../customObject/TimeSpan.ts";
+import { Coffee, Flag, Rocket } from "lucide-react";
+import { TimeSpan, TimespanOffset, type unitTimeSpan } from "../../customObject/TimeSpan.ts";
 import { useItinerary } from "../../customObject/Itinerary/UseItinerary.ts";
 import { itineraryModel } from "../../customObject/Itinerary/ItineraryStore.ts";
 import { formatTime, isValidDate } from "../../utils/timeUtils";
 
+export function formatTotalPauseDuration(totalPauseSeconds: number, units: unitTimeSpan): string {
+    return new TimeSpan(totalPauseSeconds * 1000).toFStr(TimespanOffset.MINUTES, units);
+}
+
 export default function InfoPanel() {
     const units: unitTimeSpan = { days: "J ", hours: "H ", minutes: "MIN ", seconds: "S ", milliseconds: "MS " };
     const itinerary = useItinerary(itineraryModel.store);
+    const totalPauseSeconds = itinerary.segments.reduce((sum, segment) => sum + (segment.content.breakDuration ?? 0), 0);
 
     // Les heures affichees viennent du store, qui est mis a jour par le backend et les settings.
     const departureTime = itinerary.segments[0]?.content.hour;
@@ -22,6 +27,18 @@ export default function InfoPanel() {
                 <h2>{itinerary.totalDistance.toFixed(2) + " KM"}</h2>
                 <h2>{itinerary.totalDuration.toFStr(TimespanOffset.MINUTES, units)}</h2>
             </div>
+
+            {totalPauseSeconds > 0 && (
+                <div className={"pause-info"}>
+                    <span className={"time-label"}>
+                        <Coffee className={"time-icon"} aria-hidden={true} />
+                        Pauses :
+                    </span>
+                    <span className={"time-value"}>
+                        {formatTotalPauseDuration(totalPauseSeconds, units)}
+                    </span>
+                </div>
+            )}
 
             {canDisplayTimes && (
                 <div className={"time-info"}>

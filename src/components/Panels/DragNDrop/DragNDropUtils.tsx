@@ -37,10 +37,20 @@ export function getActiveCat(active: Active, categories: Segment[]): Segment | u
 export function reorderSegment(itinerary: Itinerary,
                                itineraryModel: ItineraryModel,
                                active: Active,
-                               over: Over): void
+                               over: Over): boolean
 {
+    if (active.id === over.id) {
+        return false;
+    }
+
+    const overSegment = itinerary.segments.find((seg: Segment) => seg.id == over.id);
+    if (!overSegment || overSegment.isStartEnd) {
+        return false;
+    }
+
     const newIndex: number = itinerary.segments.findIndex((seg: Segment) => seg.id == over.id);
     itineraryModel.reorderSegment(active.id as string, newIndex);
+    return true;
 }
 
 type OriginsNTarget = {
@@ -94,20 +104,25 @@ function getOriginsNTargets(categories: Segment[],
 export function reorderItems(itinerary: Itinerary,
                              itineraryModel: ItineraryModel,
                              active: Active,
-                             over: Over): void
+                             over: Over): boolean
 {
+    if (active.id === over.id && active.data.current?.categoryId === over.data.current?.categoryId) {
+        return false;
+    }
+
     const srcCategory: string | undefined = active.data.current?.categoryId;
     const destCategory: string | undefined = over.data.current?.categoryId ?? srcCategory;
 
     if (!srcCategory || !destCategory) {
-        pushErrorToast("Missing source or destination category id");
-        return;
+        console.error("Missing source or destination category id");
+        return false;
     }
 
     let OGnT: OriginsNTarget | null;
     // eslint-disable-next-line prefer-const
     OGnT = getOriginsNTargets(itinerary.segments, srcCategory, destCategory, active, over);
     if (!OGnT || OGnT.category.from.isStartEnd || OGnT.category.to.isStartEnd || OGnT.category.from.steps[OGnT.itemIndex.old].isDefaultSegStart)
-        return;
+        return false;
     itineraryModel.reorderStep(OGnT.category.from.id, OGnT.itemIndex.old, OGnT.category.to.id, OGnT.itemIndex.new);
+    return true;
 }

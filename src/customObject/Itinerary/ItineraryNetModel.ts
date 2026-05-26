@@ -206,10 +206,12 @@ export class ItineraryNetModel {
     /**
      * Signale la fin d'un drag : relance immédiatement un put sans délai
      */
-    public endDrag(): void {
+    public endDrag(hasChanges: boolean = true): void {
         if (!this.isDragging) return;
         this.isDragging = false;
-        this.put().then();
+        if (hasChanges) {
+            this.put().then();
+        }
     }
 
     // Méthodes Privées
@@ -331,6 +333,7 @@ export class ItineraryNetModel {
      * @private
      */
     private normalizeSegments(segments: SegmentResponse[],
+                              itineraryDepartureTime: string | undefined,
                               refId: {id: number} = {id: 0}): Segment[] {
         const startId: number = refId.id;
         return this.addStartEndSegment(segments.map((seg: SegmentResponse, index: number) => {
@@ -347,7 +350,9 @@ export class ItineraryNetModel {
                         duration: new TimeSpan(seg.duration * 1000),
                         distance: seg.distance * 0.001,
                         geometry: this.normalizeNetGeometry(seg.geometry),
-                        hour: this.normalizeNetDate(seg.estimatedDeparture),
+                        hour: index === 0
+                            ? this.normalizeNetDate(itineraryDepartureTime ?? seg.waypoints[0]?.estimatedArrival ?? seg.estimatedDeparture)
+                            : this.normalizeNetDate(seg.estimatedDeparture),
                         ...(seg.breakDuration !== undefined && seg.breakDuration !== null
                             ? {breakDuration: seg.breakDuration}
                             : {}),
@@ -367,7 +372,7 @@ export class ItineraryNetModel {
         this.store.set(() => {
             // Une ref pour incrémenter au sein des fonctions et pas perdre le fil
             const refId: {id: number} = {id: 0};
-            const segments: Segment[] = this.normalizeSegments(response.segments ?? [], refId);
+            const segments: Segment[] = this.normalizeSegments(response.segments ?? [], response.departureTime, refId);
             const totalDurationSec = response.totalDuration ?? 0;
             const totalDistanceM = response.totalDistance ?? 0;
             return {

@@ -83,8 +83,8 @@ describe("settingsStorage", () => {
         const settings = createDefaultGlobalSettings(itinerary);
 
         expect(buildPauseConfigs(itinerary, settings)).toEqual([
-            { segmentId: "seg-1", segmentName: "Segment 1", duration: 30 },
-            { segmentId: "seg-2", segmentName: "Segment 2", duration: 30 }
+            { segmentId: "seg-1", segmentName: "Segment 1", duration: 0 },
+            { segmentId: "seg-2", segmentName: "Segment 2", duration: 0 }
         ]);
     });
 
@@ -121,7 +121,7 @@ describe("settingsStorage", () => {
         expect(settings.convoyName).toBe("Convoi renommé");
         expect(settings.pauseConfigs).toEqual([
             { segmentId: "seg-1", segmentName: "Segment renommé", duration: 45 },
-            { segmentId: "seg-2", segmentName: "Segment 2", duration: 30 }
+            { segmentId: "seg-2", segmentName: "Segment 2", duration: 0 }
         ]);
     });
 
@@ -145,7 +145,7 @@ describe("settingsStorage", () => {
         };
 
         expect(loadGlobalSettings(itineraryWithoutSeg1).pauseConfigs).toEqual([
-            { segmentId: "seg-2", segmentName: "Segment 2", duration: 30 }
+            { segmentId: "seg-2", segmentName: "Segment 2", duration: 0 }
         ]);
     });
 

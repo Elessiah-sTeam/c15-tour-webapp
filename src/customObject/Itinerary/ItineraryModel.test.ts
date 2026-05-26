@@ -262,7 +262,36 @@ describe('ItineraryModel', () => {
     });
   });
 
+  describe('applySegmentPauseConfigs()', () => {
+    it('met a jour les pauses en minutes sur les segments et recalcule le depart du suivant', () => {
+      const model = createModel();
+      model.addSegment(makeSegment('seg-a', [], 3_600_000));
+      model.addSegment(makeSegment('seg-b', [], 1_800_000));
+
+      model.route.segments[0].content.hour = new Date('2024-01-01T08:00:00.000Z');
+      model.applySegmentPauseConfigs([{ segmentId: 'seg-a', duration: 15 }]);
+
+      const segA = model.route.segments.find(s => s.id === 'seg-a');
+      const segB = model.route.segments.find(s => s.id === 'seg-b');
+
+      expect(segA?.content.breakDuration).toBe(900);
+      expect(segB?.content.hour.getTime()).toBe(
+        new Date('2024-01-01T09:15:00.000Z').getTime()
+      );
+    });
+  });
+
   describe('reorderSegment()', () => {
+    it('ne fait rien si le segment reste au même index', () => {
+      const model = createModel();
+      model.addSegment(makeSegment('seg-a'));
+      model.addSegment(makeSegment('seg-b'));
+      const before = JSON.stringify(model.route.segments);
+      const sameIndex = model.route.segments.findIndex(s => s.id === 'seg-b');
+      model.reorderSegment('seg-b', sameIndex);
+      expect(JSON.stringify(model.route.segments)).toBe(before);
+    });
+
     it('déplace un segment à un nouvel index', () => {
       const model = createModel();
       model.addSegment(makeSegment('seg-a'));
@@ -355,6 +384,16 @@ describe('ItineraryModel', () => {
   });
 
   describe('reorderStep()', () => {
+    it('ne fait rien si l\'étape reste au même index', () => {
+      const model = createModel();
+      model.addSegment(makeSegment('seg-a', [makeStep('s1'), makeStep('s2')]));
+      const seg = model.route.segments.find(s => s.id === 'seg-a')!;
+      const before = JSON.stringify(model.route.segments);
+      const s2Idx = seg.steps.findIndex(s => s.id === 's2');
+      model.reorderStep('seg-a', s2Idx, 'seg-a', s2Idx);
+      expect(JSON.stringify(model.route.segments)).toBe(before);
+    });
+
     it('déplace une étape dans le même segment', () => {
       const model = createModel();
       model.addSegment(makeSegment('seg-a', [makeStep('s1'), makeStep('s2'), makeStep('s3')]));

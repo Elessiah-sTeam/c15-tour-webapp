@@ -118,6 +118,26 @@ describe('getActiveCat()', () => {
 });
 
 describe('reorderSegment()', () => {
+  it('ne fait rien si la cible est un segment technique start/end', () => {
+    const segs = [makeSegment('start', [], true), makeSegment('seg-a'), makeSegment('end', [], true)];
+    const itinerary = makeItinerary(segs);
+    const model = { reorderSegment: vi.fn() } as unknown as ItineraryModel;
+    const active = makeActive('seg-a');
+    const over = makeOver('start');
+    reorderSegment(itinerary, model, active, over);
+    expect(model.reorderSegment).not.toHaveBeenCalled();
+  });
+
+  it('ne fait rien si le segment est survolé à sa position actuelle', () => {
+    const segs = [makeSegment('start'), makeSegment('seg-a'), makeSegment('end')];
+    const itinerary = makeItinerary(segs);
+    const model = { reorderSegment: vi.fn() } as unknown as ItineraryModel;
+    const active = makeActive('seg-a');
+    const over = makeOver('seg-a');
+    reorderSegment(itinerary, model, active, over);
+    expect(model.reorderSegment).not.toHaveBeenCalled();
+  });
+
   it('appelle itineraryModel.reorderSegment avec l\'index correct', () => {
     const segs = [makeSegment('start'), makeSegment('seg-a'), makeSegment('end')];
     const itinerary = makeItinerary(segs);
@@ -130,6 +150,16 @@ describe('reorderSegment()', () => {
 });
 
 describe('reorderItems()', () => {
+  it('ne fait rien si l\'étape est survolée à sa position actuelle', () => {
+    const step = makeStep('step-1');
+    const seg = makeSegment('seg-a', [step]);
+    const model = { reorderStep: vi.fn() } as unknown as ItineraryModel;
+    const active = makeActive('step-1', 'seg-a');
+    const over = makeOver('step-1', 'seg-a');
+    reorderItems(makeItinerary([seg]), model, active, over);
+    expect(model.reorderStep).not.toHaveBeenCalled();
+  });
+
   it('ne fait rien si srcCategory absent', () => {
     const model = { reorderStep: vi.fn() } as unknown as ItineraryModel;
     const active = makeActive('step-1', undefined); // pas de categoryId

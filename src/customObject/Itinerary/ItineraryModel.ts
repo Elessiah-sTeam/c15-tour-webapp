@@ -13,6 +13,11 @@ import {ItineraryNetModel} from "./ItineraryNetModel.ts";
 import {updateStarts} from "./utils.ts";
 import {saveStateStore} from "../SaveState/SaveStateStore.ts";
 
+type SegmentPauseConfig = {
+    segmentId: string;
+    duration: number;
+};
+
 /**
  * Modèle de l'itinéraire, regroupant toutes les fonctions métiers pour le manipuler
  */
@@ -166,7 +171,38 @@ class ItineraryModel {
      * @param segmentId ID du segment à déplacer
      * @param targetIndex index cible
      */
+    applySegmentPauseConfigs(pauseConfigs: SegmentPauseConfig[]): void {
+        const pauseMap = new Map(
+            pauseConfigs.map(({segmentId, duration}) => [
+                segmentId,
+                Math.max(0, Math.min(120, Number.isFinite(duration) ? duration : 0)) * 60
+            ])
+        );
+
+        this.store.set((route: Itinerary) => ({
+            ...route,
+            segments: updateStarts(route.segments.map((seg: Segment) =>
+                !pauseMap.has(seg.id)
+                    ? seg
+                    : {
+                        ...seg,
+                        content: {
+                            ...seg.content,
+                            breakDuration: pauseMap.get(seg.id)
+                        }
+                    }
+            )),
+        }));
+        this.netModel.setupSave();
+    }
+
     reorderSegment(segmentId: string, targetIndex: number): void {
+        const currentSegments = this.route.segments;
+        const currentIndex = currentSegments.findIndex((seg: Segment) => seg.id == segmentId);
+        if (currentIndex == -1 || currentIndex == targetIndex) {
+            return;
+        }
+
         this.store.set((route: Itinerary) => {
             const segments: Segment[] = [...route.segments];
             const index = segments.findIndex((seg: Segment) => seg.id == segmentId);
@@ -255,6 +291,10 @@ class ItineraryModel {
      * @param toStepIndex Index de l'étape d'arrivée
      */
     reorderStep(fromSegmentId: string, fromStepIndex: number, toSegmentId: string, toStepIndex: number): void {
+        if (fromSegmentId === toSegmentId && fromStepIndex === toStepIndex) {
+            return;
+        }
+
         this.store.set((route: Itinerary) => {
             const env = this.getReorderStepInfo(route, fromSegmentId, fromStepIndex, toSegmentId, toStepIndex)
 
