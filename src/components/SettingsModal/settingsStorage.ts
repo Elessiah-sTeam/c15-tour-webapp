@@ -46,7 +46,7 @@ export function buildPauseConfigs(itinerary: Itinerary, baseSettings: GlobalSett
             return {
                 segmentId: segment.id,
                 segmentName: segment.content.title || "Segment sans nom",
-                duration: existingPause?.duration ?? DEFAULT_PAUSE_DURATION
+                duration: existingPause?.duration ?? ((segment.content.breakDuration ?? (DEFAULT_PAUSE_DURATION * 60)) / 60)
             };
         });
 }

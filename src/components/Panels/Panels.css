@@ -695,6 +695,14 @@ h3, .stepTitle {
     gap: clamp(4px, 0.6vh, 6px);
 }
 
+.pause-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-top: clamp(2px, 0.4vh, 4px);
+}
+
 .time-row {
     display: flex;
     justify-content: space-between;

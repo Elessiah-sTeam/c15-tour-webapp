@@ -35,6 +35,34 @@ function getSegmentDurationMs(segment: Segment): number {
     return duration.duration;
 }
 
+function getSegmentBreakMs(segment: Segment): number {
+    return (segment.content.breakDuration ?? 0) * 1000;
+}
+
+function getStepDurationMs(step: Step): number {
+    const duration = Object.assign(new TimeSpan(), step.content.duration);
+    return duration.duration;
+}
+
+function applyStepEstimatedArrivals(segment: Segment): Segment {
+    let cumulativeDuration = 0;
+    const breakOffset = !segment.isStartEnd ? getSegmentBreakMs(segment) : 0;
+
+    return {
+        ...segment,
+        steps: segment.steps.map((step: Step) => {
+            cumulativeDuration += getStepDurationMs(step);
+            return {
+                ...step,
+                content: {
+                    ...step.content,
+                    estimatedArrival: new Date(segment.content.hour.getTime() + breakOffset + cumulativeDuration),
+                },
+            };
+        }),
+    };
+}
+
 /**
  * Mets à jour les départs de segment
  * @param segments à mettre jour
@@ -59,11 +87,15 @@ export function updateStarts(segments: Segment[]): Segment[] {
 
     out[0].content.hour = normalizeHour(out[0].content.hour);
     for (let i = FIRST_SEG_INDEX; i < out.length; i++) {
-        out[i].content.hour = new Date(out[i - 1].content.hour.getTime() + getSegmentDurationMs(out[i - 1]));
+        const previousSegment = out[i - 1];
+        const includeBreakDuration = !previousSegment.isStartEnd;
+        const transitionDuration = getSegmentDurationMs(previousSegment)
+            + (includeBreakDuration ? getSegmentBreakMs(previousSegment) : 0);
+        out[i].content.hour = new Date(previousSegment.content.hour.getTime() + transitionDuration);
     }
 
     if (out.length == NB_START_END || out[FIRST_SEG_INDEX].steps.length == 0)
-        return out;
+        return out.map(applyStepEstimatedArrivals);
 
     out[0] = applyStart(out[0], out[FIRST_SEG_INDEX].steps[0]);
 
@@ -71,5 +103,5 @@ export function updateStarts(segments: Segment[]): Segment[] {
         out[i + 1] = applyStart(out[i + 1], out[i].steps[out[i].steps.length - 1]);
     }
 
-    return out;
+    return out.map(applyStepEstimatedArrivals);
 }

@@ -1,6 +1,6 @@
 import type {Itinerary, Segment, Step} from "../../../customObject/Itinerary/types.ts";
 import {useState} from "react";
-import {type DragEndEvent, type DragMoveEvent, type DragStartEvent} from "@dnd-kit/core";
+import {type DragEndEvent, type DragStartEvent} from "@dnd-kit/core";
 import {getActiveCat, getActiveItem, reorderSegment, reorderItems} from "./DragNDropUtils.tsx";
 import {useItinerary} from "../../../customObject/Itinerary/UseItinerary.ts";
 import {itineraryModel} from "../../../customObject/Itinerary/ItineraryStore.ts";
@@ -9,7 +9,6 @@ export type DndProps = {
     activeItem: Step | null;
     activeCat: Segment | null;
     handleDragStart: (event: DragStartEvent) => void;
-    handleDragMove: (event: DragEndEvent) => void;
     handleDragEnd: (event: DragEndEvent) => void;
 }
 
@@ -25,6 +24,25 @@ export function useDragNDrop(): DndProps {
     const [activeItem, setActiveItem] = useState<Step | null>(null);
     const [activeCat, setActiveCat] = useState<Segment | null>(null);
     const itinerary: Itinerary = useItinerary(itineraryModel.store);
+
+    function applyReorder(event: DragEndEvent): boolean {
+        const { active, over } = event;
+
+        if (!over) {
+            return false;
+        }
+
+        const activeType: string | null = active.data.current?.type;
+        const overType: string | null = over.data.current?.type;
+
+        if (activeType === "category" && overType === "category") {
+            return reorderSegment(itinerary, itineraryModel, active, over);
+        } else if (activeType === "item") {
+            return reorderItems(itinerary, itineraryModel, active, over);
+        }
+
+        return false;
+    }
 
     /**
      * Gère le début du dragNDrop quand l'élément est agripé,
@@ -59,27 +77,6 @@ export function useDragNDrop(): DndProps {
      * Reordonne l'itinéraire fonction du survol
      * @param event
      */
-    function handleDragMove(event: DragMoveEvent) {
-        if (isItemActionModalOpen()) {
-            return;
-        }
-
-        const { active, over } = event;
-
-        if (!over) {
-            return;
-        }
-
-        const activeType: string | null = active.data.current?.type;
-        const overType: string | null = over.data.current?.type;
-
-        if (activeType === "category" && overType === "category") {
-            reorderSegment(itinerary, itineraryModel, active, over);
-        } else if (activeType === "item") {
-            reorderItems(itinerary, itineraryModel, active, over);
-        }
-    }
-
     /**
      * Gère la fin du dragNDrop
      * Désactive les actifs, et reordonne une dernière fois
@@ -89,20 +86,20 @@ export function useDragNDrop(): DndProps {
         if (isItemActionModalOpen()) {
             setActiveItem(null);
             setActiveCat(null);
+            itineraryModel.netModel.endDrag(false);
             return;
         }
 
         setActiveItem(null);
         setActiveCat(null);
-        handleDragMove(event);
-        itineraryModel.netModel.endDrag();
+        const hasChanges = applyReorder(event);
+        itineraryModel.netModel.endDrag(hasChanges);
     }
 
     return ({
         activeItem,
         activeCat,
         handleDragStart,
-        handleDragMove,
         handleDragEnd
     })
 }

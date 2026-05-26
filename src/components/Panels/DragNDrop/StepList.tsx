@@ -35,7 +35,6 @@ export default function StepList() {
             sensors={sensors}
             collisionDetection={closestCenter}
             onDragStart={dnd.handleDragStart}
-            onDragMove={dnd.handleDragMove}
             onDragEnd={dnd.handleDragEnd}
         >
             <SortableContext

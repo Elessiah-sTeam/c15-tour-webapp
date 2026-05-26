@@ -72,6 +72,8 @@ export default function ActionButtons() {
         if (departureDateTime) {
             await itineraryModel.setDepartureDateTime(departureDateTime);
         }
+
+        itineraryModel.applySegmentPauseConfigs(settings.pauseConfigs);
     };
 
     const handleSaveAsDraft = async () => {

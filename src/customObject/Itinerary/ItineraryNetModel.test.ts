@@ -21,14 +21,14 @@ function makeStep(id: string, title = id, lat = 47.2, lon = -1.55): Step {
   };
 }
 
-/** Structure [start, segment réel, end] acceptée par `checkSegmentsValidity` + `buildNetSegments`. */
+/** Structure [start, segment rÃ©el, end] acceptÃ©e par `checkSegmentsValidity` + `buildNetSegments`. */
 function makeValidItinerary(overrides: Partial<Itinerary> = {}): Itinerary {
   const departure = new Date('2024-06-01T08:00:00.000Z');
   const segments: Segment[] = [
     {
       id: 'start',
       isStartEnd: true,
-      steps: [makeStep('start-w', 'Départ')],
+      steps: [makeStep('start-w', 'DÃ©part')],
       content: {
         title: ' ',
         hour: departure,
@@ -39,7 +39,7 @@ function makeValidItinerary(overrides: Partial<Itinerary> = {}): Itinerary {
     {
       id: 'seg-1',
       isStartEnd: false,
-      steps: [makeStep('w1', 'Étape A'), makeStep('w2', 'Étape B')],
+      steps: [makeStep('w1', 'Ã‰tape A'), makeStep('w2', 'Ã‰tape B')],
       content: {
         title: 'Segment principal',
         hour: new Date(departure.getTime()),
@@ -51,7 +51,7 @@ function makeValidItinerary(overrides: Partial<Itinerary> = {}): Itinerary {
     {
       id: 'end',
       isStartEnd: true,
-      steps: [makeStep('end-w', 'Arrivée')],
+      steps: [makeStep('end-w', 'ArrivÃ©e')],
       content: {
         title: ' ',
         hour: new Date(departure.getTime()),
@@ -130,6 +130,7 @@ describe('ItineraryNetModel', () => {
           id: 1,
           name: 'Roadtrip',
           shareCode: 'C15ROC',
+          departureTime: '2024-06-01T10:00:00.000Z',
           totalDistance: 5000,
           totalDuration: 120,
           segments: [
@@ -164,6 +165,7 @@ describe('ItineraryNetModel', () => {
       const realSeg = snap.segments.find(s => s.id !== 'start' && s.id !== 'end' && !s.isStartEnd);
       expect(realSeg).toBeDefined();
       expect(realSeg!.content.title).toBe('Seg 1');
+      expect(realSeg!.content.hour.toISOString()).toBe('2024-06-01T10:00:00.000Z');
       expect(realSeg!.content.breakDuration).toBe(90);
       expect(realSeg!.content.distance).toBe(5);
       const withEta = realSeg!.steps.find(s => s.content.title === 'WP1');
@@ -173,7 +175,7 @@ describe('ItineraryNetModel', () => {
       expect(secondStep?.content.duration.duration).toBe(12 * 60 * 1000);
     });
 
-    it('conserve la durée de trajet du premier point visible des segments suivants', async () => {
+    it('conserve la durÃ©e de trajet du premier point visible des segments suivants', async () => {
       vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify({
           id: 2,
           name: 'Roadtrip',
@@ -186,7 +188,7 @@ describe('ItineraryNetModel', () => {
               estimatedDeparture: '2024-06-01T10:12:00.000Z',
               waypoints: [
                 {
-                  name: 'Départ',
+                  name: 'DÃ©part',
                   coordinates: { latitude: 47.1, longitude: -1.5 },
                   estimatedArrival: '2024-06-01T10:00:00.000Z',
                 },
@@ -235,7 +237,7 @@ describe('ItineraryNetModel', () => {
       expect(realSegments[1].steps[1].content.duration.duration).toBe(15 * 60 * 1000);
     });
 
-    it('accepte une géométrie JSON null (pas de tracé OSRM)', async () => {
+    it('accepte une gÃ©omÃ©trie JSON null (pas de tracÃ© OSRM)', async () => {
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
         json: async () => ({
@@ -266,7 +268,7 @@ describe('ItineraryNetModel', () => {
   });
 
   describe('post()', () => {
-    it('omet departureTime dans le corps si l’heure de départ locale est invalide', async () => {
+    it('omet departureTime dans le corps si lâ€™heure de dÃ©part locale est invalide', async () => {
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
         status: 201,
@@ -287,7 +289,7 @@ describe('ItineraryNetModel', () => {
       expect(body.departureTime).toBeUndefined();
     });
 
-    it('envoie TourCreateRequest (POST /tours) et applique la réponse 201', async () => {
+    it('envoie TourCreateRequest (POST /tours) et applique la rÃ©ponse 201', async () => {
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
         status: 201,
@@ -320,7 +322,7 @@ describe('ItineraryNetModel', () => {
       expect(body.departureTime).toBe('2024-06-01T08:00:00.000Z');
     });
 
-    it('renvoie false si la réponse HTTP est en erreur', async () => {
+    it('renvoie false si la rÃ©ponse HTTP est en erreur', async () => {
       vi.mocked(fetch).mockResolvedValue({
         ok: false,
         status: 400,
@@ -333,7 +335,7 @@ describe('ItineraryNetModel', () => {
       expect(await net.post()).toBe(false);
     });
 
-    it('renvoie false si l’ID du tour est absent dans la réponse', async () => {
+    it('renvoie false si lâ€™ID du tour est absent dans la rÃ©ponse', async () => {
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
         json: async () => ({ name: 'Sans id' }),
@@ -344,7 +346,7 @@ describe('ItineraryNetModel', () => {
       expect(await net.post()).toBe(false);
     });
 
-    it('renvoie false si buildNetObject est impossible (itinéraire incomplet)', async () => {
+    it('renvoie false si buildNetObject est impossible (itinÃ©raire incomplet)', async () => {
       const invalid: Itinerary = {
         id: -1,
         name: 'X',
@@ -407,7 +409,7 @@ describe('ItineraryNetModel', () => {
       );
     });
 
-    it('renvoie false si le serveur répond une erreur', async () => {
+    it('renvoie false si le serveur rÃ©pond une erreur', async () => {
       vi.mocked(fetch).mockResolvedValue({
         ok: false,
         status: 500,
@@ -444,7 +446,7 @@ describe('ItineraryNetModel', () => {
   });
 
   describe('patchEstimatedDeparture()', () => {
-    it('envoie PatchDepartureTimeRequest et applique la réponse', async () => {
+    it('envoie PatchDepartureTimeRequest et applique la rÃ©ponse', async () => {
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
         json: async () => ({
@@ -470,21 +472,21 @@ describe('ItineraryNetModel', () => {
       });
     });
 
-    it('ne fait pas de requête si id === -1', async () => {
+    it('ne fait pas de requÃªte si id === -1', async () => {
       const store = createStore(makeValidItinerary({ id: -1 }));
       const net = new ItineraryNetModel(store, false);
       expect(await net.patchEstimatedDeparture(new Date())).toBe(false);
       expect(fetch).not.toHaveBeenCalled();
     });
 
-    it('ne fait pas de requête si la date est invalide', async () => {
+    it('ne fait pas de requÃªte si la date est invalide', async () => {
       const store = createStore(makeValidItinerary());
       const net = new ItineraryNetModel(store, false);
       expect(await net.patchEstimatedDeparture(new Date(Number.NaN))).toBe(false);
       expect(fetch).not.toHaveBeenCalled();
     });
 
-    it('renvoie false si fetch lève (réseau)', async () => {
+    it('renvoie false si fetch lÃ¨ve (rÃ©seau)', async () => {
       vi.mocked(fetch).mockRejectedValue(new Error('network down'));
       const store = createStore(makeValidItinerary());
       const net = new ItineraryNetModel(store, false);
@@ -493,7 +495,7 @@ describe('ItineraryNetModel', () => {
       errSpy.mockRestore();
     });
 
-    it('renvoie false si le PATCH HTTP échoue', async () => {
+    it('renvoie false si le PATCH HTTP Ã©choue', async () => {
       vi.mocked(fetch).mockResolvedValue({
         ok: false,
         status: 404,
@@ -518,7 +520,7 @@ describe('ItineraryNetModel', () => {
       putSpy.mockRestore();
     });
 
-    it('setupSave n’appelle pas put pendant un drag', async () => {
+    it('setupSave nâ€™appelle pas put pendant un drag', async () => {
       const putSpy = vi.spyOn(ItineraryNetModel.prototype, 'put').mockResolvedValue(true);
       const store = createStore(makeValidItinerary());
       const net = new ItineraryNetModel(store, false);
@@ -528,7 +530,7 @@ describe('ItineraryNetModel', () => {
       putSpy.mockRestore();
     });
 
-    it('endDrag relance put une fois le drag terminé', async () => {
+    it('endDrag relance put une fois le drag terminÃ©', async () => {
       const putSpy = vi.spyOn(ItineraryNetModel.prototype, 'put').mockResolvedValue(true);
       const store = createStore(makeValidItinerary());
       const net = new ItineraryNetModel(store, false);
@@ -538,7 +540,7 @@ describe('ItineraryNetModel', () => {
       putSpy.mockRestore();
     });
 
-    it('endDrag sans startDrag préalable ne déclenche pas put', async () => {
+    it('endDrag sans startDrag prÃ©alable ne dÃ©clenche pas put', async () => {
       const putSpy = vi.spyOn(ItineraryNetModel.prototype, 'put').mockResolvedValue(true);
       const store = createStore(makeValidItinerary());
       const net = new ItineraryNetModel(store, false);
@@ -548,8 +550,20 @@ describe('ItineraryNetModel', () => {
     });
   });
 
+  describe('drag sans changement', () => {
+    it('endDrag sans changement ne déclenche pas put', async () => {
+      const putSpy = vi.spyOn(ItineraryNetModel.prototype, 'put').mockResolvedValue(true);
+      const store = createStore(makeValidItinerary());
+      const net = new ItineraryNetModel(store, false);
+      net.startDrag();
+      net.endDrag(false);
+      expect(putSpy).not.toHaveBeenCalled();
+      putSpy.mockRestore();
+    });
+  });
+
   describe('authHeaders', () => {
-    it('ajoute Authorization quand un jeton est présent', async () => {
+    it('ajoute Authorization quand un jeton est prÃ©sent', async () => {
       vi.mocked(getAuthToken).mockReturnValue('jwt-secret');
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
@@ -566,3 +580,4 @@ describe('ItineraryNetModel', () => {
     });
   });
 });
+
