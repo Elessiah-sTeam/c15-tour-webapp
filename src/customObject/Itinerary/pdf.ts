@@ -1,4 +1,4 @@
-import type { Itinerary, Segment } from "./types.ts";
+﻿import type { Itinerary, Segment } from "./types.ts";
 import { extractLineStringCoordinates } from "./gpx.ts";
 import { sanitizeFileName } from "./fileName.ts";
 import { drawOsmTilesAndProjector, type LatLon } from "./pdfMapTiles.ts";
@@ -11,6 +11,12 @@ const EXPORT_ACCENT = "#BB487C";
 const EXPORT_ACCENT_DARK = "#7B1D57";
 const EXPORT_PANEL = "rgba(255, 255, 255, 0.82)";
 const EXPORT_PANEL_BORDER = "rgba(187, 72, 124, 0.18)";
+const PDF_ROUTE_HALO_WIDTH = 6;
+const PDF_ROUTE_LINE_WIDTH = 3.2;
+const PDF_SECTION_ROUTE_HALO_WIDTH = PDF_ROUTE_HALO_WIDTH;
+const PDF_SECTION_ROUTE_LINE_WIDTH = PDF_ROUTE_LINE_WIDTH;
+const PDF_OVERVIEW_LON_LAT_PAD = 0.12;
+const PDF_SECTION_LON_LAT_PAD = 0.32;
 
 type RoutePoint = {
     lat: number;
@@ -252,6 +258,50 @@ function fitText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number):
     return `${text.slice(0, low).trimEnd()}${ellipsis}`;
 }
 
+function drawMapLegendCard(
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    width: number,
+    markerColor: string,
+    label: string,
+    value: string,
+): void {
+    ctx.save();
+    ctx.fillStyle = "rgba(255, 255, 255, 0.94)";
+    ctx.strokeStyle = "rgba(187, 72, 124, 0.20)";
+    ctx.lineWidth = 2;
+    roundRect(ctx, x, y, width, 56, 18);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.save();
+    ctx.fillStyle = markerColor;
+    ctx.beginPath();
+    ctx.arc(x + 20, y + 20, 9, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    ctx.save();
+    ctx.fillStyle = "#FFFFFF";
+    ctx.beginPath();
+    ctx.arc(x + 20, y + 20, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    drawText(ctx, label, x + 36, y + 8, {
+        size: 14,
+        weight: 800,
+        color: "#6A4960",
+    });
+    drawText(ctx, fitText(ctx, value, width - 52), x + 36, y + 28, {
+        size: 16,
+        weight: 800,
+        color: "#4F3342",
+    });
+}
+
 /**
  * Projette un point géographique sur le canvas en utilisant une mise à l'échelle
  * linéaire lon/lat (approximation « plate »), pour repli quand les tuiles OSM ne sont pas disponibles.
@@ -386,30 +436,33 @@ async function drawRouteSnapshot(
     options: { variant: "section" | "overview"; showOverlayLabel?: boolean },
 ): Promise<void> {
     const routesWithPath = routes.filter((route) => route.length >= 2);
-    const box = { x, y, width, height, padding: 0.08 };
+    const legendHeight = routesWithPath.length > 0 ? 88 : 0;
+    const mapY = y + legendHeight;
+    const mapHeight = height - legendHeight;
+    const box = { x, y: mapY, width, height: mapHeight, padding: 0.08 };
 
     ctx.save();
     roundRect(ctx, x, y, width, height, 30);
     ctx.clip();
 
     if (routesWithPath.length === 0) {
-        drawFallbackGrid(ctx, x, y, width, height);
+        drawFallbackGrid(ctx, x, mapY, width, mapHeight);
         ctx.save();
         ctx.fillStyle = "rgba(255, 255, 255, 0.80)";
         ctx.strokeStyle = "rgba(187, 72, 124, 0.20)";
         ctx.lineWidth = 2;
-        roundRect(ctx, x + 42, y + height / 2 - 60, width - 84, 120, 24);
+        roundRect(ctx, x + 42, mapY + mapHeight / 2 - 60, width - 84, 120, 24);
         ctx.fill();
         ctx.stroke();
         ctx.restore();
 
-        drawText(ctx, "Aucun trajet détaillé", x + width / 2, y + height / 2 - 10, {
+        drawText(ctx, "Aucun trajet d\u00e9taill\u00e9", x + width / 2, mapY + mapHeight / 2 - 10, {
             size: 30,
             weight: 800,
             color: EXPORT_ACCENT_DARK,
             align: "center",
         });
-        drawText(ctx, "Ajoutez des points de passage pour générer un aperçu visuel.", x + width / 2, y + height / 2 + 36, {
+        drawText(ctx, "Ajoutez des points de passage pour g\u00e9n\u00e9rer un aper\u00e7u visuel.", x + width / 2, mapY + mapHeight / 2 + 36, {
             size: 18,
             weight: 500,
             color: "#6B5563",
@@ -419,26 +472,31 @@ async function drawRouteSnapshot(
         return;
     }
 
+    const firstRoute = routesWithPath[0];
+    const lastRoute = routesWithPath[routesWithPath.length - 1];
+    const firstPoint = firstRoute[0];
+    const lastPoint = lastRoute[lastRoute.length - 1];
+
     const flat = flattenRoutesLatLon(routesWithPath);
     const latitudes = flat.map((point) => point.lat);
     const longitudes = flat.map((point) => point.lon);
     const latSpan = Math.max(Math.max(...latitudes) - Math.min(...latitudes), 0.01);
     const lonSpan = Math.max(Math.max(...longitudes) - Math.min(...longitudes), 0.01);
     const eBounds = {
-        minLat: Math.min(...latitudes) - latSpan * 0.12,
-        maxLat: Math.max(...latitudes) + latSpan * 0.12,
-        minLon: Math.min(...longitudes) - lonSpan * 0.12,
-        maxLon: Math.max(...longitudes) + lonSpan * 0.12,
+        minLat: Math.min(...latitudes) - latSpan * (options.variant === "section" ? PDF_SECTION_LON_LAT_PAD : PDF_OVERVIEW_LON_LAT_PAD),
+        maxLat: Math.max(...latitudes) + latSpan * (options.variant === "section" ? PDF_SECTION_LON_LAT_PAD : PDF_OVERVIEW_LON_LAT_PAD),
+        minLon: Math.min(...longitudes) - lonSpan * (options.variant === "section" ? PDF_SECTION_LON_LAT_PAD : PDF_OVERVIEW_LON_LAT_PAD),
+        maxLon: Math.max(...longitudes) + lonSpan * (options.variant === "section" ? PDF_SECTION_LON_LAT_PAD : PDF_OVERVIEW_LON_LAT_PAD),
     };
 
-    const projector = await drawOsmTilesAndProjector(ctx, { x, y, width, height }, routesWithPath, {
+    const projector = await drawOsmTilesAndProjector(ctx, { x, y: mapY, width, height: mapHeight }, routesWithPath, {
         padding: box.padding,
         maxTiles: 20,
-        lonLatPad: 0.12,
+        lonLatPad: options.variant === "section" ? PDF_SECTION_LON_LAT_PAD : PDF_OVERVIEW_LON_LAT_PAD,
     });
 
     if (!projector.drawn) {
-        drawFallbackGrid(ctx, x, y, width, height);
+        drawFallbackGrid(ctx, x, mapY, width, mapHeight);
     }
 
     const projectPoint = (point: RoutePoint): { x: number; y: number } => {
@@ -472,23 +530,15 @@ async function drawRouteSnapshot(
     routesWithPath.forEach((route) => {
         const decimated = decimateRoutePoints(route, PDF_ROUTE_MAX_VERTICES);
         const mapped = decimated.map(projectPoint);
-        strokePolyline(mapped, 18, "rgba(125, 29, 87, 0.22)");
-        strokePolyline(mapped, 10, EXPORT_ACCENT);
+        const haloWidth = options.variant === "section" ? PDF_SECTION_ROUTE_HALO_WIDTH : PDF_ROUTE_HALO_WIDTH;
+        const lineWidth = options.variant === "section" ? PDF_SECTION_ROUTE_LINE_WIDTH : PDF_ROUTE_LINE_WIDTH;
+        strokePolyline(mapped, haloWidth, "rgba(125, 29, 87, 0.22)");
+        strokePolyline(mapped, lineWidth, EXPORT_ACCENT);
     });
-
-    const firstRoute = routesWithPath[0];
-    const lastRoute = routesWithPath[routesWithPath.length - 1];
-    const firstPoint = firstRoute[0];
-    const lastPoint = lastRoute[lastRoute.length - 1];
     const firstMapped = projectPoint(firstPoint);
     const lastMapped = projectPoint(lastPoint);
 
-    const drawMarker = (point: { x: number; y: number }, color: string, label?: string, innerColor = "#FFFFFF"): void => {
-        ctx.save();
-        ctx.font = '700 18px "Montserrat", "Segoe UI", sans-serif';
-        const labelWidth = label ? Math.min(ctx.measureText(label).width + 30, 320) : 120;
-        ctx.restore();
-
+    const drawMarker = (point: { x: number; y: number }, color: string, innerColor = "#FFFFFF"): void => {
         ctx.save();
         ctx.shadowColor = "rgba(93, 17, 62, 0.24)";
         ctx.shadowBlur = 14;
@@ -505,28 +555,6 @@ async function drawRouteSnapshot(
         ctx.arc(point.x, point.y, 7, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
-
-        if (label) {
-            const bubbleWidth = Math.max(labelWidth, 120);
-            const bubbleHeight = 44;
-            const bubbleX = Math.min(Math.max(point.x + 24, x + 18), x + width - bubbleWidth - 18);
-            const bubbleY = Math.max(point.y - 22, y + 18);
-
-            ctx.save();
-            ctx.fillStyle = "rgba(255, 255, 255, 0.94)";
-            ctx.strokeStyle = "rgba(187, 72, 124, 0.20)";
-            ctx.lineWidth = 2;
-            roundRect(ctx, bubbleX, bubbleY, bubbleWidth, bubbleHeight, 18);
-            ctx.fill();
-            ctx.stroke();
-            ctx.restore();
-
-            drawText(ctx, fitText(ctx, label, bubbleWidth - 28), bubbleX + 14, bubbleY + 10, {
-                size: 18,
-                weight: 700,
-                color: "#5E2142",
-            });
-        }
     };
 
     const showIntermediate =
@@ -534,11 +562,11 @@ async function drawRouteSnapshot(
 
     if (showIntermediate) {
         const decimated = decimateRoutePoints(routesWithPath[0], PDF_ROUTE_MAX_VERTICES);
-        const mapped = decimated.map(projectPoint);
-        mapped.forEach((point, index) => {
-            if (index === 0 || index === mapped.length - 1) {
+        decimated.forEach((routePoint, index) => {
+            if (index === 0 || index === decimated.length - 1 || !routePoint.label) {
                 return;
             }
+            const point = projectPoint(routePoint);
             ctx.save();
             ctx.fillStyle = EXPORT_ACCENT;
             ctx.beginPath();
@@ -548,25 +576,47 @@ async function drawRouteSnapshot(
         });
     }
 
-    drawMarker(firstMapped, "#16A34A", firstPoint.label ?? "Départ");
-    drawMarker(lastMapped, "#E11D48", lastPoint.label ?? "Arrivée");
+    drawMarker(firstMapped, "#16A34A");
+    drawMarker(lastMapped, "#E11D48");
+
+    if (firstPoint && lastPoint) {
+        const legendWidth = (width - 16) / 2;
+        drawMapLegendCard(
+            ctx,
+            x + 8,
+            y + 8,
+            legendWidth - 8,
+            "#16A34A",
+            "Point de d\u00e9part",
+            firstPoint.label ?? "D\u00e9part",
+        );
+        drawMapLegendCard(
+            ctx,
+            x + width - legendWidth,
+            y + 8,
+            legendWidth - 8,
+            "#E11D48",
+            "Point d'arriv\u00e9e",
+            lastPoint.label ?? "Arriv\u00e9e",
+        );
+    }
 
     if (options.showOverlayLabel !== false) {
         ctx.save();
         ctx.fillStyle = "rgba(255, 255, 255, 0.86)";
         ctx.strokeStyle = "rgba(187, 72, 124, 0.18)";
         ctx.lineWidth = 2;
-        roundRect(ctx, x + 24, y + 24, 280, 64, 18);
+        roundRect(ctx, x + 24, mapY + 24, 280, 64, 18);
         ctx.fill();
         ctx.stroke();
         ctx.restore();
 
-        drawText(ctx, projector.drawn ? "Carte du trajet" : "Aperçu du trajet", x + 44, y + 41, {
+        drawText(ctx, projector.drawn ? "Carte du trajet" : "Aper\u00e7u du trajet", x + 44, mapY + 41, {
             size: 22,
             weight: 800,
             color: EXPORT_ACCENT_DARK,
         });
-        drawText(ctx, title, x + 44, y + 68, {
+        drawText(ctx, title, x + 44, mapY + 68, {
             size: 16,
             weight: 500,
             color: "#67425B",
@@ -575,7 +625,7 @@ async function drawRouteSnapshot(
     }
 
     if (projector.drawn) {
-        drawText(ctx, "\u00a9 OpenStreetMap contributors", x + width - 22, y + height - 20, {
+        drawText(ctx, "\u00a9 OpenStreetMap contributors", x + width - 22, mapY + mapHeight - 20, {
             size: 13,
             weight: 600,
             color: "rgba(46, 36, 48, 0.72)",
@@ -606,11 +656,11 @@ function collectRoutePoints(segment: Segment): RoutePoint[] {
         if (geometryPoints.length > 0) {
             geometryPoints[0] = {
                 ...geometryPoints[0],
-                label: firstStep?.content.title?.trim() || "Départ",
+                label: firstStep?.content.title?.trim() || "D\u00e9part",
             };
             geometryPoints[geometryPoints.length - 1] = {
                 ...geometryPoints[geometryPoints.length - 1],
-                label: lastStep?.content.title?.trim() || "Arrivée",
+                label: lastStep?.content.title?.trim() || "Arriv\u00e9e",
             };
         }
 
@@ -652,8 +702,8 @@ export function collectPdfSections(itinerary: Itinerary): ExportSection[] {
             return {
                 title: segment.content.title.trim() || "Trajet sans nom",
                 subtitle: segment.steps.length > 0
-                    ? `${segment.steps.length} étape${segment.steps.length > 1 ? "s" : ""}`
-                    : "Sans étape",
+                    ? `${segment.steps.length} \u00e9tape${segment.steps.length > 1 ? "s" : ""}`
+                    : "Sans \u00e9tape",
                 durationLabel: formatDuration(segment.content.duration.duration),
                 distanceLabel: formatDistance(segment.content.distance),
                 departureLabel: formatDateTime(segment.content.hour),
@@ -669,7 +719,7 @@ export function collectPdfSections(itinerary: Itinerary): ExportSection[] {
  *
  * @param itinerary — Itinéraire source complet.
  * @param sections — Tronçons déjà filtrés pour le PDF (`collectPdfSections`).
- * @returns Tableau de tracés (chacun ≥ 2 points), possiblement vide.
+ * @returns Tableau de tracés (chacun = 2 points), possiblement vide.
  */
 function overviewRoutesForCover(itinerary: Itinerary, sections: ExportSection[]): RoutePoint[][] {
     const fromSections = sections.map((section) => section.routePoints).filter((route) => route.length >= 2);
@@ -717,13 +767,13 @@ async function buildCoverCanvas(itinerary: Itinerary, sections: ExportSection[])
         color: EXPORT_ACCENT,
     });
 
-    drawText(ctx, "Export PDF de l'itinéraire", 88, 146, {
+    drawText(ctx, "Export PDF de l'itin\u00e9raire", 88, 146, {
         size: 58,
         weight: 900,
         color: EXPORT_ACCENT_DARK,
     });
 
-    const title = itinerary.name.trim() || "Itinéraire sans nom";
+    const title = itinerary.name.trim() || "Itin\u00e9raire sans nom";
     drawParagraph(ctx, title, 88, 226, PAGE_CANVAS_WIDTH * 0.62, 56, {
         size: 42,
         weight: 700,
@@ -742,16 +792,16 @@ async function buildCoverCanvas(itinerary: Itinerary, sections: ExportSection[])
         color: "#6B5563",
     });
 
-    drawShadowedPanel(ctx, 84, 402, 1072, 478, 34, EXPORT_PANEL);
-    await drawRouteSnapshot(ctx, 108, 438, 1024, 410, overviewRoutesForCover(itinerary, sections), title, {
+    drawShadowedPanel(ctx, 84, 402, 1072, 700, 34, EXPORT_PANEL);
+    await drawRouteSnapshot(ctx, 108, 438, 1024, 628, overviewRoutesForCover(itinerary, sections), title, {
         variant: "overview",
         showOverlayLabel: false,
     });
 
-    drawShadowedPanel(ctx, 84, 898, 1072, 212, 30, EXPORT_PANEL);
+    drawShadowedPanel(ctx, 84, 1118, 1072, 170, 30, EXPORT_PANEL);
     const summaryCards = [
         {
-            label: "Segments détaillés",
+            label: "Segments d\u00e9taill\u00e9s",
             value: `${sections.length}`,
         },
         {
@@ -759,11 +809,11 @@ async function buildCoverCanvas(itinerary: Itinerary, sections: ExportSection[])
             value: formatDistance(itinerary.totalDistance),
         },
         {
-            label: "Durée totale",
+            label: "Dur\u00e9e totale",
             value: formatDuration(itinerary.totalDuration.duration),
         },
         {
-            label: "Généré le",
+            label: "G\u00e9n\u00e9r\u00e9 le",
             value: new Intl.DateTimeFormat("fr-FR", {
                 dateStyle: "medium",
                 timeStyle: "short",
@@ -775,7 +825,7 @@ async function buildCoverCanvas(itinerary: Itinerary, sections: ExportSection[])
         const cardWidth = 242;
         const gap = 18;
         const cardX = 112 + index * (cardWidth + gap);
-        const cardY = 946;
+        const cardY = 1142;
 
         ctx.save();
         ctx.fillStyle = "rgba(255, 255, 255, 0.78)";
@@ -799,29 +849,29 @@ async function buildCoverCanvas(itinerary: Itinerary, sections: ExportSection[])
         });
     });
 
-    drawShadowedPanel(ctx, 84, 1132, 1072, 580, 34, "rgba(255, 255, 255, 0.88)");
-    drawText(ctx, "Tronçons exportés", 118, 1170, {
+    drawShadowedPanel(ctx, 84, 1322, 1072, 390, 34, "rgba(255, 255, 255, 0.88)");
+    drawText(ctx, "Tron\u00e7ons export\u00e9s", 118, 1360, {
         size: 24,
         weight: 800,
         color: EXPORT_ACCENT_DARK,
     });
-    drawText(ctx, "Un aperçu détaillé sera généré pour chaque segment.", 118, 1204, {
+    drawText(ctx, "Un aper\u00e7u d\u00e9taill\u00e9 sera g\u00e9n\u00e9r\u00e9 pour chaque segment.", 118, 1394, {
         size: 18,
         weight: 500,
         color: "#6B5563",
     });
 
     if (sections.length === 0) {
-        drawText(ctx, "Aucun segment détaillé n'a été trouvé.", 118, 1268, {
+        drawText(ctx, "Aucun segment d\u00e9taill\u00e9 n'a \u00e9t\u00e9 trouv\u00e9.", 118, 1450, {
             size: 30,
             weight: 800,
             color: EXPORT_ACCENT,
         });
         drawParagraph(
             ctx,
-            "Ajoutez des points de passage et des tronçons calculés pour obtenir un PDF illustré avec un aperçu du trajet.",
+            "Ajoutez des points de passage et des tron\u00e7ons calcul\u00e9s pour obtenir un PDF illustr\u00e9 avec un aper\u00e7u du trajet.",
             118,
-            1320,
+            1500,
             970,
             34,
             {
@@ -832,8 +882,8 @@ async function buildCoverCanvas(itinerary: Itinerary, sections: ExportSection[])
             },
         );
     } else {
-        sections.slice(0, 8).forEach((section, index) => {
-            const rowY = 1264 + index * 80;
+        sections.slice(0, 5).forEach((section, index) => {
+            const rowY = 1444 + index * 52;
             ctx.save();
             ctx.font = '800 20px "Montserrat", "Segoe UI", sans-serif';
             const sectionTitle = fitText(ctx, section.title, 520);
@@ -915,12 +965,12 @@ async function buildSectionCanvas(
     ctx.fill();
     ctx.restore();
 
-    drawText(ctx, itinerary.name.trim() || "Itinéraire sans nom", 88, 68, {
+    drawText(ctx, itinerary.name.trim() || "Itin\u00e9raire sans nom", 88, 68, {
         size: 24,
         weight: 900,
         color: EXPORT_ACCENT,
     });
-    drawText(ctx, `Tronçon ${index + 1} / ${total}`, 88, 116, {
+    drawText(ctx, `Tron\u00e7on ${index + 1} / ${total}`, 88, 116, {
         size: 20,
         weight: 800,
         color: "#7B5A6A",
@@ -932,7 +982,7 @@ async function buildSectionCanvas(
         maxLines: 2,
     });
 
-    drawShadowedPanel(ctx, 84, 270, 1072, 782, 34, EXPORT_PANEL);
+    drawShadowedPanel(ctx, 84, 270, 1072, 872, 34, EXPORT_PANEL);
     drawText(ctx, "Carte du trajet", 120, 314, {
         size: 22,
         weight: 800,
@@ -944,30 +994,30 @@ async function buildSectionCanvas(
         color: "#67425B",
         maxWidth: 780,
     });
-    await drawRouteSnapshot(ctx, 120, 396, 1000, 372, [section.routePoints], section.title, {
+    await drawRouteSnapshot(ctx, 120, 396, 1000, 710, [section.routePoints], section.title, {
         variant: "section",
         showOverlayLabel: false,
     });
 
-    drawShadowedPanel(ctx, 84, 1088, 1072, 540, 32, "rgba(255, 255, 255, 0.92)");
-    drawText(ctx, "Détails du tronçon", 118, 1128, {
+    drawShadowedPanel(ctx, 84, 1178, 1072, 450, 32, "rgba(255, 255, 255, 0.92)");
+    drawText(ctx, "D\u00e9tails du tron\u00e7on", 118, 1218, {
         size: 24,
         weight: 800,
         color: EXPORT_ACCENT_DARK,
     });
 
     const detailColumns = [
-        { label: "Départ estimé", value: section.departureLabel },
+        { label: "D\u00e9part estim\u00e9", value: section.departureLabel },
         { label: "Distance", value: section.distanceLabel },
-        { label: "Durée", value: section.durationLabel },
-        { label: "Étapes", value: section.subtitle },
+        { label: "Dur\u00e9e", value: section.durationLabel },
+        { label: "\u00c9tapes", value: section.subtitle },
     ];
 
     detailColumns.forEach((column, columnIndex) => {
         const columnWidth = 230;
         const gap = 20;
         const columnX = 118 + columnIndex * (columnWidth + gap);
-        const columnY = 1172;
+        const columnY = 1260;
 
         ctx.save();
         ctx.fillStyle = "rgba(248, 236, 243, 0.94)";
@@ -991,22 +1041,22 @@ async function buildSectionCanvas(
         });
     });
 
-    drawText(ctx, "Étapes et arrêts", 118, 1320, {
+    drawText(ctx, "\u00c9tapes et arr\u00eats", 118, 1402, {
         size: 22,
         weight: 800,
         color: EXPORT_ACCENT,
     });
 
     if (section.stepTitles.length === 0) {
-        drawParagraph(ctx, "Aucune étape textuelle n'a été renseignée sur ce tronçon.", 118, 1360, 980, 30, {
+        drawParagraph(ctx, "Aucune \u00e9tape textuelle n'a \u00e9t\u00e9 renseign\u00e9e sur ce tron\u00e7on.", 118, 1442, 980, 30, {
             size: 20,
             weight: 500,
             color: "#54414C",
             maxLines: 4,
         });
     } else {
-        section.stepTitles.slice(0, 7).forEach((stepTitle, stepIndex) => {
-            const rowY = 1360 + stepIndex * 46;
+        section.stepTitles.slice(0, 5).forEach((stepTitle, stepIndex) => {
+            const rowY = 1442 + stepIndex * 36;
             ctx.save();
             ctx.fillStyle = "rgba(255, 255, 255, 0.96)";
             roundRect(ctx, 118, rowY, 1000, 36, 16);
@@ -1135,14 +1185,14 @@ async function buildPdfPages(itinerary: Itinerary): Promise<Array<{ canvas: HTML
         const ctx = getContext(emptyCanvas);
         ctx.fillStyle = "#FFFDFE";
         ctx.fillRect(0, 0, PAGE_CANVAS_WIDTH, PAGE_CANVAS_HEIGHT);
-        drawText(ctx, "Aucun tronçon détaillé", 88, 120, {
+        drawText(ctx, "Aucun tron\u00e7on d\u00e9taill\u00e9", 88, 120, {
             size: 48,
             weight: 900,
             color: EXPORT_ACCENT_DARK,
         });
         drawParagraph(
             ctx,
-            "L'itinéraire ne contient pas encore de segment assez détaillé pour générer une page d'aperçu. Ajoutez des étapes avec des coordonnées ou chargez un itinéraire calculé.",
+            "L'itin\u00e9raire ne contient pas encore de segment assez d\u00e9taill\u00e9 pour g\u00e9n\u00e9rer une page d'aper\u00e7u. Ajoutez des \u00e9tapes avec des coordonn\u00e9es ou chargez un itin\u00e9raire calcul\u00e9.",
             88,
             196,
             1060,
@@ -1249,3 +1299,4 @@ export async function downloadItineraryPdf(itinerary: Itinerary): Promise<void> 
 }
 
 export type { ExportSection };
+
