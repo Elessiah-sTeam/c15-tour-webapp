@@ -1,6 +1,6 @@
 import './Panels.css';
 import { Coffee, Flag, Rocket } from "lucide-react";
-import { type unitTimeSpan } from "../../customObject/TimeSpan.ts";
+import { TimespanOffset, type unitTimeSpan } from "../../customObject/TimeSpan.ts";
 import { useItinerary } from "../../customObject/Itinerary/UseItinerary.ts";
 import { itineraryModel } from "../../customObject/Itinerary/ItineraryStore.ts";
 import { formatTime, isValidDate } from "../../utils/timeUtils";
