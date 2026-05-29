@@ -4,8 +4,7 @@ import { Map } from "lucide-react";
 import { useAuth } from "../auth/useAuth";
 import { validatePassword } from "../auth/passwordValidation";
 import "./LoginPage.css";
-
-const BACKEND_URL = "http://localhost:8080";
+import { BACKEND_URL } from '../config';
 
 type RegisterResponse = {
     token?: string;

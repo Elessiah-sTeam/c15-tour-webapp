@@ -3,8 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { CarFront } from "lucide-react";
 import { validatePassword } from "../auth/passwordValidation";
 import "./LoginPage.css";
-
-const BACKEND_URL = "http://localhost:8080";
+import { BACKEND_URL } from '../config';
 
 export default function ResetPasswordPage() {
     const [searchParams] = useSearchParams();

@@ -2,8 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { CarFront } from "lucide-react";
 import "./LoginPage.css";
-
-const BACKEND_URL = "http://localhost:8080";
+import { BACKEND_URL } from '../config';
 
 export default function ForgotPasswordPage() {
     const [email, setEmail] = useState("");

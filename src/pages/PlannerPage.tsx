@@ -9,8 +9,7 @@ import IdRoutingManager from "../components/IdRoutingManager.tsx";
 import { saveStateStore } from "../customObject/SaveState/SaveStateStore.ts";
 import { itineraryModel } from "../customObject/Itinerary/ItineraryStore.ts";
 import { getAuthToken } from "../auth/useAuth.ts";
-
-const BACKEND_URL = "http://localhost:8080";
+import { BACKEND_URL } from '../config';
 
 function authHeaders(): HeadersInit {
     const token = getAuthToken();

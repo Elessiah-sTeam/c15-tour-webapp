@@ -10,8 +10,7 @@ import { downloadItineraryPdf } from '../customObject/Itinerary/pdf';
 import { getAuthToken, useAuth } from '../auth/useAuth';
 import { pushErrorToast } from '../customObject/Toast/ToastStore';
 import '../components/History/HistoryPage.css';
-
-const BACKEND_URL = "http://localhost:8080";
+import { BACKEND_URL } from '../config';
 
 function authHeaders(): HeadersInit {
     const token = getAuthToken();
