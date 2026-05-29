@@ -89,21 +89,57 @@ function tileCountForWorldBounds(bounds: WorldBounds): number {
     return (tx1 - tx0 + 1) * (ty1 - ty0 + 1);
 }
 
+function expandWorldBoundsToAspect(bounds: WorldBounds, targetAspect: number): WorldBounds {
+    const safeAspect = Number.isFinite(targetAspect) && targetAspect > 0 ? targetAspect : 1;
+    const width = Math.max(bounds.maxWx - bounds.minWx, 1);
+    const height = Math.max(bounds.maxWy - bounds.minWy, 1);
+    const currentAspect = width / height;
+
+    if (Math.abs(currentAspect - safeAspect) < 0.0001) {
+        return bounds;
+    }
+
+    if (currentAspect > safeAspect) {
+        const desiredHeight = width / safeAspect;
+        const delta = (desiredHeight - height) / 2;
+        return {
+            ...bounds,
+            minWy: bounds.minWy - delta,
+            maxWy: bounds.maxWy + delta,
+        };
+    }
+
+    const desiredWidth = height * safeAspect;
+    const delta = (desiredWidth - width) / 2;
+    return {
+        ...bounds,
+        minWx: bounds.minWx - delta,
+        maxWx: bounds.maxWx + delta,
+    };
+}
+
 function chooseZoomForBounds(
     minLat: number,
     maxLat: number,
     minLon: number,
     maxLon: number,
     maxTiles: number,
+    targetAspect: number,
 ): WorldBounds {
     for (let z = 18; z >= 2; z -= 1) {
-        const wb = worldBoundsForLonLatBox(minLat, maxLat, minLon, maxLon, z);
+        const wb = expandWorldBoundsToAspect(
+            worldBoundsForLonLatBox(minLat, maxLat, minLon, maxLon, z),
+            targetAspect,
+        );
         const n = tileCountForWorldBounds(wb);
         if (n > 0 && n <= maxTiles) {
             return wb;
         }
     }
-    return worldBoundsForLonLatBox(minLat, maxLat, minLon, maxLon, 2);
+    return expandWorldBoundsToAspect(
+        worldBoundsForLonLatBox(minLat, maxLat, minLon, maxLon, 2),
+        targetAspect,
+    );
 }
 
 async function loadTileImage(z: number, x: number, y: number): Promise<CanvasImageSource | null> {
@@ -212,7 +248,8 @@ export async function drawOsmTilesAndProjector(
         lonLatPad,
     );
 
-    const world = chooseZoomForBounds(minLat, maxLat, minLon, maxLon, maxTiles);
+    const targetAspect = innerW / innerH;
+    const world = chooseZoomForBounds(minLat, maxLat, minLon, maxLon, maxTiles, targetAspect);
     const { minWx, maxWx, minWy, maxWy, z } = world;
 
     const tx0 = Math.floor(minWx / TILE_PX);
