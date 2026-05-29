@@ -1,13 +1,10 @@
 import './Panels.css';
 import { Coffee, Flag, Rocket } from "lucide-react";
-import { TimeSpan, TimespanOffset, type unitTimeSpan } from "../../customObject/TimeSpan.ts";
+import { type unitTimeSpan } from "../../customObject/TimeSpan.ts";
 import { useItinerary } from "../../customObject/Itinerary/UseItinerary.ts";
 import { itineraryModel } from "../../customObject/Itinerary/ItineraryStore.ts";
 import { formatTime, isValidDate } from "../../utils/timeUtils";
-
-export function formatTotalPauseDuration(totalPauseSeconds: number, units: unitTimeSpan): string {
-    return new TimeSpan(totalPauseSeconds * 1000).toFStr(TimespanOffset.MINUTES, units);
-}
+import { formatTotalPauseDuration } from "./infoPanelUtils.ts";
 
 export default function InfoPanel() {
     const units: unitTimeSpan = { days: "J ", hours: "H ", minutes: "MIN ", seconds: "S ", milliseconds: "MS " };
