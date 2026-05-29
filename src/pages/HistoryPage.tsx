@@ -5,6 +5,8 @@ import { ItineraryCard } from '../components/History/ItineraryCard';
 import ShareModal from '../components/Panels/ShareModal';
 import type { ItineraryResponse } from '../customObject/Itinerary/netTypes';
 import { itineraryModel } from '../customObject/Itinerary/ItineraryStore';
+import { itineraryResponseToItinerary } from '../customObject/Itinerary/itineraryResponseMapper';
+import { downloadItineraryPdf } from '../customObject/Itinerary/pdf';
 import { getAuthToken, useAuth } from '../auth/useAuth';
 import { pushErrorToast } from '../customObject/Toast/ToastStore';
 import '../components/History/HistoryPage.css';
@@ -31,6 +33,7 @@ export default function HistoryPage() {
     const [totalPages, setTotalPages] = useState(0);
     const [totalElements, setTotalElements] = useState(0);
     const [shareCode, setShareCode] = useState<string | null>(null);
+    const [exportingId, setExportingId] = useState<number | null>(null);
 
     const isFiltered = filter !== 'all';
 
@@ -134,6 +137,24 @@ export default function HistoryPage() {
         navigate('/planner?id=' + id);
     };
 
+    const handleExportPdf = async (id: number) => {
+        try {
+            setExportingId(id);
+            const res = await fetch(`${BACKEND_URL}/tours/${id}`, { headers: authHeaders() });
+            if (!res.ok) {
+                throw new Error('Backend error');
+            }
+
+            const itinerary = itineraryResponseToItinerary(await res.json() as ItineraryResponse);
+            await downloadItineraryPdf(itinerary);
+        } catch (error) {
+            const detail = error instanceof Error ? error.message : String(error);
+            pushErrorToast(`Erreur lors de l'export PDF : ${detail}`);
+        } finally {
+            setExportingId((current) => (current === id ? null : current));
+        }
+    };
+
     const filteredTotalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
     const effectivePage = isFiltered ? clientPage : page;
     const effectiveTotalPages = isFiltered ? filteredTotalPages : totalPages;
@@ -230,6 +251,8 @@ export default function HistoryPage() {
                                 onOpen={handleOpenConvoy}
                                 onDelete={handleDelete}
                                 onShare={setShareCode}
+                                onExportPdf={handleExportPdf}
+                                isExportingPdf={exportingId === itinerary.id}
                             />
                         ))}
                     </div>
