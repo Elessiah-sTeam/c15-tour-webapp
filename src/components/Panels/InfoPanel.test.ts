@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatTotalPauseDuration } from "./InfoPanel";
+import { formatTotalPauseDuration } from "./infoPanelUtils";
 import type { unitTimeSpan } from "../../customObject/TimeSpan";
 
 const units: unitTimeSpan = { days: "J ", hours: "H ", minutes: "MIN ", seconds: "S ", milliseconds: "MS " };

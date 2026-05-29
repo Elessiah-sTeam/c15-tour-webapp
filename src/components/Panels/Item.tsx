@@ -31,9 +31,7 @@ function formatPanelDuration(duration?: TimeSpan): string {
     return `${totalHours}h${String(composed.minutes).padStart(2, "0")}`;
 }
 
-export function formatPanelHour(hour?: Date): string {
-    return `${hour?.getHours()}:${hour?.getMinutes().toString().padStart(2, "0")}`;
-}
+import { formatPanelHour } from "./itemUtils.ts";
 
 /**
  * Composant qui englobe le titre et contient l'heure et la durée

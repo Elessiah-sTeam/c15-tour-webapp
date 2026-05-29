@@ -5,6 +5,7 @@ import { useAuth } from '../../auth/useAuth';
 import { useAuthFetch } from '../../auth/useAuthFetch';
 import { validatePassword } from '../../auth/passwordValidation';
 import './AccountSettingsModal.css';
+import { BACKEND_URL } from '../../config';
 
 interface AccountSettingsModalProps {
     isOpen: boolean;
@@ -71,7 +72,7 @@ export function AccountSettingsModal({ isOpen, onClose, onLogout }: AccountSetti
 
         setLoading(true);
         try {
-            const response = await authFetch('http://localhost:8080/auth/change-password', {
+            const response = await authFetch(`${BACKEND_URL}/auth/change-password`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ currentPassword, newPassword })

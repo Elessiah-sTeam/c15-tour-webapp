@@ -19,9 +19,7 @@ import {updateStarts} from "./utils.ts";
 import {getAuthToken} from "../../auth/useAuth";
 import {saveStateStore} from "../SaveState/SaveStateStore.ts";
 import {pushErrorToast, pushSuccessToast} from "../Toast/ToastStore.ts";
-
-
-const BACKEND_URL: string = "http://localhost:8080"
+import { BACKEND_URL } from '../../config';
 
 function authHeaders(): HeadersInit {
     const token = getAuthToken();

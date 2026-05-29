@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatPanelHour } from "./Item";
+import { formatPanelHour } from "./itemUtils";
 
 describe("formatPanelHour()", () => {
   it("affiche les minutes sur deux chiffres", () => {

@@ -3,8 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Map } from "lucide-react";
 import { useAuth } from "../auth/useAuth";
 import "./LoginPage.css";
-
-const BACKEND_URL = "http://localhost:8080";
+import { BACKEND_URL } from '../config';
 
 type LoginLocationState = {
     message?: string;
