@@ -1,4 +1,4 @@
-import { Trash2, Share2, Download } from "lucide-react";
+import { Trash2, Share2, Download, FileDown } from "lucide-react";
 import { ConvoyThumbnail } from "./ConvoyThumbnail";
 import type { ItineraryResponse, SegmentResponse } from "../../customObject/Itinerary/netTypes";
 import { downloadGpx, hasGpxGeometry } from "../../customObject/Itinerary/gpx.ts";
@@ -8,6 +8,8 @@ interface ItineraryCardProps {
     onOpen: (id: number) => void;
     onDelete: (id: number) => void;
     onShare: (shareCode: string) => void;
+    onExportPdf: (id: number) => void;
+    isExportingPdf?: boolean;
 }
 
 function segmentsList(itinerary: ItineraryResponse): SegmentResponse[] {
@@ -47,15 +49,26 @@ function getEndCity(segments: SegmentResponse[]): string {
     return last?.waypoints[last.waypoints.length - 1]?.name || "Arriv\u00e9e";
 }
 
-export function ItineraryCard({ itinerary, onOpen, onDelete, onShare }: ItineraryCardProps) {
+export function ItineraryCard({
+    itinerary,
+    onOpen,
+    onDelete,
+    onShare,
+    onExportPdf,
+    isExportingPdf = false,
+}: ItineraryCardProps) {
     const segs = segmentsList(itinerary);
     const status = getStatus(itinerary);
     const canDownloadGpx = hasGpxGeometry(segs.map((segment) => ({
         geometry: segment.geometry,
     })));
+    const canExportPdf = segs.length > 0;
     const downloadLabel = canDownloadGpx
         ? "T\u00e9l\u00e9charger le GPX"
         : "T\u00e9l\u00e9chargement GPX indisponible";
+    const pdfLabel = isExportingPdf
+        ? "G\u00e9n\u00e9ration du PDF..."
+        : "Exporter en PDF";
     const shareLabel = itinerary.shareCode
         ? "Partager"
         : "Partage indisponible";
@@ -106,6 +119,15 @@ export function ItineraryCard({ itinerary, onOpen, onDelete, onShare }: Itinerar
                         disabled={!canDownloadGpx}
                     >
                         <Download size={16} color={canDownloadGpx ? "#BB487C" : "#ccc"} />
+                    </button>
+                    <button
+                        className="ch-btn-icon"
+                        onClick={() => onExportPdf(itinerary.id)}
+                        aria-label={pdfLabel}
+                        title={pdfLabel}
+                        disabled={isExportingPdf || !canExportPdf}
+                    >
+                        <FileDown size={16} color={isExportingPdf || !canExportPdf ? "#ccc" : "#BB487C"} />
                     </button>
                     <button
                         className="ch-btn-icon"
