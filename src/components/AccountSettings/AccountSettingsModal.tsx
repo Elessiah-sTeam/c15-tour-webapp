@@ -1,6 +1,6 @@
 import { type MouseEvent, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { User, Lock } from 'lucide-react';
+import { User, Lock, AlertTriangle, Trash2 } from 'lucide-react';
 import { useAuth } from '../../auth/useAuth';
 import { useAuthFetch } from '../../auth/useAuthFetch';
 import { validatePassword } from '../../auth/passwordValidation';
@@ -22,6 +22,11 @@ export function AccountSettingsModal({ isOpen, onClose, onLogout }: AccountSetti
     const [confirmNewPassword, setConfirmNewPassword] = useState('');
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
     const [loading, setLoading] = useState(false);
+
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [deletePassword, setDeletePassword] = useState('');
+    const [deleteError, setDeleteError] = useState<string | null>(null);
+    const [deleteLoading, setDeleteLoading] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
@@ -104,6 +109,41 @@ export function AccountSettingsModal({ isOpen, onClose, onLogout }: AccountSetti
             });
         } finally {
             setLoading(false);
+        }
+    };
+
+    const cancelDelete = () => {
+        setShowDeleteConfirm(false);
+        setDeletePassword('');
+        setDeleteError(null);
+    };
+
+    const handleDeleteAccount = async () => {
+        setDeleteError(null);
+
+        if (!deletePassword) {
+            setDeleteError('Veuillez entrer votre mot de passe');
+            return;
+        }
+
+        setDeleteLoading(true);
+        try {
+            const response = await authFetch(`${BACKEND_URL}/auth/account`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: deletePassword })
+            });
+
+            if (response.ok) {
+                onLogout();
+            } else {
+                const errorData = await response.json().catch(() => ({}));
+                setDeleteError(errorData.error || errorData.message || 'Erreur lors de la suppression du compte');
+            }
+        } catch {
+            setDeleteError('Erreur de connexion au serveur');
+        } finally {
+            setDeleteLoading(false);
         }
     };
 
@@ -217,6 +257,71 @@ export function AccountSettingsModal({ isOpen, onClose, onLogout }: AccountSetti
                                 {loading ? 'Mise à jour...' : 'Mettre à jour'}
                             </button>
                         </form>
+                    </div>
+
+                    {/* Section Danger Zone */}
+                    <div className="account-settings-section account-settings-danger">
+                        <div className="account-settings-section-title">
+                            <AlertTriangle size={16} />
+                            Zone de danger
+                        </div>
+
+                        {!showDeleteConfirm ? (
+                            <button
+                                type="button"
+                                className="account-settings-btn account-settings-btn-delete"
+                                onClick={() => setShowDeleteConfirm(true)}
+                            >
+                                <Trash2 size={15} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+                                Supprimer mon compte
+                            </button>
+                        ) : (
+                            <div className="account-settings-delete-confirm">
+                                <p className="account-settings-delete-warning">
+                                    Cette action est irréversible : votre compte et tous vos convois seront définitivement supprimés. Entrez votre mot de passe pour confirmer.
+                                </p>
+
+                                {deleteError && (
+                                    <div className="account-settings-message account-settings-message-error">
+                                        {deleteError}
+                                    </div>
+                                )}
+
+                                <div className="account-settings-form-group">
+                                    <label className="account-settings-label" htmlFor="account-settings-delete-password">
+                                        Mot de passe
+                                    </label>
+                                    <input
+                                        id="account-settings-delete-password"
+                                        type="password"
+                                        className="account-settings-input"
+                                        placeholder="Entrez votre mot de passe"
+                                        value={deletePassword}
+                                        onChange={(e) => setDeletePassword(e.target.value)}
+                                        disabled={deleteLoading}
+                                    />
+                                </div>
+
+                                <div className="account-settings-delete-actions">
+                                    <button
+                                        type="button"
+                                        className="account-settings-btn account-settings-btn-cancel"
+                                        onClick={cancelDelete}
+                                        disabled={deleteLoading}
+                                    >
+                                        Annuler
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="account-settings-btn account-settings-btn-delete-confirm"
+                                        onClick={handleDeleteAccount}
+                                        disabled={deleteLoading}
+                                    >
+                                        {deleteLoading ? 'Suppression...' : 'Confirmer la suppression'}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
