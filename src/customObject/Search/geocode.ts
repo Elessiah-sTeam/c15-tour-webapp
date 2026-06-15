@@ -1,3 +1,8 @@
+/**
+ * Helpers de géocodage Nominatim partagés entre la barre de recherche
+ * (géocodage direct) et l'ajout de points sur la carte (géocodage inverse).
+ */
+
 export const BASE_NOMINATIM_REVERSE_URL =
   "https://nominatim.openstreetmap.org/reverse?format=json&addressdetails=0";
 
