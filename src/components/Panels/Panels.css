@@ -474,6 +474,18 @@ h3, .stepTitle {
     box-shadow: 0 12px 28px rgba(95, 23, 58, 0.22);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
+    animation: export-menu-in 120ms ease;
+}
+
+@keyframes export-menu-in {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .action-buttons .export-menu-item {
