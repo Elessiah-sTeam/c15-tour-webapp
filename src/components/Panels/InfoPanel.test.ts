@@ -12,4 +12,8 @@ describe("formatTotalPauseDuration()", () => {
   it("formate plusieurs pauses cumulees", () => {
     expect(formatTotalPauseDuration((60 + 15) * 60, units)).toBe("1H 15MIN ");
   });
+
+  it("utilise les unites par defaut quand aucune n'est fournie", () => {
+    expect(formatTotalPauseDuration(30 * 60)).toBe("0H 30MIN ");
+  });
 });
