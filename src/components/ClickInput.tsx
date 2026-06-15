@@ -33,6 +33,7 @@ export default function ClickInput({ currentStr, setter, Tag, className, isDesac
     const [showTooltip, setShowTooltip] = useState(false);
 
     const tooltipTimerRef = useRef<number | null>(null);
+    const inputRef = useRef<HTMLInputElement | null>(null);
 
     function clearTooltipTimer() {
         if (tooltipTimerRef.current !== null) {
@@ -65,6 +66,13 @@ export default function ClickInput({ currentStr, setter, Tag, className, isDesac
         setText(currentStr);
     }, [currentStr]);
 
+    useEffect(() => {
+        if (isInput && inputRef.current) {
+            inputRef.current.focus();
+            inputRef.current.select();
+        }
+    }, [isInput]);
+
     /**
      * Arrête le mode édition de la balise,
      * et applique les modifications avec la fonction setter
@@ -72,7 +80,7 @@ export default function ClickInput({ currentStr, setter, Tag, className, isDesac
     function stopInput() {
         if (isInput) {
             setIsInput(false);
-            if (text == " " || text.length == 0) {
+            if (text.trim().length === 0) {
                 setText(currentStr);
             } else {
                 setter(text);
@@ -90,11 +98,15 @@ export default function ClickInput({ currentStr, setter, Tag, className, isDesac
     });
 
     /**
-     * Gère la pression de touche Entrée lors de l'édition de l'input
-     * Si c'est la touche "Entrée" on appelle stopInput()
+     * Gère la pression de touche lors de l'édition de l'input.
+     * stopPropagation empêche le capteur clavier de dnd-kit (parent draggable)
+     * d'intercepter la barre d'espace, qui sinon démarre un drag au lieu de
+     * s'insérer dans le nom du segment/étape.
+     * Si c'est la touche "Entrée" on appelle stopInput().
      * @param event
      */
     function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+        event.stopPropagation();
         if (event.key === "Enter") {
             stopInput();
         }
@@ -131,10 +143,12 @@ export default function ClickInput({ currentStr, setter, Tag, className, isDesac
         >
             {isInput ? (
                 <input
+                    ref={inputRef}
                     type={"text"}
                     value={text}
                     onChange={(e) => setText(e.target.value)}
                     onKeyDown={handleKeyDown}
+                    onPointerDown={(e) => e.stopPropagation()}
                     className={className}
                     style={{
                         background: "#ffffff26",
