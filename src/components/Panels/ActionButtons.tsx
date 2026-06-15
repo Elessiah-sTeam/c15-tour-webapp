@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Trash, Pencil, Settings, Share2, Download, FileDown } from "lucide-react";
 import "./Panels.css";
+import useOutsideClick from "../useOutsideClick.ts";
 import { deleteModStore } from "../../customObject/DeleteMod/DeleteModStore.ts";
 import { useDeleteMod } from "../../customObject/DeleteMod/useDeleteMod.ts";
 import { itineraryModel } from "../../customObject/Itinerary/ItineraryStore.ts";
@@ -29,12 +30,19 @@ function buildDepartureDateTime(departureDate: string, departureTime: string): D
     return new Date(year, month - 1, day, hours, minutes, 0, 0);
 }
 
+/**
+ * Barre d'actions de l'itinéraire (paramètres, suppression, partage, export, sauvegarde).
+ * L'export GPX et PDF est regroupé derrière un unique bouton « Exporter » qui ouvre
+ * un menu de choix du format.
+ */
 export default function ActionButtons() {
     const delMod = useDeleteMod(deleteModStore);
     const itinerary = useItinerary(itineraryModel.store);
     const isDirty = useIsDirty();
     const [showSettings, setShowSettings] = useState(false);
     const [showShare, setShowShare] = useState(false);
+    const [showExport, setShowExport] = useState(false);
+    const exportRef = useOutsideClick<HTMLDivElement>(() => setShowExport(false));
     const [currentSettings, setCurrentSettings] = useState<GlobalSettings | undefined>(undefined);
     const [isExportingPdf, setIsExportingPdf] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -55,6 +63,8 @@ export default function ActionButtons() {
     const pdfLabel = isExportingPdf
         ? "G\u00e9n\u00e9ration du PDF..."
         : "Exporter en PDF";
+    const exportLabel = "Exporter l'itin\u00e9raire";
+    const canExport = canDownloadGpx || canExportPdf;
 
     const handleOpenSettings = () => {
         setCurrentSettings(loadGlobalSettings(itinerary));
@@ -103,6 +113,18 @@ export default function ActionButtons() {
         }
     };
 
+    const handleDownloadGpx = () => {
+        setShowExport(false);
+        downloadGpx(itinerary.name, itinerary.segments.map((segment) => ({
+            geometry: segment.content.geometry,
+        })));
+    };
+
+    const handleSelectPdfExport = async () => {
+        setShowExport(false);
+        await handleExportPdf();
+    };
+
     return (
         <>
             <div className={"action-buttons"}>
@@ -134,26 +156,43 @@ export default function ActionButtons() {
                 >
                     <Share2 color={itinerary.shareCode ? "#BB487C" : "#ccc"} />
                 </button>
-                <button
-                    className={"download-gpx-btn"}
-                    aria-label={downloadLabel}
-                    title={downloadLabel}
-                    onClick={() => downloadGpx(itinerary.name, itinerary.segments.map((segment) => ({
-                        geometry: segment.content.geometry,
-                    })))}
-                    disabled={!canDownloadGpx}
-                >
-                    <Download color={canDownloadGpx ? "#BB487C" : "#ccc"} />
-                </button>
-                <button
-                    className={"download-pdf-btn"}
-                    aria-label={pdfLabel}
-                    title={pdfLabel}
-                    onClick={handleExportPdf}
-                    disabled={isExportingPdf || !canExportPdf}
-                >
-                    <FileDown color={isExportingPdf ? "#ccc" : "#BB487C"} />
-                </button>
+                <div className={"export-menu-wrapper"} ref={exportRef}>
+                    <button
+                        className={"export-btn"}
+                        aria-label={exportLabel}
+                        title={exportLabel}
+                        aria-haspopup={"menu"}
+                        aria-expanded={showExport}
+                        onClick={() => setShowExport((prev) => !prev)}
+                        disabled={!canExport || isExportingPdf}
+                    >
+                        <Download color={canExport && !isExportingPdf ? "#BB487C" : "#ccc"} />
+                    </button>
+                    {showExport && (
+                        <div className={"export-menu"} role={"menu"}>
+                            <button
+                                type={"button"}
+                                className={"export-menu-item"}
+                                role={"menuitem"}
+                                onClick={handleDownloadGpx}
+                                disabled={!canDownloadGpx}
+                            >
+                                <Download size={16} />
+                                {downloadLabel}
+                            </button>
+                            <button
+                                type={"button"}
+                                className={"export-menu-item"}
+                                role={"menuitem"}
+                                onClick={handleSelectPdfExport}
+                                disabled={isExportingPdf || !canExportPdf}
+                            >
+                                <FileDown size={16} />
+                                {pdfLabel}
+                            </button>
+                        </div>
+                    )}
+                </div>
             </div>
 
             <div className="save-buttons">
