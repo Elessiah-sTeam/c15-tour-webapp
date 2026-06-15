@@ -118,6 +118,10 @@ export function AccountSettingsModal({ isOpen, onClose, onLogout }: AccountSetti
         setDeleteError(null);
     };
 
+    /**
+     * Supprime définitivement le compte après confirmation par mot de passe
+     * (DELETE /auth/account). En cas de succès, déconnecte l'utilisateur.
+     */
     const handleDeleteAccount = async () => {
         setDeleteError(null);
 
