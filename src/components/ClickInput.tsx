@@ -90,8 +90,11 @@ export default function ClickInput({ currentStr, setter, Tag, className, isDesac
     });
 
     /**
-     * Gère la pression de touche Entrée lors de l'édition de l'input
-     * Si c'est la touche "Entrée" on appelle stopInput()
+     * Gère la pression de touche lors de l'édition de l'input.
+     * stopPropagation empêche le capteur clavier de dnd-kit (parent draggable)
+     * d'intercepter la barre d'espace, qui sinon démarre un drag au lieu de
+     * s'insérer dans le nom du segment/étape.
+     * Si c'est la touche "Entrée" on appelle stopInput().
      * @param event
      */
     function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
