@@ -714,6 +714,11 @@ h3, .stepTitle {
     background: #BB487C14;
     border: 1px dashed #BB487C66;
     width: fit-content;
+    transition: background 0.15s ease;
+}
+
+.pause-line:hover {
+    background: #BB487C26;
 }
 
 .pause-line-label {

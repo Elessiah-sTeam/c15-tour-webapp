@@ -11,8 +11,10 @@ type Props = {
  * @param durationSeconds durée de la pause en secondes (breakDuration du segment)
  */
 export default function PauseLine({ durationSeconds }: Props) {
+    const label = `Pause de ${formatTotalPauseDuration(durationSeconds).trim()}`;
+
     return (
-        <div className={"pause-line"}>
+        <div className={"pause-line"} title={label} aria-label={label}>
             <span className={"pause-line-label"}>
                 <Coffee className={"pause-line-icon"} aria-hidden={true} />
                 Pause
