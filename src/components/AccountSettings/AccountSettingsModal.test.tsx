@@ -251,4 +251,72 @@ describe('AccountSettingsModal', () => {
         });
         expect(mockNavigate).toHaveBeenCalledWith('/login');
     });
+
+    it('ouvre la confirmation de suppression de compte', async () => {
+        const user = userEvent.setup();
+        renderModal();
+
+        await user.click(screen.getByRole('button', { name: /supprimer mon compte/i }));
+
+        expect(screen.getByRole('button', { name: /confirmer la suppression/i })).toBeInTheDocument();
+        expect(screen.getByLabelText('Mot de passe')).toBeInTheDocument();
+    });
+
+    it('annule la confirmation de suppression', async () => {
+        const user = userEvent.setup();
+        renderModal();
+
+        await user.click(screen.getByRole('button', { name: /supprimer mon compte/i }));
+        await user.click(screen.getByRole('button', { name: /annuler/i }));
+
+        expect(screen.queryByRole('button', { name: /confirmer la suppression/i })).not.toBeInTheDocument();
+    });
+
+    it('exige le mot de passe avant de supprimer', async () => {
+        const user = userEvent.setup();
+        renderModal();
+
+        await user.click(screen.getByRole('button', { name: /supprimer mon compte/i }));
+        await user.click(screen.getByRole('button', { name: /confirmer la suppression/i }));
+
+        expect(screen.getByText('Veuillez entrer votre mot de passe')).toBeInTheDocument();
+        expect(fetch).not.toHaveBeenCalled();
+    });
+
+    it('supprime le compte et déconnecte en cas de succès', async () => {
+        const onLogout = vi.fn();
+        const user = userEvent.setup();
+        vi.mocked(fetch).mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ message: 'Account deleted successfully' }),
+        } as Response);
+        renderModalWithEmail('user@example.com', { onLogout });
+
+        await user.click(screen.getByRole('button', { name: /supprimer mon compte/i }));
+        await user.type(screen.getByLabelText('Mot de passe'), 'currentPass');
+        await user.click(screen.getByRole('button', { name: /confirmer la suppression/i }));
+
+        await waitFor(() => expect(onLogout).toHaveBeenCalledOnce());
+        expect(fetch).toHaveBeenCalledWith(
+            'http://localhost:8080/auth/account',
+            expect.objectContaining({ method: 'DELETE' })
+        );
+    });
+
+    it('affiche une erreur si la suppression échoue', async () => {
+        const user = userEvent.setup();
+        vi.mocked(fetch).mockResolvedValueOnce({
+            ok: false,
+            json: async () => ({ error: 'Password is incorrect' }),
+        } as Response);
+        renderModalWithEmail('user@example.com');
+
+        await user.click(screen.getByRole('button', { name: /supprimer mon compte/i }));
+        await user.type(screen.getByLabelText('Mot de passe'), 'wrongpass');
+        await user.click(screen.getByRole('button', { name: /confirmer la suppression/i }));
+
+        await waitFor(() => {
+            expect(screen.getByText('Password is incorrect')).toBeInTheDocument();
+        });
+    });
 });
