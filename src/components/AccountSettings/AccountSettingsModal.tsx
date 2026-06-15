@@ -1,4 +1,4 @@
-import { type MouseEvent, useState, useEffect } from 'react';
+import { type MouseEvent, useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { User, Lock, AlertTriangle, Trash2 } from 'lucide-react';
 import { useAuth } from '../../auth/useAuth';
@@ -27,6 +27,13 @@ export function AccountSettingsModal({ isOpen, onClose, onLogout }: AccountSetti
     const [deletePassword, setDeletePassword] = useState('');
     const [deleteError, setDeleteError] = useState<string | null>(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
+    const deletePasswordRef = useRef<HTMLInputElement | null>(null);
+
+    useEffect(() => {
+        if (showDeleteConfirm) {
+            deletePasswordRef.current?.focus();
+        }
+    }, [showDeleteConfirm]);
 
     useEffect(() => {
         if (isOpen) {
@@ -296,6 +303,7 @@ export function AccountSettingsModal({ isOpen, onClose, onLogout }: AccountSetti
                                         Mot de passe
                                     </label>
                                     <input
+                                        ref={deletePasswordRef}
                                         id="account-settings-delete-password"
                                         type="password"
                                         className="account-settings-input"
