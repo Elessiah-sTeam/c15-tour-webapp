@@ -26,13 +26,13 @@ vi.mock('../../customObject/Itinerary/ItineraryStore', () => ({
 }));
 
 const downloadGpx = vi.fn();
-const hasGpxGeometry = vi.fn(() => true);
+const hasGpxGeometry = vi.fn((..._args: unknown[]) => true);
 vi.mock('../../customObject/Itinerary/gpx', () => ({
     downloadGpx: (...args: unknown[]) => downloadGpx(...args),
     hasGpxGeometry: (...args: unknown[]) => hasGpxGeometry(...args),
 }));
 
-const downloadItineraryPdf = vi.fn(() => Promise.resolve());
+const downloadItineraryPdf = vi.fn((..._args: unknown[]) => Promise.resolve());
 vi.mock('../../customObject/Itinerary/pdf', () => ({
     downloadItineraryPdf: (...args: unknown[]) => downloadItineraryPdf(...args),
     collectPdfSections: () => [{}],
