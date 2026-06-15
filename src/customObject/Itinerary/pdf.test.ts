@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Feature, LineString } from "geojson";
 import { TimeSpan } from "../TimeSpan";
-import { collectPdfSections } from "./pdf";
+import { collectPdfSections, splitSectionWaypoints, WAYPOINTS_ON_SECTION_PAGE } from "./pdf";
 import type { Itinerary, Segment } from "./types";
 
 type SegmentOverride = {
@@ -136,5 +136,28 @@ describe("collectPdfSections", () => {
 
         expect(sections).toHaveLength(1);
         expect(sections[0].distanceLabel).toBe("12,5 km");
+    });
+});
+
+describe("splitSectionWaypoints", () => {
+    it("garde tous les points sur la page quand ils tiennent", () => {
+        const titles = ["A", "B", "C"];
+        const { onSection, remaining } = splitSectionWaypoints(titles);
+        expect(onSection).toEqual(["A", "B", "C"]);
+        expect(remaining).toEqual([]);
+    });
+
+    it("limite la page à WAYPOINTS_ON_SECTION_PAGE et numérote le reste", () => {
+        const titles = Array.from({ length: 8 }, (_, index) => `P${index + 1}`);
+        const { onSection, remaining } = splitSectionWaypoints(titles);
+        expect(onSection).toHaveLength(WAYPOINTS_ON_SECTION_PAGE);
+        expect(onSection).toEqual(["P1", "P2", "P3", "P4", "P5"]);
+        expect(remaining).toEqual(["6. P6", "7. P7", "8. P8"]);
+    });
+
+    it("inclut chaque point de passage (page + reste)", () => {
+        const titles = Array.from({ length: 20 }, (_, index) => `Pt${index}`);
+        const { onSection, remaining } = splitSectionWaypoints(titles);
+        expect(onSection.length + remaining.length).toBe(titles.length);
     });
 });
