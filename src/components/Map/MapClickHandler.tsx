@@ -3,10 +3,13 @@ import { itineraryModel } from "../../customObject/Itinerary/ItineraryStore.ts";
 import { useItinerary } from "../../customObject/Itinerary/UseItinerary.ts";
 import type { Segment } from "../../customObject/Itinerary/types.ts";
 import { TimeSpan } from "../../customObject/TimeSpan.ts";
+import { reverseGeocode } from "../../customObject/Search/geocode.ts";
 
 /**
  * Gère les clics sur la carte pour créer une nouvelle étape
- * L'étape est ajoutée au dernier segment, qui est créé si nécessaire
+ * L'étape est ajoutée au dernier segment, qui est créé si nécessaire.
+ * Le libellé affiche d'abord les coordonnées puis est remplacé par l'adresse
+ * réelle obtenue par géocodage inverse (les coordonnées restent en cas d'échec).
  */
 export default function MapClickHandler() {
     const itinerary = useItinerary(itineraryModel.store);
@@ -40,8 +43,9 @@ export default function MapClickHandler() {
                 targetSegmentId = newSegment.id;
             }
 
+            const stepId = "mapclick" + new Date().toISOString();
             itineraryModel.addStep(targetSegmentId, {
-                id: "mapclick" + new Date().toISOString(),
+                id: stepId,
                 content: {
                     title,
                     duration: new TimeSpan(),
@@ -49,6 +53,16 @@ export default function MapClickHandler() {
                 },
                 isDefaultSegStart: false,
             });
+
+            reverseGeocode(lat, lng)
+                .then((address) => {
+                    if (address) {
+                        itineraryModel.renameStep(targetSegmentId, stepId, address);
+                    }
+                })
+                .catch(() => {
+                    // Géocodage indisponible : on conserve les coordonnées comme libellé.
+                });
         },
     });
 

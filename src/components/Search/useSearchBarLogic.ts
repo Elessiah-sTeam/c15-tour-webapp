@@ -12,6 +12,7 @@ import {
   clearSearchIntent,
   useSearchIntent,
 } from "../../customObject/Search/SearchIntentStore.ts";
+import { shortenDisplayName } from "../../customObject/Search/geocode.ts";
 
 export const BASE_NOMINATIM_URL =
   "https://nominatim.openstreetmap.org/search?format=json&limit=5&addressdetails=0&q=";
@@ -40,22 +41,6 @@ type SearchBarRefs = {
   formRef: RefObject<HTMLFormElement | null>;
   listRef: RefObject<HTMLUListElement | null>;
   inputRef: RefObject<HTMLInputElement | null>;
-};
-
-const shortenDisplayName = (value: string): string => {
-  const parts = value
-    .split(",")
-    .map((p) => p.trim())
-    .filter((p) => p.length > 0);
-
-  if (parts.length >= 3 && /^\d+[A-Za-z]?$/.test(parts[0])) {
-    const street = `${parts[0]} ${parts[1]}`;
-    return `${street}, ${parts[2]}`;
-  }
-
-  if (parts.length >= 2) return `${parts[0]}, ${parts[1]}`;
-  if (parts.length === 1) return parts[0];
-  return value;
 };
 
 const deduplicateByName = (items: NominatimResult[]): NominatimResult[] => {
