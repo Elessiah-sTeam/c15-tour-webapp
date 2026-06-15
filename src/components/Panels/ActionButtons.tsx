@@ -30,6 +30,11 @@ function buildDepartureDateTime(departureDate: string, departureTime: string): D
     return new Date(year, month - 1, day, hours, minutes, 0, 0);
 }
 
+/**
+ * Barre d'actions de l'itinéraire (paramètres, suppression, partage, export, sauvegarde).
+ * L'export GPX et PDF est regroupé derrière un unique bouton « Exporter » qui ouvre
+ * un menu de choix du format.
+ */
 export default function ActionButtons() {
     const delMod = useDeleteMod(deleteModStore);
     const itinerary = useItinerary(itineraryModel.store);
