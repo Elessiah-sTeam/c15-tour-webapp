@@ -683,6 +683,25 @@ function collectRoutePoints(segment: Segment): RoutePoint[] {
     return geometryPoints.length > 0 ? geometryPoints : stepPoints;
 }
 
+/** Nombre de points de passage listés ligne par ligne sur la page du tronçon. */
+export const WAYPOINTS_ON_SECTION_PAGE = 5;
+
+/**
+ * Répartit les points de passage d'un tronçon entre ceux affichés ligne par ligne
+ * et le reste (résumé en paragraphe), afin que chaque point de passage figure dans le PDF.
+ *
+ * @param stepTitles — Libellés des points de passage du tronçon, dans l'ordre.
+ * @returns `onSection` (lignes détaillées) et `remaining` (numérotés, listés en paragraphe).
+ */
+export function splitSectionWaypoints(stepTitles: string[]): { onSection: string[]; remaining: string[] } {
+    return {
+        onSection: stepTitles.slice(0, WAYPOINTS_ON_SECTION_PAGE),
+        remaining: stepTitles
+            .slice(WAYPOINTS_ON_SECTION_PAGE)
+            .map((title, index) => `${WAYPOINTS_ON_SECTION_PAGE + index + 1}. ${title}`),
+    };
+}
+
 /**
  * Extrait les tronçons exportables d'un itinéraire pour préparer les pages du PDF.
  * Les segments techniques de début et de fin sont ignorés afin de ne garder que
@@ -1055,7 +1074,8 @@ async function buildSectionCanvas(
             maxLines: 4,
         });
     } else {
-        section.stepTitles.slice(0, 5).forEach((stepTitle, stepIndex) => {
+        const { onSection, remaining } = splitSectionWaypoints(section.stepTitles);
+        onSection.forEach((stepTitle, stepIndex) => {
             const rowY = 1442 + stepIndex * 36;
             ctx.save();
             ctx.fillStyle = "rgba(255, 255, 255, 0.96)";
@@ -1076,6 +1096,15 @@ async function buildSectionCanvas(
                 color: "#352B33",
             });
         });
+
+        if (remaining.length > 0) {
+            drawParagraph(ctx, `Autres points de passage : ${remaining.join("  \u2022  ")}`, 118, 1442 + onSection.length * 36 + 8, 1000, 26, {
+                size: 16,
+                weight: 600,
+                color: "#54414C",
+                maxLines: 4,
+            });
+        }
     }
 
     return canvas;

@@ -453,6 +453,53 @@ h3, .stepTitle {
     cursor: default;
 }
 
+.export-menu-wrapper {
+    position: relative;
+    display: inline-flex;
+}
+
+.export-menu {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    right: 0;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    min-width: 220px;
+    padding: 6px;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.96);
+    border: 2px solid #BB487C;
+    border-radius: 14px;
+    box-shadow: 0 12px 28px rgba(95, 23, 58, 0.22);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.action-buttons .export-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 9px 10px;
+    border-radius: 10px;
+    background: transparent;
+    color: #BB487C;
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(11px, 1.5vw, 13px);
+    font-weight: 600;
+    text-align: left;
+    transition: background 120ms ease;
+}
+
+.action-buttons .export-menu-item:hover:not(:disabled) {
+    background: rgba(187, 72, 124, 0.12);
+}
+
+.action-buttons .export-menu-item:disabled {
+    color: #ccc;
+}
+
 .save-buttons {
     display: flex;
     gap: 6px;
