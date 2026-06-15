@@ -33,6 +33,7 @@ export default function ClickInput({ currentStr, setter, Tag, className, isDesac
     const [showTooltip, setShowTooltip] = useState(false);
 
     const tooltipTimerRef = useRef<number | null>(null);
+    const inputRef = useRef<HTMLInputElement | null>(null);
 
     function clearTooltipTimer() {
         if (tooltipTimerRef.current !== null) {
@@ -64,6 +65,13 @@ export default function ClickInput({ currentStr, setter, Tag, className, isDesac
     useEffect(() => {
         setText(currentStr);
     }, [currentStr]);
+
+    useEffect(() => {
+        if (isInput && inputRef.current) {
+            inputRef.current.focus();
+            inputRef.current.select();
+        }
+    }, [isInput]);
 
     /**
      * Arrête le mode édition de la balise,
@@ -135,6 +143,7 @@ export default function ClickInput({ currentStr, setter, Tag, className, isDesac
         >
             {isInput ? (
                 <input
+                    ref={inputRef}
                     type={"text"}
                     value={text}
                     onChange={(e) => setText(e.target.value)}
