@@ -703,6 +703,48 @@ h3, .stepTitle {
     margin-top: clamp(2px, 0.4vh, 4px);
 }
 
+.pause-line {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: clamp(4px, 0.8vh, 8px) auto;
+    padding: clamp(3px, 0.6vh, 6px) clamp(10px, 2vw, 16px);
+    border-radius: 999px;
+    background: #BB487C14;
+    border: 1px dashed #BB487C66;
+    width: fit-content;
+    transition: background 0.15s ease;
+}
+
+.pause-line:hover {
+    background: #BB487C26;
+}
+
+.pause-line-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(9px, 1.6vw, 12px);
+    font-weight: 600;
+    color: #BB487C;
+}
+
+.pause-line-icon {
+    width: clamp(11px, 1.8vw, 14px);
+    height: clamp(11px, 1.8vw, 14px);
+    stroke-width: 2.5;
+    flex: 0 0 auto;
+}
+
+.pause-line-value {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(10px, 1.8vw, 13px);
+    font-weight: 800;
+    color: #BB487C;
+}
+
 .time-row {
     display: flex;
     justify-content: space-between;

@@ -12,9 +12,11 @@ import {
     verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 
+import { Fragment } from "react";
 import type {Itinerary, Segment} from "../../../customObject/Itinerary/types.ts";
 import SortableCategory from "./SortableCategory";
 import SortablePDP from "./SortablePDP.tsx";
+import PauseLine from "./PauseLine.tsx";
 import {type DndProps, useDragNDrop} from "./UseDragNDrop.tsx";
 import {useItinerary} from "../../../customObject/Itinerary/UseItinerary.ts";
 import {itineraryModel} from "../../../customObject/Itinerary/ItineraryStore.ts";
@@ -42,12 +44,16 @@ export default function StepList() {
                 strategy={verticalListSortingStrategy}
             >
                 {itinerary.segments.map((cat: Segment) =>
-                    <SortableCategory
-                        key={cat.id}
-                        visible={!(cat.id == dnd.activeCat?.id)}
-                        category={cat}
-                        idActiveItem={dnd.activeItem?.id ? dnd.activeItem.id : null}
-                    />
+                    <Fragment key={cat.id}>
+                        <SortableCategory
+                            visible={!(cat.id == dnd.activeCat?.id)}
+                            category={cat}
+                            idActiveItem={dnd.activeItem?.id ? dnd.activeItem.id : null}
+                        />
+                        {!cat.isStartEnd && (cat.content.breakDuration ?? 0) > 0 && (
+                            <PauseLine durationSeconds={cat.content.breakDuration ?? 0} />
+                        )}
+                    </Fragment>
             )}
             </SortableContext>
             <DragOverlay>
