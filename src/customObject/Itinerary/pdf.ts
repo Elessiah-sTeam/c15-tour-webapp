@@ -423,7 +423,9 @@ function drawFallbackGrid(ctx: CanvasRenderingContext2D, x: number, y: number, w
  * @param height — Hauteur du bloc.
  * @param routes — Une ou plusieurs polylignes (vue d'ensemble = un tableau par tronçon). Les tracés de moins de 2 points sont ignorés.
  * @param title — Sous-titre affiché dans l'étiquette (ex. nom du convoi ou du tronçon).
- * @param options.variant — `"overview"` : pas de pastilles intermédiaires ; `"section"` : pastilles sur les étapes pour un seul tronçon.
+ * @param options.variant — `"overview"` (carte d'ensemble) ou `"section"` (carte d'un tronçon).
+ * @param options.waypoints — Points de passage intermédiaires à matérialiser sur la carte (hors départ/arrivée).
+ * @param options.numberWaypoints — `true` : pastilles numérotées (1, 2, …) ; `false` : simples points (vue d'ensemble).
  * @remarks Effectue des requêtes réseau lorsque les tuiles OSM sont utilisées. Restaure le contexte (`ctx.restore`) après tracé.
  */
 async function drawRouteSnapshot(
