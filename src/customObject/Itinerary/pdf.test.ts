@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Feature, LineString } from "geojson";
 import { TimeSpan } from "../TimeSpan";
-import { collectPdfSections, downloadItineraryPdf, splitSectionWaypoints, WAYPOINTS_ON_SECTION_PAGE } from "./pdf";
+import { collectPdfSections, downloadItineraryPdf, waypointListColumns } from "./pdf";
 import type { Itinerary, Segment } from "./types";
 
 // Les tuiles OSM déclenchent des requêtes réseau : on force le repli vectoriel (drawn: false).
@@ -169,26 +169,17 @@ describe("collectPdfSections", () => {
     });
 });
 
-describe("splitSectionWaypoints", () => {
-    it("garde tous les points sur la page quand ils tiennent", () => {
-        const titles = ["A", "B", "C"];
-        const { onSection, remaining } = splitSectionWaypoints(titles);
-        expect(onSection).toEqual(["A", "B", "C"]);
-        expect(remaining).toEqual([]);
+describe("waypointListColumns", () => {
+    it("garde une seule colonne pour les tronçons courts", () => {
+        expect(waypointListColumns(1)).toBe(1);
+        expect(waypointListColumns(7)).toBe(1);
     });
 
-    it("limite la page à WAYPOINTS_ON_SECTION_PAGE et numérote le reste", () => {
-        const titles = Array.from({ length: 8 }, (_, index) => `P${index + 1}`);
-        const { onSection, remaining } = splitSectionWaypoints(titles);
-        expect(onSection).toHaveLength(WAYPOINTS_ON_SECTION_PAGE);
-        expect(onSection).toEqual(["P1", "P2", "P3", "P4", "P5"]);
-        expect(remaining).toEqual(["6. P6", "7. P7", "8. P8"]);
-    });
-
-    it("inclut chaque point de passage (page + reste)", () => {
-        const titles = Array.from({ length: 20 }, (_, index) => `Pt${index}`);
-        const { onSection, remaining } = splitSectionWaypoints(titles);
-        expect(onSection.length + remaining.length).toBe(titles.length);
+    it("passe à deux puis trois colonnes selon le nombre de points", () => {
+        expect(waypointListColumns(8)).toBe(2);
+        expect(waypointListColumns(16)).toBe(2);
+        expect(waypointListColumns(17)).toBe(3);
+        expect(waypointListColumns(40)).toBe(3);
     });
 });
 
@@ -232,25 +223,43 @@ describe("downloadItineraryPdf", () => {
         URL.revokeObjectURL = originalRevokeObjectURL;
     });
 
-    function buildWaypointItinerary(): Itinerary {
+    // 18 points géolocalisés : force la grille 3 colonnes + pastilles à deux chiffres.
+    function buildWaypointItinerary(stepCount: number): Itinerary {
+        const steps: Segment["steps"] = Array.from({ length: stepCount }, (_, index) => ({
+            id: `wp-${index}`,
+            isDefaultSegStart: false,
+            content: {
+                title: `Point ${index}`,
+                duration: new TimeSpan(),
+                location: { lat: 47 + index * 0.05, lon: -1 - index * 0.05 },
+            },
+        }));
         return buildItinerary([
             buildSegment({ id: "start", isStartEnd: true, content: { title: " ", geometry: undefined } }),
-            buildSegment({
-                id: "leg",
-                content: { title: "Tronçon", geometry: undefined },
-                steps: [
-                    { id: "a", isDefaultSegStart: false, content: { title: "Départ", duration: new TimeSpan(), location: { lat: 47, lon: -1 } } },
-                    { id: "m", isDefaultSegStart: false, content: { title: "Halte", duration: new TimeSpan(), location: { lat: 47.5, lon: -1.5 } } },
-                    { id: "b", isDefaultSegStart: false, content: { title: "Arrivée", duration: new TimeSpan(), location: { lat: 48, lon: -2 } } },
-                ],
-            }),
+            buildSegment({ id: "leg", content: { title: "Tronçon", geometry: undefined }, steps }),
             buildSegment({ id: "end", isStartEnd: true, content: { title: " ", geometry: undefined } }),
         ]);
     }
 
     it("génère le PDF en matérialisant les points de passage sur les cartes", async () => {
-        await expect(downloadItineraryPdf(buildWaypointItinerary())).resolves.toBeUndefined();
+        await expect(downloadItineraryPdf(buildWaypointItinerary(18))).resolves.toBeUndefined();
         expect(HTMLAnchorElement.prototype.click).toHaveBeenCalledTimes(1);
         expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
+    });
+
+    it("génère le PDF sans planter quand aucune étape n'est géolocalisée", async () => {
+        const itinerary = buildItinerary([
+            buildSegment({ id: "start", isStartEnd: true, content: { title: " ", geometry: undefined } }),
+            buildSegment({
+                id: "leg",
+                content: { title: "Tronçon sans coordonnées", geometry: undefined },
+                steps: [
+                    { id: "s1", isDefaultSegStart: false, content: { title: "Étape texte", duration: new TimeSpan() } },
+                ],
+            }),
+            buildSegment({ id: "end", isStartEnd: true, content: { title: " ", geometry: undefined } }),
+        ]);
+        await expect(downloadItineraryPdf(itinerary)).resolves.toBeUndefined();
+        expect(HTMLAnchorElement.prototype.click).toHaveBeenCalledTimes(1);
     });
 });
