@@ -739,23 +739,102 @@ function collectSegmentWaypoints(segment: Segment): RoutePoint[] {
         .filter((point) => Number.isFinite(point.lat) && Number.isFinite(point.lon));
 }
 
-/** Nombre de points de passage listés ligne par ligne sur la page du tronçon. */
-export const WAYPOINTS_ON_SECTION_PAGE = 5;
+/** Bornes verticales du bloc liste des points de passage sur la page tronçon. */
+const SECTION_WAYPOINTS_TOP = 1444;
+const SECTION_WAYPOINTS_BOTTOM = 1670;
+const SECTION_WAYPOINTS_LEFT = 118;
+const SECTION_WAYPOINTS_WIDTH = 1004;
 
 /**
- * Répartit les points de passage d'un tronçon entre ceux affichés ligne par ligne
- * et le reste (résumé en paragraphe), afin que chaque point de passage figure dans le PDF.
+ * Choisit le nombre de colonnes pour répartir les points de passage horizontalement
+ * dans le bloc détails, afin que tous tiennent sans débordement vertical.
  *
- * @param stepTitles — Libellés des points de passage du tronçon, dans l'ordre.
- * @returns `onSection` (lignes détaillées) et `remaining` (numérotés, listés en paragraphe).
+ * @param count — Nombre de points de passage à afficher.
+ * @returns Nombre de colonnes (1 à 3).
  */
-export function splitSectionWaypoints(stepTitles: string[]): { onSection: string[]; remaining: string[] } {
-    return {
-        onSection: stepTitles.slice(0, WAYPOINTS_ON_SECTION_PAGE),
-        remaining: stepTitles
-            .slice(WAYPOINTS_ON_SECTION_PAGE)
-            .map((title, index) => `${WAYPOINTS_ON_SECTION_PAGE + index + 1}. ${title}`),
-    };
+export function waypointListColumns(count: number): number {
+    if (count <= 7) return 1;
+    if (count <= 16) return 2;
+    return 3;
+}
+
+/**
+ * Dessine tous les points de passage d'un tronçon dans le bloc détails, répartis en
+ * plusieurs colonnes. La numérotation des points intermédiaires correspond aux pastilles
+ * numérotées de la carte ; le départ et l'arrivée portent une puce colorée (vert / rouge).
+ *
+ * @param ctx — Contexte du canvas page tronçon.
+ * @param waypoints — Points de passage géolocalisés du tronçon, du départ à l'arrivée.
+ */
+function drawSectionWaypointList(ctx: CanvasRenderingContext2D, waypoints: RoutePoint[]): void {
+    if (waypoints.length === 0) {
+        drawParagraph(ctx, "Aucun point de passage géolocalisé sur ce tronçon.", SECTION_WAYPOINTS_LEFT, SECTION_WAYPOINTS_TOP, 980, 30, {
+            size: 20,
+            weight: 500,
+            color: "#54414C",
+            maxLines: 4,
+        });
+        return;
+    }
+
+    const count = waypoints.length;
+    const columns = waypointListColumns(count);
+    const rowsPerColumn = Math.ceil(count / columns);
+    const rowHeight = Math.max(26, Math.min(34, Math.floor((SECTION_WAYPOINTS_BOTTOM - SECTION_WAYPOINTS_TOP) / rowsPerColumn)));
+    const columnGap = 20;
+    const columnWidth = (SECTION_WAYPOINTS_WIDTH - columnGap * (columns - 1)) / columns;
+
+    waypoints.forEach((waypoint, index) => {
+        const column = Math.floor(index / rowsPerColumn);
+        const row = index % rowsPerColumn;
+        const cellX = SECTION_WAYPOINTS_LEFT + column * (columnWidth + columnGap);
+        const cellY = SECTION_WAYPOINTS_TOP + row * rowHeight;
+        const centerY = cellY + (rowHeight - 6) / 2;
+        const isStart = index === 0;
+        const isEnd = index === count - 1;
+
+        ctx.save();
+        ctx.fillStyle = "rgba(255, 255, 255, 0.96)";
+        roundRect(ctx, cellX, cellY, columnWidth, rowHeight - 6, 14);
+        ctx.fill();
+        ctx.restore();
+
+        if (isStart || isEnd) {
+            ctx.save();
+            ctx.fillStyle = isStart ? "#16A34A" : "#E11D48";
+            ctx.beginPath();
+            ctx.arc(cellX + 20, centerY, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        } else {
+            ctx.save();
+            ctx.fillStyle = EXPORT_ACCENT;
+            ctx.beginPath();
+            ctx.arc(cellX + 20, centerY, 11, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+            drawText(ctx, `${index}`, cellX + 20, centerY + 1, {
+                size: index >= 10 ? 11 : 14,
+                weight: 900,
+                color: "#FFFFFF",
+                align: "center",
+                baseline: "middle",
+            });
+        }
+
+        const fallback = isStart ? "Départ" : isEnd ? "Arrivée" : `Point ${index}`;
+        const label = waypoint.label?.trim() || fallback;
+        ctx.save();
+        ctx.font = '600 16px "Montserrat", "Segoe UI", sans-serif';
+        const fitted = fitText(ctx, label, columnWidth - 52);
+        ctx.restore();
+        drawText(ctx, fitted, cellX + 40, centerY, {
+            size: 16,
+            weight: 600,
+            color: "#352B33",
+            baseline: "middle",
+        });
+    });
 }
 
 /**
@@ -1080,7 +1159,7 @@ async function buildSectionCanvas(
         numberWaypoints: true,
     });
 
-    drawShadowedPanel(ctx, 84, 1178, 1072, 450, 32, "rgba(255, 255, 255, 0.92)");
+    drawShadowedPanel(ctx, 84, 1178, 1072, 520, 32, "rgba(255, 255, 255, 0.92)");
     drawText(ctx, "D\u00e9tails du tron\u00e7on", 118, 1218, {
         size: 24,
         weight: 800,
@@ -1122,52 +1201,13 @@ async function buildSectionCanvas(
         });
     });
 
-    drawText(ctx, "\u00c9tapes et arr\u00eats", 118, 1402, {
+    drawText(ctx, "Points de passage", 118, 1402, {
         size: 22,
         weight: 800,
         color: EXPORT_ACCENT,
     });
 
-    if (section.stepTitles.length === 0) {
-        drawParagraph(ctx, "Aucune \u00e9tape textuelle n'a \u00e9t\u00e9 renseign\u00e9e sur ce tron\u00e7on.", 118, 1442, 980, 30, {
-            size: 20,
-            weight: 500,
-            color: "#54414C",
-            maxLines: 4,
-        });
-    } else {
-        const { onSection, remaining } = splitSectionWaypoints(section.stepTitles);
-        onSection.forEach((stepTitle, stepIndex) => {
-            const rowY = 1442 + stepIndex * 36;
-            ctx.save();
-            ctx.fillStyle = "rgba(255, 255, 255, 0.96)";
-            roundRect(ctx, 118, rowY, 1000, 36, 16);
-            ctx.fill();
-            ctx.restore();
-
-            ctx.save();
-            ctx.fillStyle = EXPORT_ACCENT;
-            ctx.beginPath();
-            ctx.arc(138, rowY + 18, 7, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.restore();
-
-            drawText(ctx, fitText(ctx, `${stepIndex + 1}. ${stepTitle}`, 920), 160, rowY + 9, {
-                size: 18,
-                weight: 600,
-                color: "#352B33",
-            });
-        });
-
-        if (remaining.length > 0) {
-            drawParagraph(ctx, `Autres points de passage : ${remaining.join("  \u2022  ")}`, 118, 1442 + onSection.length * 36 + 8, 1000, 26, {
-                size: 16,
-                weight: 600,
-                color: "#54414C",
-                maxLines: 4,
-            });
-        }
-    }
+    drawSectionWaypointList(ctx, section.waypoints);
 
     return canvas;
 }
