@@ -32,6 +32,7 @@ type ExportSection = {
     departureLabel: string;
     stepTitles: string[];
     routePoints: RoutePoint[];
+    waypoints: RoutePoint[];
 };
 
 type PdfBinary = Uint8Array;
@@ -433,7 +434,12 @@ async function drawRouteSnapshot(
     height: number,
     routes: RoutePoint[][],
     title: string,
-    options: { variant: "section" | "overview"; showOverlayLabel?: boolean },
+    options: {
+        variant: "section" | "overview";
+        showOverlayLabel?: boolean;
+        waypoints?: RoutePoint[];
+        numberWaypoints?: boolean;
+    },
 ): Promise<void> {
     const routesWithPath = routes.filter((route) => route.length >= 2);
     const legendHeight = routesWithPath.length > 0 ? 88 : 0;
@@ -557,24 +563,54 @@ async function drawRouteSnapshot(
         ctx.restore();
     };
 
-    const showIntermediate =
-        options.variant === "section" && routesWithPath.length === 1 && routesWithPath[0].length >= 3;
-
-    if (showIntermediate) {
-        const decimated = decimateRoutePoints(routesWithPath[0], PDF_ROUTE_MAX_VERTICES);
-        decimated.forEach((routePoint, index) => {
-            if (index === 0 || index === decimated.length - 1 || !routePoint.label) {
-                return;
-            }
-            const point = projectPoint(routePoint);
+    const drawWaypointMarker = (point: { x: number; y: number }, label: string, numbered: boolean): void => {
+        if (!numbered) {
             ctx.save();
             ctx.fillStyle = EXPORT_ACCENT;
+            ctx.strokeStyle = "#FFFFFF";
+            ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.arc(point.x, point.y, 7, 0, Math.PI * 2);
+            ctx.arc(point.x, point.y, 8, 0, Math.PI * 2);
             ctx.fill();
+            ctx.stroke();
             ctx.restore();
+            return;
+        }
+
+        ctx.save();
+        ctx.shadowColor = "rgba(93, 17, 62, 0.24)";
+        ctx.shadowBlur = 10;
+        ctx.shadowOffsetY = 3;
+        ctx.fillStyle = EXPORT_ACCENT;
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, 13, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        ctx.save();
+        ctx.strokeStyle = "#FFFFFF";
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, 13, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+
+        drawText(ctx, label, point.x, point.y + 1, {
+            size: 15,
+            weight: 900,
+            color: "#FFFFFF",
+            align: "center",
+            baseline: "middle",
         });
-    }
+    };
+
+    const waypoints = options.waypoints ?? [];
+    waypoints.forEach((waypoint, index) => {
+        if (!Number.isFinite(waypoint.lat) || !Number.isFinite(waypoint.lon)) {
+            return;
+        }
+        drawWaypointMarker(projectPoint(waypoint), `${index + 1}`, options.numberWaypoints === true);
+    });
 
     drawMarker(firstMapped, "#16A34A");
     drawMarker(lastMapped, "#E11D48");
@@ -683,6 +719,24 @@ function collectRoutePoints(segment: Segment): RoutePoint[] {
     return geometryPoints.length > 0 ? geometryPoints : stepPoints;
 }
 
+/**
+ * Extrait les points de passage d'un segment (étapes géolocalisées) avec leur libellé,
+ * dans l'ordre, pour les matérialiser par des marqueurs sur la carte du PDF.
+ *
+ * @param segment — Segment métier.
+ * @returns Points de passage avec coordonnées finies et libellé.
+ */
+function collectSegmentWaypoints(segment: Segment): RoutePoint[] {
+    return segment.steps
+        .filter((step) => step.content.location)
+        .map((step) => ({
+            lat: step.content.location!.lat,
+            lon: step.content.location!.lon,
+            label: step.content.title.trim(),
+        }))
+        .filter((point) => Number.isFinite(point.lat) && Number.isFinite(point.lon));
+}
+
 /** Nombre de points de passage listés ligne par ligne sur la page du tronçon. */
 export const WAYPOINTS_ON_SECTION_PAGE = 5;
 
@@ -728,6 +782,7 @@ export function collectPdfSections(itinerary: Itinerary): ExportSection[] {
                 departureLabel: formatDateTime(segment.content.hour),
                 stepTitles,
                 routePoints: collectRoutePoints(segment),
+                waypoints: collectSegmentWaypoints(segment),
             };
         });
 }
@@ -812,9 +867,12 @@ async function buildCoverCanvas(itinerary: Itinerary, sections: ExportSection[])
     });
 
     drawShadowedPanel(ctx, 84, 402, 1072, 700, 34, EXPORT_PANEL);
+    const coverWaypoints = sections.flatMap((section) => section.waypoints.slice(1, -1));
     await drawRouteSnapshot(ctx, 108, 438, 1024, 628, overviewRoutesForCover(itinerary, sections), title, {
         variant: "overview",
         showOverlayLabel: false,
+        waypoints: coverWaypoints,
+        numberWaypoints: false,
     });
 
     drawShadowedPanel(ctx, 84, 1118, 1072, 170, 30, EXPORT_PANEL);
@@ -1016,6 +1074,8 @@ async function buildSectionCanvas(
     await drawRouteSnapshot(ctx, 120, 396, 1000, 710, [section.routePoints], section.title, {
         variant: "section",
         showOverlayLabel: false,
+        waypoints: section.waypoints.slice(1, -1),
+        numberWaypoints: true,
     });
 
     drawShadowedPanel(ctx, 84, 1178, 1072, 450, 32, "rgba(255, 255, 255, 0.92)");
