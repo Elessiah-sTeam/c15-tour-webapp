@@ -759,6 +759,19 @@ export function waypointListColumns(count: number): number {
 }
 
 /**
+ * Libellé de repli d'un point de passage sans titre, selon sa position dans le tronçon.
+ *
+ * @param index — Position 0-based du point dans le tronçon.
+ * @param isStart — Vrai pour le premier point.
+ * @param isEnd — Vrai pour le dernier point.
+ */
+function waypointFallbackLabel(index: number, isStart: boolean, isEnd: boolean): string {
+    if (isStart) return "Départ";
+    if (isEnd) return "Arrivée";
+    return `Point ${index}`;
+}
+
+/**
  * Dessine tous les points de passage d'un tronçon dans le bloc détails, répartis en
  * plusieurs colonnes. La numérotation des points intermédiaires correspond aux pastilles
  * numérotées de la carte ; le départ et l'arrivée portent une puce colorée (vert / rouge).
@@ -822,8 +835,7 @@ function drawSectionWaypointList(ctx: CanvasRenderingContext2D, waypoints: Route
             });
         }
 
-        const fallback = isStart ? "Départ" : isEnd ? "Arrivée" : `Point ${index}`;
-        const label = waypoint.label?.trim() || fallback;
+        const label = waypoint.label?.trim() || waypointFallbackLabel(index, isStart, isEnd);
         ctx.save();
         ctx.font = '600 16px "Montserrat", "Segoe UI", sans-serif';
         const fitted = fitText(ctx, label, columnWidth - 52);
