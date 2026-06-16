@@ -35,7 +35,7 @@ export async function addStepFromClick(lat: number, lon: number): Promise<void> 
     let targetSegmentId: string;
 
     if (regularSegments.length > 0) {
-        targetSegmentId = regularSegments[regularSegments.length - 1].id;
+        targetSegmentId = regularSegments.at(-1)!.id;
     } else {
         const newSegment: Segment = {
             id: "newseg" + new Date().toISOString(),
