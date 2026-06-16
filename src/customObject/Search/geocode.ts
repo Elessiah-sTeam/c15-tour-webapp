@@ -3,8 +3,10 @@
  * (géocodage direct) et l'ajout de points sur la carte (géocodage inverse).
  */
 
+// Passe par le proxy nginx / Vite (/nominatim) plutôt que d'appeler OSM en direct :
+// le navigateur est sinon bloqué (CORS/403) faute de User-Agent identifiant l'app.
 export const BASE_NOMINATIM_REVERSE_URL =
-  "https://nominatim.openstreetmap.org/reverse?format=json&addressdetails=0";
+  "/nominatim/reverse?format=json&addressdetails=0";
 
 type NominatimReverseResult = {
   display_name?: string;

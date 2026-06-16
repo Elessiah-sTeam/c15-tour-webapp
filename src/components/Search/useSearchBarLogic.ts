@@ -14,8 +14,10 @@ import {
 } from "../../customObject/Search/SearchIntentStore.ts";
 import { shortenDisplayName } from "../../customObject/Search/geocode.ts";
 
+// Passe par le proxy nginx / Vite (/nominatim) : appel direct à OSM bloqué côté
+// navigateur (CORS/403). Le proxy ajoute un User-Agent identifiant l'application.
 export const BASE_NOMINATIM_URL =
-  "https://nominatim.openstreetmap.org/search?format=json&limit=5&addressdetails=0&q=";
+  "/nominatim/search?format=json&limit=5&addressdetails=0&q=";
 
 export type NominatimResult = {
   lat: string;

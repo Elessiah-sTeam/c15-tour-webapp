@@ -10,6 +10,20 @@ export default defineConfig({
       },
     }),
   ],
+  // En dev (npm run dev), proxifie /nominatim vers OSM avec un User-Agent identifiant
+  // l'app, comme le fait nginx en production : évite le blocage CORS/403 du navigateur.
+  server: {
+    proxy: {
+      '/nominatim': {
+        target: 'https://nominatim.openstreetmap.org',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/nominatim/, ''),
+        headers: {
+          'User-Agent': 'c15-tour/1.0 (+https://github.com/Elessiah-sTeam/c15-tour-webapp)',
+        },
+      },
+    },
+  },
   test: {
     environment: 'jsdom',
     globals: true,
