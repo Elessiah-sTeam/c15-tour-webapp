@@ -598,7 +598,7 @@ async function drawRouteSnapshot(
         ctx.restore();
 
         drawText(ctx, label, point.x, point.y + 1, {
-            size: 15,
+            size: label.length >= 2 ? 12 : 15,
             weight: 900,
             color: "#FFFFFF",
             align: "center",
