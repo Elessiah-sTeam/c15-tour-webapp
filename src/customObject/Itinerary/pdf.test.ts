@@ -112,6 +112,31 @@ describe("collectPdfSections", () => {
         ]);
     });
 
+    it("collects geolocated waypoints with their labels", () => {
+        const itinerary = buildItinerary([
+            buildSegment({ id: "start", isStartEnd: true, content: { title: " ", geometry: undefined } }),
+            buildSegment({
+                id: "leg-wp",
+                content: { title: "Tronçon", geometry: undefined },
+                steps: [
+                    { id: "a", isDefaultSegStart: false, content: { title: "Départ", duration: new TimeSpan(), location: { lat: 47, lon: -1 } } },
+                    { id: "m", isDefaultSegStart: false, content: { title: "Halte", duration: new TimeSpan(), location: { lat: 47.5, lon: -1.5 } } },
+                    { id: "n", isDefaultSegStart: false, content: { title: "Sans coord", duration: new TimeSpan() } },
+                    { id: "b", isDefaultSegStart: false, content: { title: "Arrivée", duration: new TimeSpan(), location: { lat: 48, lon: -2 } } },
+                ],
+            }),
+            buildSegment({ id: "end", isStartEnd: true, content: { title: " ", geometry: undefined } }),
+        ]);
+
+        const sections = collectPdfSections(itinerary);
+
+        expect(sections[0].waypoints).toEqual([
+            { lat: 47, lon: -1, label: "Départ" },
+            { lat: 47.5, lon: -1.5, label: "Halte" },
+            { lat: 48, lon: -2, label: "Arrivée" },
+        ]);
+    });
+
     it("formats segment distances with a French decimal comma", () => {
         const itinerary = buildItinerary([
             buildSegment({ id: "start", isStartEnd: true, content: { title: " ", geometry: undefined } }),
