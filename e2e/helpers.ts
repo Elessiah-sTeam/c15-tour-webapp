@@ -20,7 +20,8 @@ export async function seedAuth(page: Page, email = 'pilote@c15.fr'): Promise<voi
 /** Bloque les tuiles de carte et les requêtes Nominatim (réseau externe). */
 export async function stubExternalMaps(page: Page): Promise<void> {
   await page.route(/tile\.openstreetmap\.org/, (route: Route) => route.abort());
-  await page.route(/nominatim\.openstreetmap\.org.*/, (route: Route) =>
+  // Le géocodage passe soit en direct (OSM), soit par le proxy applicatif (/nominatim).
+  await page.route(/(nominatim\.openstreetmap\.org|\/nominatim\/)/, (route: Route) =>
     route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }),
   );
 }
