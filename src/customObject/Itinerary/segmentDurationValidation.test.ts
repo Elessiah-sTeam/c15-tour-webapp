@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
-    buildSegmentDurationErrorMessage,
+    buildSegmentDurationHint,
     findSegmentDurationViolations,
+    getSegmentDurationViolation,
 } from "./segmentDurationValidation.ts";
 import type { Itinerary, Segment } from "./types.ts";
 import type { GlobalSettings } from "../../components/SettingsModal/settingsTypes.ts";
@@ -41,6 +42,35 @@ const bounds: Pick<GlobalSettings, "minSegmentDuration" | "maxSegmentDuration"> 
     maxSegmentDuration: 4,
 };
 
+describe("getSegmentDurationViolation", () => {
+    it("retourne null quand la durée est dans les bornes", () => {
+        expect(getSegmentDurationViolation(makeSegment("a", 2), bounds)).toBeNull();
+    });
+
+    it("retourne null pour un segment exactement aux bornes", () => {
+        expect(getSegmentDurationViolation(makeSegment("a", 1), bounds)).toBeNull();
+        expect(getSegmentDurationViolation(makeSegment("b", 4), bounds)).toBeNull();
+    });
+
+    it("signale un segment trop court", () => {
+        const violation = getSegmentDurationViolation(makeSegment("a", 0.5), bounds);
+
+        expect(violation?.kind).toBe("min");
+        expect(violation?.durationLabel).toBe("0h30");
+    });
+
+    it("signale un segment trop long", () => {
+        const violation = getSegmentDurationViolation(makeSegment("a", 5), bounds);
+
+        expect(violation?.kind).toBe("max");
+    });
+
+    it("ignore les segments de départ/arrivée", () => {
+        expect(getSegmentDurationViolation(makeSegment("start", 0, { isStartEnd: true }), bounds)).toBeNull();
+        expect(getSegmentDurationViolation(makeSegment("end", 0), bounds)).toBeNull();
+    });
+});
+
 describe("findSegmentDurationViolations", () => {
     it("ne retourne aucune violation quand tous les segments sont dans les bornes", () => {
         const itinerary = makeItinerary([makeSegment("a", 2), makeSegment("b", 3.5)]);
@@ -48,50 +78,29 @@ describe("findSegmentDurationViolations", () => {
         expect(findSegmentDurationViolations(itinerary, bounds)).toEqual([]);
     });
 
-    it("signale un segment trop court", () => {
-        const itinerary = makeItinerary([makeSegment("a", 0.5)]);
+    it("recense chaque segment hors bornes", () => {
+        const itinerary = makeItinerary([makeSegment("a", 0.5), makeSegment("b", 2), makeSegment("c", 6)]);
 
         const violations = findSegmentDurationViolations(itinerary, bounds);
 
-        expect(violations).toHaveLength(1);
-        expect(violations[0].kind).toBe("min");
-        expect(violations[0].durationLabel).toBe("0h30");
-    });
-
-    it("signale un segment trop long", () => {
-        const itinerary = makeItinerary([makeSegment("a", 5)]);
-
-        const violations = findSegmentDurationViolations(itinerary, bounds);
-
-        expect(violations).toHaveLength(1);
-        expect(violations[0].kind).toBe("max");
-    });
-
-    it("accepte les segments exactement aux bornes", () => {
-        const itinerary = makeItinerary([makeSegment("a", 1), makeSegment("b", 4)]);
-
-        expect(findSegmentDurationViolations(itinerary, bounds)).toEqual([]);
-    });
-
-    it("ignore les segments de départ/arrivée", () => {
-        const itinerary = makeItinerary([
-            makeSegment("start", 0, { isStartEnd: true }),
-            makeSegment("end", 0, { isStartEnd: true }),
-        ]);
-
-        expect(findSegmentDurationViolations(itinerary, bounds)).toEqual([]);
+        expect(violations).toHaveLength(2);
+        expect(violations.map((v) => v.kind)).toEqual(["min", "max"]);
     });
 });
 
-describe("buildSegmentDurationErrorMessage", () => {
-    it("mentionne le nom du segment et la borne dépassée", () => {
-        const itinerary = makeItinerary([makeSegment("a", 5)]);
-        const violations = findSegmentDurationViolations(itinerary, bounds);
+describe("buildSegmentDurationHint", () => {
+    it("mentionne la durée et la borne max quand le segment est trop long", () => {
+        const violation = getSegmentDurationViolation(makeSegment("a", 5), bounds)!;
 
-        const message = buildSegmentDurationErrorMessage(violations, bounds);
+        expect(buildSegmentDurationHint(violation, bounds)).toBe(
+            "« Segment a » trop long : 5h00 (max 4h)"
+        );
+    });
 
-        expect(message).toContain("Segment a");
-        expect(message).toContain("maximum de 4h");
-        expect(message).toContain("Impossible d'enregistrer");
+    it("mentionne la borne min quand le segment est trop court", () => {
+        const violation = getSegmentDurationViolation(makeSegment("a", 0.5), bounds)!;
+
+        expect(buildSegmentDurationHint(violation, bounds)).toContain("trop court");
+        expect(buildSegmentDurationHint(violation, bounds)).toContain("min 1h");
     });
 });
