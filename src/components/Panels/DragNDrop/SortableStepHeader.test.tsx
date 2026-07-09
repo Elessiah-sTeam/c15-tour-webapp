@@ -21,8 +21,8 @@ const category: Segment = {
 
 const model = {} as unknown as ItineraryModel;
 
-function renderHeader(durationHint: string | null) {
-    return render(
+function tree(durationHint: string | null) {
+    return (
         <DndContext>
             <SortableContext items={[category.id]}>
                 <SortableStepHeader category={category} model={model} durationHint={durationHint} />
@@ -33,20 +33,35 @@ function renderHeader(durationHint: string | null) {
 
 describe('SortableStepHeader', () => {
     it('marque le header en rouge et pose un tooltip quand la durée est hors bornes', () => {
-        const { container } = renderHeader('Segment 1 trop long : 5h00 (max 4h)');
+        const hint = 'Segment 1 trop long : 5h00 (max 4h)';
+        const { container, rerender } = render(tree(hint));
+        rerender(tree(hint));
 
         const header = container.querySelector('.StepHeader');
         expect(header).toHaveClass('invalid');
         expect(header).toHaveAttribute('aria-invalid', 'true');
-        expect(header).toHaveAttribute('title', 'Segment 1 trop long : 5h00 (max 4h)');
+        expect(header).toHaveAttribute('title', hint);
     });
 
     it('ne marque pas le header quand la durée est valide', () => {
-        const { container } = renderHeader(null);
+        const { container, rerender } = render(tree(null));
+        rerender(tree(null));
 
         const header = container.querySelector('.StepHeader');
         expect(header).not.toHaveClass('invalid');
         expect(header).not.toHaveAttribute('aria-invalid');
         expect(header).not.toHaveAttribute('title');
+    });
+
+    it('utilise la valeur par défaut quand durationHint est omis', () => {
+        const { container } = render(
+            <DndContext>
+                <SortableContext items={[category.id]}>
+                    <SortableStepHeader category={category} model={model} />
+                </SortableContext>
+            </DndContext>
+        );
+
+        expect(container.querySelector('.StepHeader')).not.toHaveClass('invalid');
     });
 });

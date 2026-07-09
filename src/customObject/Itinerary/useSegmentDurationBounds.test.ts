@@ -48,6 +48,9 @@ describe("useSegmentDurationBounds", () => {
         rerender();
 
         expect(result.current).toEqual({ minSegmentDuration: 1, maxSegmentDuration: 3 });
+
+        rerender();
+        expect(result.current).toEqual({ minSegmentDuration: 1, maxSegmentDuration: 3 });
     });
 
     it("ignore une valeur stockée invalide", () => {

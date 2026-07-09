@@ -52,6 +52,13 @@ describe("getSegmentDurationViolation", () => {
         expect(violation?.kind).toBe("max");
     });
 
+    it("nomme un segment sans titre", () => {
+        const segment = makeSegment("a", 5);
+        segment.content.title = "";
+
+        expect(getSegmentDurationViolation(segment, bounds)?.segmentName).toBe("Segment sans nom");
+    });
+
     it("ignore les segments de départ/arrivée", () => {
         expect(getSegmentDurationViolation(makeSegment("start", 0, { isStartEnd: true }), bounds)).toBeNull();
         expect(getSegmentDurationViolation(makeSegment("end", 0), bounds)).toBeNull();

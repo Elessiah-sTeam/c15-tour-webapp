@@ -26,12 +26,16 @@ function segment(id: string): Segment {
     };
 }
 
-function renderCategory(durationHint: string | null) {
-    return render(
+function tree(durationHint: string | null) {
+    return (
         <DndContext>
             <SortableCategory category={segment('seg-1')} visible={true} idActiveItem={null} durationHint={durationHint} />
         </DndContext>
     );
+}
+
+function renderCategory(durationHint: string | null) {
+    return render(tree(durationHint));
 }
 
 describe('SortableCategory surbrillance durée', () => {
@@ -39,7 +43,8 @@ describe('SortableCategory surbrillance durée', () => {
     afterEach(() => vi.useRealTimers());
 
     it('transmet le hint au header pour la surbrillance', () => {
-        renderCategory('Segment trop long');
+        const { rerender } = renderCategory('Segment trop long');
+        rerender(tree('Segment trop long'));
 
         expect(screen.getByTestId('header')).toHaveAttribute('data-hint', 'Segment trop long');
     });
@@ -67,5 +72,26 @@ describe('SortableCategory surbrillance durée', () => {
         act(() => vi.advanceTimersByTime(4000));
 
         expect(screen.queryByText(message)).not.toBeInTheDocument();
+    });
+
+    it('masque le message quand le segment repasse dans les bornes', () => {
+        const message = 'Segment trop long : 5h00 (max 4h)';
+        const { rerender } = renderCategory(null);
+
+        act(() => rerender(tree(message)));
+        expect(screen.getByText(message)).toBeInTheDocument();
+
+        act(() => rerender(tree(null)));
+        expect(screen.queryByText(message)).not.toBeInTheDocument();
+    });
+
+    it('n\'affiche pas de header pour un segment de début/fin et gère durationHint omis', () => {
+        render(
+            <DndContext>
+                <SortableCategory category={{ ...segment('end'), isStartEnd: true }} visible={true} idActiveItem={null} />
+            </DndContext>
+        );
+
+        expect(screen.queryByTestId('header')).not.toBeInTheDocument();
     });
 });
