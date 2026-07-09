@@ -126,6 +126,7 @@ export function itineraryResponseToItinerary(response: ItineraryResponse): Itine
         id: response.id,
         name: response.name,
         shareCode: response.shareCode ?? "",
+        organiserCode: response.organiserCode ?? "",
         totalDuration: new TimeSpan((response.totalDuration ?? 0) * 1000),
         totalDistance: (response.totalDistance ?? 0) * 0.001,
         segments: updateStarts(normalizeSegments(response.segments ?? [], response.departureTime, refId)),

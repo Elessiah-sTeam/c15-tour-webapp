@@ -48,6 +48,8 @@ export type Itinerary = {
     id: number;
     name: string;
     shareCode: string;
+    /** Code réservé aux organisateurs ; absent tant que l'itinéraire n'a pas été chargé/enregistré */
+    organiserCode?: string;
     totalDuration: TimeSpan;
     totalDistance: number;
     segments: Segment[];

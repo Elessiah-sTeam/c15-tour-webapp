@@ -10,6 +10,7 @@ export function createItineraryStore(initial?: Itinerary): ItineraryStore
             id: -1,
             name: "Nouveau Convoi",
             shareCode: "",
+            organiserCode: "",
             totalDuration: new TimeSpan(),
             totalDistance: 0,
             segments: new Array<Segment>(),

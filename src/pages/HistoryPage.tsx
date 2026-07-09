@@ -31,7 +31,7 @@ export default function HistoryPage() {
     const [clientPage, setClientPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [totalElements, setTotalElements] = useState(0);
-    const [shareCode, setShareCode] = useState<string | null>(null);
+    const [shareTarget, setShareTarget] = useState<{ code: string; label: string } | null>(null);
     const [exportingId, setExportingId] = useState<number | null>(null);
 
     const isFiltered = filter !== 'all';
@@ -249,7 +249,7 @@ export default function HistoryPage() {
                                 itinerary={itinerary}
                                 onOpen={handleOpenConvoy}
                                 onDelete={handleDelete}
-                                onShare={setShareCode}
+                                onShare={(code, label) => setShareTarget({ code, label })}
                                 onExportPdf={handleExportPdf}
                                 isExportingPdf={exportingId === itinerary.id}
                             />
@@ -282,8 +282,12 @@ export default function HistoryPage() {
             </main>
         </div>
 
-        {shareCode && (
-            <ShareModal shareCode={shareCode} onClose={() => setShareCode(null)} />
+        {shareTarget && (
+            <ShareModal
+                shareCode={shareTarget.code}
+                codeLabel={shareTarget.label}
+                onClose={() => setShareTarget(null)}
+            />
         )}
         </>
     );
