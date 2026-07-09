@@ -44,9 +44,11 @@ export default function ActionButtons() {
     const itinerary = useItinerary(itineraryModel.store);
     const isDirty = useIsDirty();
     const [showSettings, setShowSettings] = useState(false);
-    const [showShare, setShowShare] = useState(false);
+    const [showShareMenu, setShowShareMenu] = useState(false);
+    const [shareTarget, setShareTarget] = useState<{ code: string; label: string } | null>(null);
     const [showExport, setShowExport] = useState(false);
     const exportRef = useOutsideClick<HTMLDivElement>(() => setShowExport(false));
+    const shareRef = useOutsideClick<HTMLDivElement>(() => setShowShareMenu(false));
     const [currentSettings, setCurrentSettings] = useState<GlobalSettings | undefined>(undefined);
     const [isExportingPdf, setIsExportingPdf] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -58,7 +60,8 @@ export default function ActionButtons() {
     const deleteModeLabel = delMod
         ? "Quitter le mode suppression"
         : "Activer le mode suppression";
-    const shareLabel = itinerary.shareCode
+    const canShare = Boolean(itinerary.shareCode) || Boolean(itinerary.organiserCode);
+    const shareLabel = canShare
         ? "Partager"
         : "Partage indisponible";
     const downloadLabel = canDownloadGpx
@@ -145,6 +148,11 @@ export default function ActionButtons() {
         await handleExportPdf();
     };
 
+    const handleSelectShare = (code: string, label: string) => {
+        setShowShareMenu(false);
+        setShareTarget({ code, label });
+    };
+
     return (
         <>
             <div className={"action-buttons"}>
@@ -167,15 +175,43 @@ export default function ActionButtons() {
                         : <Trash color={"#BB487C"} />
                     }
                 </button>
-                <button
-                    className={"share-btn"}
-                    aria-label={shareLabel}
-                    title={shareLabel}
-                    onClick={() => setShowShare(true)}
-                    disabled={!itinerary.shareCode}
-                >
-                    <Share2 color={itinerary.shareCode ? "#BB487C" : "#ccc"} />
-                </button>
+                <div className={"export-menu-wrapper"} ref={shareRef}>
+                    <button
+                        className={"share-btn"}
+                        aria-label={shareLabel}
+                        title={shareLabel}
+                        aria-haspopup={"menu"}
+                        aria-expanded={showShareMenu}
+                        onClick={() => setShowShareMenu((prev) => !prev)}
+                        disabled={!canShare}
+                    >
+                        <Share2 color={canShare ? "#BB487C" : "#ccc"} />
+                    </button>
+                    {showShareMenu && (
+                        <div className={"export-menu"} role={"menu"}>
+                            <button
+                                type={"button"}
+                                className={"export-menu-item"}
+                                role={"menuitem"}
+                                onClick={() => handleSelectShare(itinerary.shareCode, "Code membre")}
+                                disabled={!itinerary.shareCode}
+                            >
+                                <Share2 size={16} />
+                                Partager le code membre
+                            </button>
+                            <button
+                                type={"button"}
+                                className={"export-menu-item"}
+                                role={"menuitem"}
+                                onClick={() => handleSelectShare(itinerary.organiserCode ?? "", "Code orga")}
+                                disabled={!itinerary.organiserCode}
+                            >
+                                <Share2 size={16} />
+                                Partager le code orga
+                            </button>
+                        </div>
+                    )}
+                </div>
                 <div className={"export-menu-wrapper"} ref={exportRef}>
                     <button
                         className={"export-btn"}
@@ -243,10 +279,11 @@ export default function ActionButtons() {
                 />
             )}
 
-            {showShare && itinerary.shareCode && (
+            {shareTarget && (
                 <ShareModal
-                    shareCode={itinerary.shareCode}
-                    onClose={() => setShowShare(false)}
+                    shareCode={shareTarget.code}
+                    codeLabel={shareTarget.label}
+                    onClose={() => setShareTarget(null)}
                 />
             )}
         </>

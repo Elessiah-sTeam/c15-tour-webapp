@@ -6,10 +6,12 @@ import './ShareModal.css';
 
 type ShareModalProps = {
     shareCode: string;
+    /** Libellé du code affiché (ex. « Code membre » ou « Code orga »). Défaut : « Code ». */
+    codeLabel?: string;
     onClose: () => void;
 }
 
-export default function ShareModal({ shareCode, onClose }: ShareModalProps) {
+export default function ShareModal({ shareCode, codeLabel = "Code", onClose }: ShareModalProps) {
     const [copied, setCopied] = useState(false);
 
     useEffect(() => {
@@ -56,7 +58,7 @@ export default function ShareModal({ shareCode, onClose }: ShareModalProps) {
                 </div>
 
                 <div className="share-code-row">
-                    <span className="share-code-label">Code :</span>
+                    <span className="share-code-label">{codeLabel} :</span>
                     <span className="share-code-value">{shareCode}</span>
                     <button className="share-copy-btn" onClick={handleCopy} aria-label="Copier le code">
                         {copied ? <Check size={16} color="#4caf50" /> : <Copy size={16} color="#BB487C" />}

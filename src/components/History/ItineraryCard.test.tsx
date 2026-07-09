@@ -77,15 +77,31 @@ describe("ItineraryCard", () => {
         expect(onDelete).toHaveBeenCalledWith(7);
     });
 
-    it("partage le convoi avec son shareCode (SHARE)", async () => {
+    it("partage le code membre via le menu de partage (SHARE)", async () => {
         const user = userEvent.setup();
-        const { onShare } = setup();
+        const { onShare } = setup({ organiserCode: "ORGA7" });
         await user.click(screen.getByRole("button", { name: /^partager$/i }));
-        expect(onShare).toHaveBeenCalledWith("SHARE7");
+        await user.click(screen.getByRole("menuitem", { name: /code membre/i }));
+        expect(onShare).toHaveBeenCalledWith("SHARE7", "Code membre");
     });
 
-    it("désactive le partage sans shareCode", () => {
-        setup({ shareCode: undefined });
+    it("partage le code orga via le menu de partage (SHARE)", async () => {
+        const user = userEvent.setup();
+        const { onShare } = setup({ organiserCode: "ORGA7" });
+        await user.click(screen.getByRole("button", { name: /^partager$/i }));
+        await user.click(screen.getByRole("menuitem", { name: /code orga/i }));
+        expect(onShare).toHaveBeenCalledWith("ORGA7", "Code orga");
+    });
+
+    it("désactive le choix code orga quand il est absent", async () => {
+        const user = userEvent.setup();
+        setup({ organiserCode: undefined });
+        await user.click(screen.getByRole("button", { name: /^partager$/i }));
+        expect(screen.getByRole("menuitem", { name: /code orga/i })).toBeDisabled();
+    });
+
+    it("désactive le partage sans aucun code", () => {
+        setup({ shareCode: undefined, organiserCode: undefined });
         expect(screen.getByRole("button", { name: /partage indisponible/i })).toBeDisabled();
     });
 

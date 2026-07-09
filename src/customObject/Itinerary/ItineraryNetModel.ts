@@ -377,6 +377,7 @@ export class ItineraryNetModel {
                 id: response.id,
                 name: response.name,
                 shareCode: response.shareCode ?? "",
+                organiserCode: response.organiserCode ?? "",
                 totalDuration: new TimeSpan(totalDurationSec * 1000),
                 totalDistance: totalDistanceM * 0.001,
                 segments: updateStarts(segments),

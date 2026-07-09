@@ -7,6 +7,7 @@ const mockItinerary = {
     id: 1,
     name: 'Convoi test',
     shareCode: '',
+    organiserCode: '',
     segments: [{ id: 'seg-1', content: { geometry: { type: 'Feature' } } }],
 };
 
@@ -112,6 +113,44 @@ describe('ActionButtons export menu', () => {
         await user.click(screen.getByLabelText("Exporter l'itinéraire"));
 
         expect(screen.getByText('Téléchargement GPX indisponible').closest('button')).toBeDisabled();
+    });
+});
+
+describe('ActionButtons share menu', () => {
+    beforeEach(() => {
+        mockItinerary.shareCode = 'MEMBER1';
+        mockItinerary.organiserCode = 'ORGA1';
+    });
+
+    it('propose le partage du code membre et du code orga', async () => {
+        const user = userEvent.setup();
+        render(<ActionButtons />);
+
+        await user.click(screen.getByRole('button', { name: /^partager$/i }));
+
+        expect(screen.getByText('Partager le code membre')).toBeInTheDocument();
+        expect(screen.getByText('Partager le code orga')).toBeInTheDocument();
+    });
+
+    it('affiche le code orga dans la modale de partage', async () => {
+        const user = userEvent.setup();
+        render(<ActionButtons />);
+
+        await user.click(screen.getByRole('button', { name: /^partager$/i }));
+        await user.click(screen.getByText('Partager le code orga'));
+
+        expect(screen.getByText('ORGA1')).toBeInTheDocument();
+        expect(screen.getByText('Code orga :')).toBeInTheDocument();
+    });
+
+    it('désactive le choix code orga quand il est absent', async () => {
+        mockItinerary.organiserCode = '';
+        const user = userEvent.setup();
+        render(<ActionButtons />);
+
+        await user.click(screen.getByRole('button', { name: /^partager$/i }));
+
+        expect(screen.getByText('Partager le code orga').closest('button')).toBeDisabled();
     });
 });
 
