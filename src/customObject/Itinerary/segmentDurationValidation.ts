@@ -38,16 +38,16 @@ export function findSegmentDurationViolations(
 ): SegmentDurationViolation[] {
     const { minSegmentDuration, maxSegmentDuration } = bounds;
 
-    return itinerary.segments.filter(isCheckableSegment).flatMap((segment) => {
+    return itinerary.segments.filter(isCheckableSegment).flatMap((segment): SegmentDurationViolation[] => {
         const hours = normalizeDuration(segment.content.duration).duration / MS_PER_HOUR;
         const segmentName = segment.content.title || "Segment sans nom";
         const durationLabel = formatDurationLabel(segment.content.duration);
 
         if (hours < minSegmentDuration) {
-            return [{ segmentName, durationLabel, kind: "min" as const }];
+            return [{ segmentName, durationLabel, kind: "min" }];
         }
         if (hours > maxSegmentDuration) {
-            return [{ segmentName, durationLabel, kind: "max" as const }];
+            return [{ segmentName, durationLabel, kind: "max" }];
         }
         return [];
     });

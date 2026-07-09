@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { SegmentDurationViolation } from '../../customObject/Itinerary/segmentDurationValidation.ts';
 
 const mockItinerary = {
     id: 1,
@@ -37,7 +38,7 @@ vi.mock('../../customObject/Toast/ToastStore', () => ({
 }));
 
 const { findSegmentDurationViolations, buildSegmentDurationErrorMessage } = vi.hoisted(() => ({
-    findSegmentDurationViolations: vi.fn(() => []),
+    findSegmentDurationViolations: vi.fn((): SegmentDurationViolation[] => []),
     buildSegmentDurationErrorMessage: vi.fn(() => 'Segment hors bornes'),
 }));
 vi.mock('../../customObject/Itinerary/segmentDurationValidation', () => ({
