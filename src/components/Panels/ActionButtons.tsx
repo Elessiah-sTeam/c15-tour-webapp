@@ -14,6 +14,10 @@ import { downloadGpx, hasGpxGeometry } from "../../customObject/Itinerary/gpx.ts
 import { downloadItineraryPdf, collectPdfSections } from "../../customObject/Itinerary/pdf.ts";
 import { pushErrorToast } from "../../customObject/Toast/ToastStore.ts";
 import { useIsDirty } from "../../customObject/SaveState/useIsDirty.ts";
+import {
+    buildSegmentDurationErrorMessage,
+    findSegmentDurationViolations,
+} from "../../customObject/Itinerary/segmentDurationValidation.ts";
 
 function buildDepartureDateTime(departureDate: string, departureTime: string): Date | null {
     if (!departureDate || !departureTime) {
@@ -89,13 +93,29 @@ export default function ActionButtons() {
         itineraryModel.applySegmentPauseConfigs(settings.pauseConfigs);
     };
 
+    const hasValidSegmentDurations = (): boolean => {
+        const settings = loadGlobalSettings(itinerary);
+        const violations = findSegmentDurationViolations(itinerary, settings);
+        if (violations.length > 0) {
+            pushErrorToast(buildSegmentDurationErrorMessage(violations, settings));
+            return false;
+        }
+        return true;
+    };
+
     const handleSaveAsDraft = async () => {
+        if (!hasValidSegmentDurations()) {
+            return;
+        }
         setIsSaving(true);
         await itineraryModel.netModel.saveAsDraft();
         setIsSaving(false);
     };
 
     const handleSaveAsFinalized = async () => {
+        if (!hasValidSegmentDurations()) {
+            return;
+        }
         setIsSaving(true);
         await itineraryModel.netModel.saveAsFinalized();
         setIsSaving(false);
