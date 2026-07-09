@@ -21,8 +21,33 @@ vi.mock('../../customObject/SaveState/useIsDirty', () => ({
 vi.mock('../../customObject/DeleteMod/DeleteModStore', () => ({
     deleteModStore: { set: vi.fn() },
 }));
+const { saveAsDraft, saveAsFinalized } = vi.hoisted(() => ({
+    saveAsDraft: vi.fn(() => Promise.resolve()),
+    saveAsFinalized: vi.fn(() => Promise.resolve()),
+}));
 vi.mock('../../customObject/Itinerary/ItineraryStore', () => ({
-    itineraryModel: { store: {}, netModel: {} },
+    itineraryModel: { store: {}, netModel: { saveAsDraft, saveAsFinalized } },
+}));
+
+const { pushErrorToast } = vi.hoisted(() => ({
+    pushErrorToast: vi.fn(),
+}));
+vi.mock('../../customObject/Toast/ToastStore', () => ({
+    pushErrorToast,
+}));
+
+const { findSegmentDurationViolations, buildSegmentDurationErrorMessage } = vi.hoisted(() => ({
+    findSegmentDurationViolations: vi.fn(() => []),
+    buildSegmentDurationErrorMessage: vi.fn(() => 'Segment hors bornes'),
+}));
+vi.mock('../../customObject/Itinerary/segmentDurationValidation', () => ({
+    findSegmentDurationViolations,
+    buildSegmentDurationErrorMessage,
+}));
+
+vi.mock('../SettingsModal/settingsStorage', () => ({
+    loadGlobalSettings: () => ({ minSegmentDuration: 1, maxSegmentDuration: 4 }),
+    persistGlobalSettings: vi.fn(),
 }));
 
 const { downloadGpx, hasGpxGeometry, downloadItineraryPdf } = vi.hoisted(() => ({
@@ -86,5 +111,50 @@ describe('ActionButtons export menu', () => {
         await user.click(screen.getByLabelText("Exporter l'itinéraire"));
 
         expect(screen.getByText('Téléchargement GPX indisponible').closest('button')).toBeDisabled();
+    });
+});
+
+describe('ActionButtons sauvegarde et durée des segments', () => {
+    beforeEach(() => {
+        saveAsDraft.mockClear();
+        saveAsFinalized.mockClear();
+        pushErrorToast.mockClear();
+        findSegmentDurationViolations.mockReturnValue([]);
+    });
+
+    it('enregistre le convoi quand toutes les durées sont valides', async () => {
+        const user = userEvent.setup();
+        render(<ActionButtons />);
+
+        await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
+
+        expect(saveAsFinalized).toHaveBeenCalledTimes(1);
+        expect(pushErrorToast).not.toHaveBeenCalled();
+    });
+
+    it('bloque la sauvegarde et affiche une erreur quand un segment est hors bornes', async () => {
+        findSegmentDurationViolations.mockReturnValue([
+            { segmentName: 'Segment a', durationLabel: '5h00', kind: 'max' },
+        ]);
+        const user = userEvent.setup();
+        render(<ActionButtons />);
+
+        await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
+
+        expect(saveAsFinalized).not.toHaveBeenCalled();
+        expect(pushErrorToast).toHaveBeenCalledWith('Segment hors bornes');
+    });
+
+    it('bloque aussi la sauvegarde en brouillon', async () => {
+        findSegmentDurationViolations.mockReturnValue([
+            { segmentName: 'Segment a', durationLabel: '0h30', kind: 'min' },
+        ]);
+        const user = userEvent.setup();
+        render(<ActionButtons />);
+
+        await user.click(screen.getByRole('button', { name: 'Brouillon' }));
+
+        expect(saveAsDraft).not.toHaveBeenCalled();
+        expect(pushErrorToast).toHaveBeenCalledTimes(1);
     });
 });
