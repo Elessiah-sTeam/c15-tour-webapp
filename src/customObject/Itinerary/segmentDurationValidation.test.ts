@@ -1,10 +1,9 @@
 import { describe, it, expect } from "vitest";
 import {
     buildSegmentDurationHint,
-    findSegmentDurationViolations,
     getSegmentDurationViolation,
 } from "./segmentDurationValidation.ts";
-import type { Itinerary, Segment } from "./types.ts";
+import type { Segment } from "./types.ts";
 import type { GlobalSettings } from "../../components/SettingsModal/settingsTypes.ts";
 import { TimeSpan } from "../TimeSpan.ts";
 
@@ -22,18 +21,6 @@ function makeSegment(id: string, hours: number, overrides: Partial<Segment> = {}
             distance: 0,
         },
         ...overrides,
-    };
-}
-
-function makeItinerary(segments: Segment[]): Itinerary {
-    return {
-        id: 1,
-        name: "Convoi",
-        shareCode: "",
-        totalDuration: new TimeSpan(),
-        totalDistance: 0,
-        segments,
-        draft: true,
     };
 }
 
@@ -68,23 +55,6 @@ describe("getSegmentDurationViolation", () => {
     it("ignore les segments de départ/arrivée", () => {
         expect(getSegmentDurationViolation(makeSegment("start", 0, { isStartEnd: true }), bounds)).toBeNull();
         expect(getSegmentDurationViolation(makeSegment("end", 0), bounds)).toBeNull();
-    });
-});
-
-describe("findSegmentDurationViolations", () => {
-    it("ne retourne aucune violation quand tous les segments sont dans les bornes", () => {
-        const itinerary = makeItinerary([makeSegment("a", 2), makeSegment("b", 3.5)]);
-
-        expect(findSegmentDurationViolations(itinerary, bounds)).toEqual([]);
-    });
-
-    it("recense chaque segment hors bornes", () => {
-        const itinerary = makeItinerary([makeSegment("a", 0.5), makeSegment("b", 2), makeSegment("c", 6)]);
-
-        const violations = findSegmentDurationViolations(itinerary, bounds);
-
-        expect(violations).toHaveLength(2);
-        expect(violations.map((v) => v.kind)).toEqual(["min", "max"]);
     });
 });
 

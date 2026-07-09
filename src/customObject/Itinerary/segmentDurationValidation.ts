@@ -1,4 +1,4 @@
-import type { Itinerary, Segment } from "./types.ts";
+import type { Segment } from "./types.ts";
 import type { GlobalSettings } from "../../components/SettingsModal/settingsTypes.ts";
 import { TimeSpan } from "../TimeSpan.ts";
 
@@ -51,21 +51,6 @@ export function getSegmentDurationViolation(
         durationLabel: formatDurationLabel(segment.content.duration),
         kind: hours < bounds.minSegmentDuration ? "min" : "max",
     };
-}
-
-/**
- * Recense tous les segments de l'itinéraire dont la durée sort des bornes.
- * @param itinerary itinéraire à contrôler
- * @param bounds durées min et max autorisées, en heures
- */
-export function findSegmentDurationViolations(
-    itinerary: Itinerary,
-    bounds: SegmentDurationBounds
-): SegmentDurationViolation[] {
-    return itinerary.segments.flatMap((segment): SegmentDurationViolation[] => {
-        const violation = getSegmentDurationViolation(segment, bounds);
-        return violation ? [violation] : [];
-    });
 }
 
 /**
