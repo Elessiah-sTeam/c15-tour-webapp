@@ -1,4 +1,4 @@
-import type { Itinerary, Segment } from "./types.ts";
+import type { Segment } from "./types.ts";
 import type { GlobalSettings } from "../../components/SettingsModal/settingsTypes.ts";
 import { TimeSpan } from "../TimeSpan.ts";
 
@@ -27,50 +27,42 @@ function formatDurationLabel(duration?: TimeSpan): string {
 }
 
 /**
- * Recense les segments dont la durée sort des bornes min/max définies dans les
- * paramètres globaux. Les segments de départ/arrivée sont ignorés.
- * @param itinerary itinéraire à contrôler
+ * Contrôle la durée d'un segment contre les bornes min/max des paramètres
+ * globaux. Renvoie `null` si la durée respecte les bornes ou s'il s'agit d'un
+ * segment de départ/arrivée.
+ * @param segment segment à contrôler
  * @param bounds durées min et max autorisées, en heures
  */
-export function findSegmentDurationViolations(
-    itinerary: Itinerary,
+export function getSegmentDurationViolation(
+    segment: Segment,
     bounds: SegmentDurationBounds
-): SegmentDurationViolation[] {
-    const { minSegmentDuration, maxSegmentDuration } = bounds;
+): SegmentDurationViolation | null {
+    if (!isCheckableSegment(segment)) {
+        return null;
+    }
 
-    return itinerary.segments.filter(isCheckableSegment).flatMap((segment): SegmentDurationViolation[] => {
-        const hours = normalizeDuration(segment.content.duration).duration / MS_PER_HOUR;
-        const segmentName = segment.content.title || "Segment sans nom";
-        const durationLabel = formatDurationLabel(segment.content.duration);
+    const hours = normalizeDuration(segment.content.duration).duration / MS_PER_HOUR;
+    if (hours >= bounds.minSegmentDuration && hours <= bounds.maxSegmentDuration) {
+        return null;
+    }
 
-        if (hours < minSegmentDuration) {
-            return [{ segmentName, durationLabel, kind: "min" }];
-        }
-        if (hours > maxSegmentDuration) {
-            return [{ segmentName, durationLabel, kind: "max" }];
-        }
-        return [];
-    });
+    return {
+        segmentName: segment.content.title || "Segment sans nom",
+        durationLabel: formatDurationLabel(segment.content.duration),
+        kind: hours < bounds.minSegmentDuration ? "min" : "max",
+    };
 }
 
 /**
- * Construit le message d'erreur affiché lorsqu'un ou plusieurs segments ne
- * respectent pas les bornes de durée.
- * @param violations segments hors bornes
+ * Construit le message court affiché à côté d'un segment hors bornes.
+ * @param violation segment hors bornes
  * @param bounds durées min et max autorisées, en heures
  */
-export function buildSegmentDurationErrorMessage(
-    violations: SegmentDurationViolation[],
+export function buildSegmentDurationHint(
+    violation: SegmentDurationViolation,
     bounds: SegmentDurationBounds
 ): string {
-    const details = violations
-        .map((violation) => {
-            const bound = violation.kind === "min"
-                ? `en dessous du minimum de ${bounds.minSegmentDuration}h`
-                : `au-dessus du maximum de ${bounds.maxSegmentDuration}h`;
-            return `« ${violation.segmentName} » (${violation.durationLabel}) est ${bound}`;
-        })
-        .join(" ; ");
-
-    return `Impossible d'enregistrer : ${details}.`;
+    return violation.kind === "min"
+        ? `« ${violation.segmentName} » trop court : ${violation.durationLabel} (min ${bounds.minSegmentDuration}h)`
+        : `« ${violation.segmentName} » trop long : ${violation.durationLabel} (max ${bounds.maxSegmentDuration}h)`;
 }

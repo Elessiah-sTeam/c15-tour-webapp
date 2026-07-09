@@ -5,7 +5,7 @@ import SubTitleWHour from "../SubTitleWHour.tsx";
 import ItineraryModel from "../../../customObject/Itinerary/ItineraryModel.ts";
 import Item from "../Item.tsx";
 
-export default function SortableStepHeader({category, model} : {category: Segment, model: ItineraryModel}) {
+export default function SortableStepHeader({category, model, durationHint = null} : {category: Segment, model: ItineraryModel, durationHint?: string | null}) {
     const { attributes, listeners, setNodeRef, transform, transition } =
         useSortable({
             id: category.id,
@@ -16,7 +16,9 @@ export default function SortableStepHeader({category, model} : {category: Segmen
         <div
             ref={setNodeRef}
             style={{ transform: CSS.Translate.toString(transform), transition }}
-            className={"StepHeader"}
+            className={durationHint ? "StepHeader invalid" : "StepHeader"}
+            aria-invalid={durationHint ? true : undefined}
+            title={durationHint ?? undefined}
             {...attributes}
             {...listeners}
         >
