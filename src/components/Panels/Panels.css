@@ -118,12 +118,13 @@ h1, .title {
 }
 
 .segment-duration-alert {
+    display: block;
     margin: 4px 0 2px;
     padding: 6px 10px;
     border-radius: 8px;
-    background: rgba(217, 45, 32, 0.12);
+    background: #fbe9e7;
     border: 1px solid rgba(217, 45, 32, 0.4);
-    color: #b42318;
+    color: #8a1510;
     font-family: 'Montserrat', sans-serif;
     font-size: clamp(9px, 1.6vw, 12px);
     font-weight: 600;

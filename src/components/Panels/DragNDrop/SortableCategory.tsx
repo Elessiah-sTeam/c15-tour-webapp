@@ -27,7 +27,7 @@ function SegmentDurationAlert({ message }: Readonly<{ message: string }>) {
         return null;
     }
 
-    return <div className={"segment-duration-alert"} role={"status"}>{message}</div>;
+    return <output className={"segment-duration-alert"}>{message}</output>;
 }
 
 type Props = {
@@ -44,7 +44,7 @@ type Props = {
  * @param idActiveItem ID de la potentielle étape active
  * @param durationHint message si la durée du segment sort des bornes, sinon null
  */
-export default function SortableCategory({ category, visible, idActiveItem, durationHint = null}: Props) {
+export default function SortableCategory({ category, visible, idActiveItem, durationHint = null}: Readonly<Props>) {
     const [previousHint, setPreviousHint] = useState<string | null>(durationHint);
     const [flashId, setFlashId] = useState(0);
 
