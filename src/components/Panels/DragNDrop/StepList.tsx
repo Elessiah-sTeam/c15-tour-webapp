@@ -20,12 +20,20 @@ import PauseLine from "./PauseLine.tsx";
 import {type DndProps, useDragNDrop} from "./UseDragNDrop.tsx";
 import {useItinerary} from "../../../customObject/Itinerary/UseItinerary.ts";
 import {itineraryModel} from "../../../customObject/Itinerary/ItineraryStore.ts";
+import {useSegmentDurationBounds} from "../../../customObject/Itinerary/useSegmentDurationBounds.ts";
+import {buildSegmentDurationHint, getSegmentDurationViolation} from "../../../customObject/Itinerary/segmentDurationValidation.ts";
 
 /**
  * Contient toute la partie DragNDrop sur les segments, et les étapes
  */
 export default function StepList() {
     const itinerary: Itinerary = useItinerary(itineraryModel.store);
+    const bounds = useSegmentDurationBounds(itinerary);
+
+    const durationHintFor = (segment: Segment): string | null => {
+        const violation = getSegmentDurationViolation(segment, bounds);
+        return violation ? buildSegmentDurationHint(violation, bounds) : null;
+    };
 
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
@@ -49,6 +57,7 @@ export default function StepList() {
                             visible={!(cat.id == dnd.activeCat?.id)}
                             category={cat}
                             idActiveItem={dnd.activeItem?.id ? dnd.activeItem.id : null}
+                            durationHint={durationHintFor(cat)}
                         />
                         {!cat.isStartEnd && (cat.content.breakDuration ?? 0) > 0 && (
                             <PauseLine durationSeconds={cat.content.breakDuration ?? 0} />
@@ -68,7 +77,8 @@ export default function StepList() {
                     <SortableCategory
                         visible={true}
                         category={dnd.activeCat}
-                        idActiveItem={null} />
+                        idActiveItem={null}
+                        durationHint={durationHintFor(dnd.activeCat)} />
                 ) : null}
             </DragOverlay>
         </DndContext>
