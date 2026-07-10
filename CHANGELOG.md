@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.3.0](https://github.com/Elessiah-sTeam/c15-tour-webapp/compare/v1.2.0...v1.3.0) (2026-07-10)
+
+
+### Features
+
+* remplace l'icône Vite par les favicons du logo C15 Tour
+* met en évidence les segments hors bornes de durée au lieu de bloquer la sauvegarde ([#165](https://github.com/Elessiah-sTeam/c15-tour-webapp/issues/165))
+* partage du code organisateur en plus du code membre
+
+
+### Bug Fixes
+
+* corrige les remarques Sonar a11y et contraste sur l'alerte de durée
+* garde les bornes de segment réactives sous la mémoïsation React Compiler
+* annote le type de retour de flatMap pour que le build tsc passe
+
 ## [1.2.0](https://github.com/Elessiah-sTeam/c15-tour-webapp/compare/v1.1.0...v1.2.0) (2026-06-17)
 
 

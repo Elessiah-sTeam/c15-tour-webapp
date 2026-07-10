@@ -47,7 +47,8 @@ function itineraryWith(segments: Segment[]): Itinerary {
 describe('StepList pause lines', () => {
     it('affiche une ligne pause pour chaque segment avec une pause', () => {
         mockItinerary = itineraryWith([segment('seg-1', 30 * 60), segment('seg-2', 0)]);
-        render(<StepList />);
+        const { rerender } = render(<StepList />);
+        rerender(<StepList />);
 
         expect(screen.getAllByText('Pause')).toHaveLength(1);
         expect(screen.getByText('0H 30MIN')).toBeInTheDocument();

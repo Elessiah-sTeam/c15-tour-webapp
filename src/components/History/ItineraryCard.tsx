@@ -1,13 +1,15 @@
+import { useState } from "react";
 import { Trash2, Share2, Download, FileDown } from "lucide-react";
 import { ConvoyThumbnail } from "./ConvoyThumbnail";
 import type { ItineraryResponse, SegmentResponse } from "../../customObject/Itinerary/netTypes";
 import { downloadGpx, hasGpxGeometry } from "../../customObject/Itinerary/gpx.ts";
+import useOutsideClick from "../useOutsideClick.ts";
 
 interface ItineraryCardProps {
     itinerary: ItineraryResponse;
     onOpen: (id: number) => void;
     onDelete: (id: number) => void;
-    onShare: (shareCode: string) => void;
+    onShare: (code: string, label: string) => void;
     onExportPdf: (id: number) => void;
     isExportingPdf?: boolean;
 }
@@ -57,6 +59,8 @@ export function ItineraryCard({
     onExportPdf,
     isExportingPdf = false,
 }: ItineraryCardProps) {
+    const [showShareMenu, setShowShareMenu] = useState(false);
+    const shareRef = useOutsideClick<HTMLDivElement>(() => setShowShareMenu(false));
     const segs = segmentsList(itinerary);
     const status = getStatus(itinerary);
     const canDownloadGpx = hasGpxGeometry(segs.map((segment) => ({
@@ -69,10 +73,16 @@ export function ItineraryCard({
     const pdfLabel = isExportingPdf
         ? "G\u00e9n\u00e9ration du PDF..."
         : "Exporter en PDF";
-    const shareLabel = itinerary.shareCode
+    const canShare = Boolean(itinerary.shareCode) || Boolean(itinerary.organiserCode);
+    const shareLabel = canShare
         ? "Partager"
         : "Partage indisponible";
     const deleteLabel = "Supprimer";
+
+    const handleSelectShare = (code: string, label: string) => {
+        setShowShareMenu(false);
+        onShare(code, label);
+    };
 
     return (
         <div className="ch-card">
@@ -129,15 +139,43 @@ export function ItineraryCard({
                     >
                         <FileDown size={16} color={isExportingPdf || !canExportPdf ? "#ccc" : "#BB487C"} />
                     </button>
-                    <button
-                        className="ch-btn-icon"
-                        onClick={() => itinerary.shareCode && onShare(itinerary.shareCode)}
-                        aria-label={shareLabel}
-                        title={shareLabel}
-                        disabled={!itinerary.shareCode}
-                    >
-                        <Share2 size={16} color={itinerary.shareCode ? "#BB487C" : "#ccc"} />
-                    </button>
+                    <div className="ch-share-wrapper" ref={shareRef}>
+                        <button
+                            className="ch-btn-icon"
+                            onClick={() => setShowShareMenu((prev) => !prev)}
+                            aria-label={shareLabel}
+                            title={shareLabel}
+                            aria-haspopup="menu"
+                            aria-expanded={showShareMenu}
+                            disabled={!canShare}
+                        >
+                            <Share2 size={16} color={canShare ? "#BB487C" : "#ccc"} />
+                        </button>
+                        {showShareMenu && (
+                            <div className="ch-share-menu" role="menu">
+                                <button
+                                    type="button"
+                                    className="ch-share-menu-item"
+                                    role="menuitem"
+                                    onClick={() => handleSelectShare(itinerary.shareCode ?? "", "Code membre")}
+                                    disabled={!itinerary.shareCode}
+                                >
+                                    <Share2 size={14} />
+                                    Code membre
+                                </button>
+                                <button
+                                    type="button"
+                                    className="ch-share-menu-item"
+                                    role="menuitem"
+                                    onClick={() => handleSelectShare(itinerary.organiserCode ?? "", "Code orga")}
+                                    disabled={!itinerary.organiserCode}
+                                >
+                                    <Share2 size={14} />
+                                    Code orga
+                                </button>
+                            </div>
+                        )}
+                    </div>
                     <button
                         className="ch-btn-icon"
                         onClick={() => onDelete(itinerary.id)}

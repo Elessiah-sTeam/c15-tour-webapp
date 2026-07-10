@@ -1,4 +1,5 @@
 import { SortableContext, verticalListSortingStrategy} from "@dnd-kit/sortable";
+import { useEffect, useState } from "react";
 import SortableStepHeader from "./SortableStepHeader.tsx";
 import SortablePDP from "./SortablePDP.tsx";
 import type {Segment, Step} from "../../../customObject/Itinerary/types.ts";
@@ -7,10 +8,33 @@ import {itineraryModel} from "../../../customObject/Itinerary/ItineraryStore.ts"
 import {TimeSpan} from "../../../customObject/TimeSpan.ts";
 import {requestSearchForStep} from "../../../customObject/Search/SearchIntentStore.ts";
 
+const DURATION_ALERT_DURATION_MS = 4000;
+
+/**
+ * Message temporaire signalant une durée de segment hors bornes. Il se masque
+ * seul après quelques secondes ; on le remonte via une `key` pour rejouer
+ * l'alerte à chaque nouveau dépassement.
+ */
+function SegmentDurationAlert({ message }: Readonly<{ message: string }>) {
+    const [visible, setVisible] = useState(true);
+
+    useEffect(() => {
+        const timer = setTimeout(() => setVisible(false), DURATION_ALERT_DURATION_MS);
+        return () => clearTimeout(timer);
+    }, []);
+
+    if (!visible) {
+        return null;
+    }
+
+    return <output className={"segment-duration-alert"}>{message}</output>;
+}
+
 type Props = {
     category: Segment,
     visible: boolean,
     idActiveItem: string  | null,
+    durationHint?: string | null,
 }
 
 /**
@@ -18,8 +42,18 @@ type Props = {
  * @param category objet snapshot du segment
  * @param visible visibilité du segment
  * @param idActiveItem ID de la potentielle étape active
+ * @param durationHint message si la durée du segment sort des bornes, sinon null
  */
-export default function SortableCategory({ category, visible, idActiveItem}: Props) {
+export default function SortableCategory({ category, visible, idActiveItem, durationHint = null}: Readonly<Props>) {
+    const [previousHint, setPreviousHint] = useState<string | null>(durationHint);
+    const [flashId, setFlashId] = useState(0);
+
+    if (durationHint !== previousHint) {
+        setPreviousHint(durationHint);
+        if (durationHint) {
+            setFlashId((id) => id + 1);
+        }
+    }
 
     function handleNewStep()
     {
@@ -60,7 +94,10 @@ export default function SortableCategory({ category, visible, idActiveItem}: Pro
             className={"category-box"}
             style={{opacity: visible ? 1 : 0}}
         >
-            { !category.isStartEnd ? <SortableStepHeader category={category} model={itineraryModel} /> : <></> }
+            { !category.isStartEnd ? <SortableStepHeader category={category} model={itineraryModel} durationHint={durationHint} /> : <></> }
+            { durationHint && flashId > 0 && (
+                <SegmentDurationAlert key={flashId} message={durationHint} />
+            )}
             { category.id == "end" ?
                 <button
                     type="button"

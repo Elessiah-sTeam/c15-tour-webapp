@@ -65,6 +65,7 @@ class ItineraryModel {
                 id: -1,
                 name: "Nouveau Convoi",
                 shareCode: "",
+                organiserCode: "",
                 totalDuration: new TimeSpan(),
                 totalDistance: 0,
                 segments: [],

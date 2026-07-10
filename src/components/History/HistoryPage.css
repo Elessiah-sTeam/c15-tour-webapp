@@ -340,6 +340,53 @@ html, body {
     border-color: #BB487C;
 }
 
+.ch-share-wrapper {
+    position: relative;
+    display: inline-flex;
+}
+
+.ch-share-menu {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    right: 0;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    min-width: 170px;
+    padding: 6px;
+    gap: 4px;
+    background: #ffffff;
+    border: 2px solid #BB487C;
+    border-radius: 12px;
+    box-shadow: 0 12px 28px rgba(95, 23, 58, 0.22);
+}
+
+.ch-share-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 9px 10px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: #BB487C;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    transition: background 120ms ease;
+}
+
+.ch-share-menu-item:hover:not(:disabled) {
+    background: rgba(187, 72, 124, 0.12);
+}
+
+.ch-share-menu-item:disabled {
+    color: #ccc;
+    cursor: default;
+}
+
 .ch-empty {
     text-align: center;
     padding: 60px 20px;
