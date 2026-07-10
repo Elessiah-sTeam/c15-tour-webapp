@@ -1,7 +1,7 @@
 {
   "name": "c15-tour-webapp",
   "private": true,
-  "version": "1.1.1-snapshot",
+  "version": "1.3.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host",
